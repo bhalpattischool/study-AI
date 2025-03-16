@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -257,7 +258,8 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
                 remarkPlugins={[remarkGfm]}
                 components={{
                   code({node, className, children, ...props}) {
-                    const match = /language-(\w+)/.exec(className || '')
+                    const match = /language-(\w+)/.exec(className || '');
+                    const inline = props.inline || false; // Add inline property with default value
                     return !inline && match ? (
                       <SyntaxHighlighter
                         language={match[1]}
