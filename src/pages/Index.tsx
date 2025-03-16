@@ -3,12 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { chatDB } from '@/lib/db';
 import Sidebar from '@/components/Sidebar';
 import Chat from '@/components/Chat';
+import ChatHeader from '@/components/ChatHeader';
 import { toast } from "sonner";
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -40,6 +42,9 @@ const Index = () => {
     try {
       const newChat = await chatDB.createNewChat();
       setCurrentChatId(newChat.id);
+      if (isMobile) {
+        setIsSidebarOpen(false);
+      }
     } catch (error) {
       console.error('Error creating new chat:', error);
       toast.error('Failed to create new chat');
@@ -48,6 +53,13 @@ const Index = () => {
 
   const handleChatSelect = (chatId: string) => {
     setCurrentChatId(chatId);
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    }
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   if (isLoading) {
@@ -63,15 +75,24 @@ const Index = () => {
       <Sidebar 
         currentChatId={currentChatId} 
         onChatSelect={handleChatSelect} 
-        onNewChat={handleNewChat} 
+        onNewChat={handleNewChat}
+        isOpen={isSidebarOpen || !isMobile}
+        onClose={() => setIsSidebarOpen(false)}
       />
       
-      <main className={`flex-1 ${isMobile ? 'w-full' : ''}`}>
+      <main className="flex-1 flex flex-col h-full">
+        <ChatHeader 
+          onToggleSidebar={toggleSidebar} 
+          onNewChat={handleNewChat}
+        />
+        
         {currentChatId && (
-          <Chat 
-            chatId={currentChatId} 
-            onChatUpdated={() => {}} 
-          />
+          <div className="flex-1 overflow-hidden">
+            <Chat 
+              chatId={currentChatId} 
+              onChatUpdated={() => {}} 
+            />
+          </div>
         )}
       </main>
     </div>

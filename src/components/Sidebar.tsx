@@ -4,7 +4,7 @@ import { chatDB, Chat } from '@/lib/db';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { MessageSquare, Trash, Menu, X } from "lucide-react";
+import { MessageSquare, Trash, X } from "lucide-react";
 import NewChatButton from './NewChatButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -13,11 +13,18 @@ interface SidebarProps {
   currentChatId: string | null;
   onChatSelect: (chatId: string) => void;
   onNewChat: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentChatId, onChatSelect, onNewChat }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  currentChatId, 
+  onChatSelect, 
+  onNewChat, 
+  isOpen,
+  onClose 
+}) => {
   const [chats, setChats] = useState<Chat[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -53,43 +60,29 @@ const Sidebar: React.FC<SidebarProps> = ({ currentChatId, onChatSelect, onNewCha
     }
   };
 
-  const handleChatClick = (chatId: string) => {
-    onChatSelect(chatId);
-    if (isMobile) {
-      setIsOpen(false);
-    }
-  };
-
-  const handleNewChat = () => {
-    onNewChat();
-    if (isMobile) {
-      setIsOpen(false);
-    }
-  };
-
   return (
     <>
-      {isMobile && (
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="fixed top-4 left-4 z-50 bg-background/80 backdrop-blur-sm shadow-sm rounded-full"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X size={20} /> : <Menu size={20} />}
-        </Button>
-      )}
-      
       <aside 
         className={cn(
-          "bg-sidebar text-sidebar-foreground w-64 flex flex-col border-r border-sidebar-border",
+          "bg-sidebar text-sidebar-foreground w-72 flex flex-col border-r border-sidebar-border",
           "transition-all duration-300 ease-in-out h-full",
           isMobile ? "fixed inset-y-0 left-0 z-40" : "relative",
           isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"
         )}
       >
+        {isMobile && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="absolute top-4 right-4 z-10" 
+            onClick={onClose}
+          >
+            <X size={20} />
+          </Button>
+        )}
+        
         <div className="p-4">
-          <NewChatButton onClick={handleNewChat} />
+          <NewChatButton onClick={onNewChat} />
         </div>
         
         <ScrollArea className="flex-1">
@@ -102,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentChatId, onChatSelect, onNewCha
                   "transition-colors truncate hover:bg-sidebar-accent",
                   chat.id === currentChatId && "bg-sidebar-accent"
                 )}
-                onClick={() => handleChatClick(chat.id)}
+                onClick={() => onChatSelect(chat.id)}
               >
                 <MessageSquare size={16} className="flex-shrink-0" />
                 <span className="flex-1 truncate text-sm">{chat.title}</span>
@@ -133,7 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentChatId, onChatSelect, onNewCha
       {isMobile && isOpen && (
         <div 
           className="fixed inset-0 bg-black/30 z-30 backdrop-blur-sm"
-          onClick={() => setIsOpen(false)}
+          onClick={onClose}
         />
       )}
     </>
