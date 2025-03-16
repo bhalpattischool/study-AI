@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Attachment, Mic, SendHorizonal } from "lucide-react";
+import { Paperclip, Mic, SendHorizonal } from "lucide-react";
 
 interface ChatFooterProps {
   onSend: (message: string) => void;
@@ -61,7 +61,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
             className="h-7 w-7 rounded-md text-gray-400 hover:text-gray-500"
             title="Attach files"
           >
-            <Attachment size={16} />
+            <Paperclip size={16} />
           </Button>
           
           <Button
