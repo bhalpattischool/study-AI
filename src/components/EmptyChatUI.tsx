@@ -2,6 +2,7 @@
 import React from 'react';
 import SuggestionButton from './SuggestionButton';
 import { MessageSquare, Sparkles, FileText, Code, BookOpen } from 'lucide-react';
+import { getTimeBasedGreeting } from '@/utils/timeUtils';
 
 interface EmptyChatUIProps {
   onCreateImage: () => void;
@@ -18,13 +19,20 @@ const EmptyChatUI: React.FC<EmptyChatUIProps> = ({
   onSummarizeText,
   onMore
 }) => {
+  const greeting = getTimeBasedGreeting();
+  
   return (
     <div className="flex flex-col items-center justify-center h-full p-4 space-y-8">
-      <h1 className="text-2xl font-medium text-gray-800">ChatGPT</h1>
+      <h1 className="text-3xl font-medium text-gray-800 dark:text-gray-200 animate-fade-in">
+        {greeting}
+      </h1>
+      <h2 className="text-xl text-gray-600 dark:text-gray-400">
+        How can Study AI assist you today?
+      </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl px-4">
         <div className="col-span-1 md:col-span-2 mb-2">
-          <h2 className="text-lg font-medium text-gray-700 mb-3">Examples</h2>
+          <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">Examples</h2>
         </div>
         
         <SuggestionButton 
@@ -52,8 +60,8 @@ const EmptyChatUI: React.FC<EmptyChatUIProps> = ({
         />
       </div>
 
-      <div className="text-center text-xs text-gray-500 max-w-md">
-        ChatGPT can make mistakes. Consider checking important information.
+      <div className="text-center text-xs text-gray-500 dark:text-gray-400 max-w-md">
+        Study AI can make mistakes. Consider checking important information.
       </div>
     </div>
   );

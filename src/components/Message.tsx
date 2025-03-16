@@ -154,32 +154,37 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
     }, 0);
   };
 
+  const isUserMessage = message.role === "user";
+
   return (
     <div 
       className={cn(
         "py-6 group transition-colors duration-300",
-        message.role === "user" 
+        isUserMessage 
           ? "bg-white dark:bg-gray-800" 
           : "bg-purple-50 dark:bg-gray-900"
       )}
     >
-      <div className="max-w-3xl mx-auto px-4 md:px-8 flex gap-4">
+      <div className={cn(
+        "max-w-3xl mx-auto px-4 md:px-8 flex gap-4",
+        isUserMessage ? "flex-row-reverse" : "flex-row"
+      )}>
         <div 
           className={cn(
             "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 transition-transform hover:scale-110 shadow-md",
-            message.role === "user" 
+            isUserMessage 
               ? "bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200" 
               : "bg-gradient-to-br from-indigo-500 to-purple-600 text-white"
           )}
         >
-          {message.role === "user" ? <User size={16} /> : "AI"}
+          {isUserMessage ? <User size={16} /> : "AI"}
         </div>
         
         <div className={cn(
           "flex-1 min-w-0",
-          message.role === "user" 
-            ? "bg-purple-100 dark:bg-gray-700 px-4 py-3 rounded-2xl rounded-tl-none shadow-sm"
-            : "bg-white dark:bg-gray-800 px-4 py-3 rounded-2xl rounded-tr-none shadow-sm border border-purple-100 dark:border-gray-700"
+          isUserMessage 
+            ? "bg-purple-100 dark:bg-gray-700 px-4 py-3 rounded-2xl rounded-tr-none shadow-sm"
+            : "bg-white dark:bg-gray-800 px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-purple-100 dark:border-gray-700"
         )}>
           {isEditing ? (
             <div className="w-full animate-fade-in">
@@ -259,8 +264,8 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
                 components={{
                   code({node, className, children, ...props}) {
                     const match = /language-(\w+)/.exec(className || '');
-                    const inline = props.inline || false; // Add inline property with default value
-                    return !inline && match ? (
+                    const isInline = props.inline || false; // Fix: Use isInline instead of inline
+                    return !isInline && match ? (
                       <SyntaxHighlighter
                         language={match[1]}
                         style={atomDark}
@@ -285,9 +290,15 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
       </div>
       
       {!isEditing && (
-        <div className="max-w-3xl mx-auto px-4 md:px-8 mt-3">
-          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity gap-1">
-            {message.role === "user" && (
+        <div className={cn(
+          "max-w-3xl mx-auto px-4 md:px-8 mt-3",
+          isUserMessage ? "text-right" : "text-left"
+        )}>
+          <div className={cn(
+            "opacity-0 group-hover:opacity-100 transition-opacity gap-1",
+            isUserMessage ? "flex justify-start flex-row-reverse" : "flex justify-start"
+          )}>
+            {isUserMessage && (
               <Button 
                 size="sm" 
                 variant="ghost" 
@@ -299,7 +310,7 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
               </Button>
             )}
             
-            {message.role === "bot" && (
+            {!isUserMessage && (
               <>
                 <Button 
                   size="sm" 

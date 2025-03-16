@@ -106,6 +106,17 @@ export default {
 				'fade-out': 'fade-out 0.3s ease-in-out',
 				'slide-in': 'slide-in 0.4s ease-out',
 				'pulse-subtle': 'pulse-subtle 2s infinite ease-in-out'
+			},
+			utilities: {
+				'.animation-delay-150': {
+					'animation-delay': '150ms',
+				},
+				'.animation-delay-300': {
+					'animation-delay': '300ms',
+				},
+				'.animation-delay-500': {
+					'animation-delay': '500ms',
+				},
 			}
 		}
 	},
