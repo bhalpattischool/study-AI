@@ -6,6 +6,7 @@ import Chat from '@/components/Chat';
 import ChatHeader from '@/components/ChatHeader';
 import { toast } from "sonner";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Sparkles } from 'lucide-react';
 
 const Index = () => {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -64,14 +65,19 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="animate-pulse-subtle">Loading...</div>
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-gray-900 dark:to-purple-950">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+            <Sparkles className="animate-pulse" />
+          </div>
+          <div className="text-purple-800 dark:text-purple-300 font-medium">Loading Study AI...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-900">
       <Sidebar 
         currentChatId={currentChatId} 
         onChatSelect={handleChatSelect} 

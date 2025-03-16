@@ -1,11 +1,15 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Copy, Trash, Pencil, Check, X, User, VolumeIcon } from "lucide-react";
+import { Copy, Trash, Pencil, Check, X, User, VolumeIcon, Code, Bold, Italic, List, Heading, Heart } from "lucide-react";
 import { chatDB, Message as MessageType } from "@/lib/db";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface MessageProps {
   message: MessageType;
@@ -16,8 +20,36 @@ interface MessageProps {
 const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
+  const [isTyping, setIsTyping] = useState(false);
+  const [displayedContent, setDisplayedContent] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+
+  // Typing animation effect for bot messages
+  useEffect(() => {
+    if (message.role === 'bot' && !isEditing) {
+      setIsTyping(true);
+      setDisplayedContent('');
+      
+      let i = 0;
+      const typingSpeed = 15; // ms per character
+      
+      const typingInterval = setInterval(() => {
+        if (i < message.content.length) {
+          setDisplayedContent(prev => prev + message.content.charAt(i));
+          i++;
+        } else {
+          clearInterval(typingInterval);
+          setIsTyping(false);
+        }
+      }, typingSpeed);
+      
+      return () => clearInterval(typingInterval);
+    } else {
+      setDisplayedContent(message.content);
+    }
+  }, [message.content, message.role, isEditing]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -71,39 +103,135 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
 
   const handleTextToSpeech = () => {
     const utterance = new SpeechSynthesisUtterance(message.content);
+    utterance.rate = 1;
+    utterance.pitch = 1;
     window.speechSynthesis.speak(utterance);
     toast.success("Playing audio");
+  };
+
+  const handleLike = () => {
+    setIsLiked(!isLiked);
+    if (!isLiked) {
+      toast.success("Response marked as helpful");
+    }
+  };
+
+  const insertMarkdown = (pattern: string) => {
+    if (!textareaRef.current) return;
+    
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    const selectedText = editedContent.substring(start, end);
+    const beforeText = editedContent.substring(0, start);
+    const afterText = editedContent.substring(end);
+    
+    let newText;
+    switch (pattern) {
+      case 'bold':
+        newText = beforeText + `**${selectedText || 'bold text'}**` + afterText;
+        break;
+      case 'italic':
+        newText = beforeText + `*${selectedText || 'italic text'}*` + afterText;
+        break;
+      case 'code':
+        newText = beforeText + `\`\`\`\n${selectedText || 'code block'}\n\`\`\`` + afterText;
+        break;
+      case 'list':
+        newText = beforeText + `\n- ${selectedText || 'list item'}\n- another item\n` + afterText;
+        break;
+      case 'heading':
+        newText = beforeText + `\n## ${selectedText || 'Heading'}\n` + afterText;
+        break;
+      default:
+        newText = editedContent;
+    }
+    
+    setEditedContent(newText);
+    
+    // Re-focus and position cursor
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 0);
   };
 
   return (
     <div 
       className={cn(
-        "py-6 group",
+        "py-6 group transition-colors duration-300",
         message.role === "user" 
           ? "bg-white dark:bg-gray-800" 
-          : "bg-gray-50 dark:bg-gray-900"
+          : "bg-purple-50 dark:bg-gray-900"
       )}
     >
       <div className="max-w-3xl mx-auto px-4 md:px-8 flex gap-4">
         <div 
           className={cn(
-            "w-8 h-8 rounded-sm flex items-center justify-center flex-shrink-0 mt-1",
+            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 transition-transform hover:scale-110 shadow-md",
             message.role === "user" 
-              ? "bg-gray-300 text-gray-800" 
-              : "bg-emerald-600 text-white"
+              ? "bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200" 
+              : "bg-gradient-to-br from-indigo-500 to-purple-600 text-white"
           )}
         >
           {message.role === "user" ? <User size={16} /> : "AI"}
         </div>
         
-        <div className="flex-1 min-w-0">
+        <div className={cn(
+          "flex-1 min-w-0",
+          message.role === "user" 
+            ? "bg-purple-100 dark:bg-gray-700 px-4 py-3 rounded-2xl rounded-tl-none shadow-sm"
+            : "bg-white dark:bg-gray-800 px-4 py-3 rounded-2xl rounded-tr-none shadow-sm border border-purple-100 dark:border-gray-700"
+        )}>
           {isEditing ? (
             <div className="w-full animate-fade-in">
+              <div className="flex gap-1 mb-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => insertMarkdown('bold')}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Bold size={14} />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => insertMarkdown('italic')}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Italic size={14} />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => insertMarkdown('code')}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Code size={14} />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => insertMarkdown('list')}
+                  className="h-7 px-2 text-xs"
+                >
+                  <List size={14} />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => insertMarkdown('heading')}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Heading size={14} />
+                </Button>
+              </div>
               <Textarea
                 ref={textareaRef}
                 value={editedContent}
                 onChange={(e) => setEditedContent(e.target.value)}
-                className="w-full min-h-[120px] mb-2 resize-none border-gray-300"
+                className="w-full min-h-[120px] mb-2 resize-none border-gray-300 dark:border-gray-600 rounded-xl"
               />
               <div className="flex gap-2 justify-end">
                 <Button 
@@ -117,15 +245,41 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
                 <Button 
                   size="sm" 
                   onClick={handleSaveEdit}
-                  className="flex items-center gap-1 text-sm"
+                  className="flex items-center gap-1 text-sm bg-purple-600 hover:bg-purple-700"
                 >
                   <Check size={14} /> Save
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200">
-              {message.content}
+            <div className={cn(
+              "prose dark:prose-invert max-w-none prose-p:my-1 prose-pre:my-2 prose-pre:p-0 prose-headings:mt-3 prose-headings:mb-2",
+              isTyping && message.role === 'bot' && "after:content-['▎'] after:animate-pulse after:ml-0.5 after:text-purple-500"
+            )}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  code({node, inline, className, children, ...props}) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    return !inline && match ? (
+                      <SyntaxHighlighter
+                        language={match[1]}
+                        style={atomDark}
+                        PreTag="div"
+                        {...props}
+                      >
+                        {String(children).replace(/\n$/, '')}
+                      </SyntaxHighlighter>
+                    ) : (
+                      <code className={className} {...props}>
+                        {children}
+                      </code>
+                    )
+                  }
+                }}
+              >
+                {displayedContent}
+              </ReactMarkdown>
             </div>
           )}
         </div>
@@ -133,13 +287,13 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
       
       {!isEditing && (
         <div className="max-w-3xl mx-auto px-4 md:px-8 mt-3">
-          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity gap-1">
             {message.role === "user" && (
               <Button 
                 size="sm" 
                 variant="ghost" 
                 onClick={handleEdit}
-                className="h-7 px-2 text-xs text-gray-500"
+                className="h-7 px-2 text-xs text-purple-500 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-900 transition-colors"
               >
                 <Pencil size={14} className="mr-1" />
                 Edit
@@ -151,17 +305,33 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
                 <Button 
                   size="sm" 
                   variant="ghost" 
+                  onClick={handleLike}
+                  className={cn(
+                    "h-7 px-2 text-xs transition-colors",
+                    isLiked 
+                      ? "text-pink-500" 
+                      : "text-gray-500 hover:text-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900"
+                  )}
+                >
+                  <Heart size={14} className={cn("mr-1", isLiked ? "fill-pink-500" : "")} />
+                  {isLiked ? "Liked" : "Like"}
+                </Button>
+                
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
                   onClick={handleTextToSpeech}
-                  className="h-7 px-2 text-xs text-gray-500"
+                  className="h-7 px-2 text-xs text-indigo-500 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900 transition-colors"
                 >
                   <VolumeIcon size={14} className="mr-1" />
                   Speak
                 </Button>
+                
                 <Button 
                   size="sm" 
                   variant="ghost" 
                   onClick={handleCopy}
-                  className="h-7 px-2 text-xs text-gray-500"
+                  className="h-7 px-2 text-xs text-purple-500 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-900 transition-colors"
                 >
                   <Copy size={14} className={cn("mr-1", isCopied ? "text-green-500" : "")} />
                   {isCopied ? "Copied!" : "Copy"}
@@ -173,7 +343,7 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
               size="sm" 
               variant="ghost" 
               onClick={handleDelete}
-              className="h-7 px-2 text-xs text-gray-500 hover:text-red-500"
+              className="h-7 px-2 text-xs text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900 transition-colors"
             >
               <Trash size={14} className="mr-1" />
               Delete

@@ -85,18 +85,18 @@ const Chat: React.FC<ChatProps> = ({ chatId, onChatUpdated }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-800">
+    <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50 dark:from-gray-800 dark:to-gray-900">
       <div className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <EmptyChatUI 
-            onCreateImage={() => handleSuggestionClick("Generate a React component for a contact form")}
-            onSurpriseMe={() => handleSuggestionClick("Explain quantum computing in simple terms")}
-            onAnalyzeImages={() => handleSuggestionClick("Give me ideas for my next vacation")}
-            onSummarizeText={() => handleSuggestionClick("Summarize this article for a 2nd grader")}
+            onCreateImage={() => handleSuggestionClick("Help me understand quantum physics concepts")}
+            onSurpriseMe={() => handleSuggestionClick("Explain machine learning in simple terms")}
+            onAnalyzeImages={() => handleSuggestionClick("Give me a study plan for IELTS exam")}
+            onSummarizeText={() => handleSuggestionClick("Summarize the key concepts of organic chemistry")}
             onMore={() => {}}
           />
         ) : (
-          <div className="pb-36">
+          <div className="pb-48">
             {messages.map((message) => (
               <Message
                 key={message.id}
