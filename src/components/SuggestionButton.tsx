@@ -18,13 +18,13 @@ const SuggestionButton: React.FC<SuggestionButtonProps> = ({
   return (
     <button
       className={cn(
-        "flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors",
+        "flex items-center gap-2 px-4 py-3 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors text-sm",
         className
       )}
       onClick={onClick}
     >
-      <div className="text-xl">{icon}</div>
-      <span className="text-gray-600">{label}</span>
+      <div className="text-gray-600">{icon}</div>
+      <span className="text-gray-700">{label}</span>
     </button>
   );
 };

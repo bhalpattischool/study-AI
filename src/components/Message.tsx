@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Copy, Trash, Pencil, Check, X } from "lucide-react";
+import { Copy, Trash, Pencil, Check, X, User, VolumeIcon } from "lucide-react";
 import { chatDB, Message as MessageType } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
@@ -69,92 +69,116 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
     setEditedContent(message.content);
   };
 
+  const handleTextToSpeech = () => {
+    const utterance = new SpeechSynthesisUtterance(message.content);
+    window.speechSynthesis.speak(utterance);
+    toast.success("Playing audio");
+  };
+
   return (
     <div 
       className={cn(
-        "py-6 px-4 md:px-8 flex items-start gap-4 animate-fade-in border-b",
+        "py-6 group",
         message.role === "user" 
-          ? "bg-white" 
-          : "bg-secondary/40 backdrop-blur-sm"
+          ? "bg-white dark:bg-gray-800" 
+          : "bg-gray-50 dark:bg-gray-900"
       )}
     >
-      <div 
-        className={cn(
-          "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-          message.role === "user" 
-            ? "bg-chat-user text-white" 
-            : "bg-chat-bot text-white"
-        )}
-      >
-        {message.role === "user" ? "U" : "G"}
-      </div>
-      
-      <div className="flex-1 min-w-0">
-        {isEditing ? (
-          <div className="w-full animate-fade-in">
-            <Textarea
-              ref={textareaRef}
-              value={editedContent}
-              onChange={(e) => setEditedContent(e.target.value)}
-              className="w-full min-h-[120px] mb-2 resize-none"
-            />
-            <div className="flex gap-2 justify-end">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={handleCancelEdit}
-                className="flex items-center gap-1"
-              >
-                <X size={16} /> Cancel
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={handleSaveEdit}
-                className="flex items-center gap-1"
-              >
-                <Check size={16} /> Save
-              </Button>
+      <div className="max-w-3xl mx-auto px-4 md:px-8 flex gap-4">
+        <div 
+          className={cn(
+            "w-8 h-8 rounded-sm flex items-center justify-center flex-shrink-0 mt-1",
+            message.role === "user" 
+              ? "bg-gray-300 text-gray-800" 
+              : "bg-emerald-600 text-white"
+          )}
+        >
+          {message.role === "user" ? <User size={16} /> : "AI"}
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          {isEditing ? (
+            <div className="w-full animate-fade-in">
+              <Textarea
+                ref={textareaRef}
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                className="w-full min-h-[120px] mb-2 resize-none border-gray-300"
+              />
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={handleCancelEdit}
+                  className="flex items-center gap-1 text-sm"
+                >
+                  <X size={14} /> Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleSaveEdit}
+                  className="flex items-center gap-1 text-sm"
+                >
+                  <Check size={14} /> Save
+                </Button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="whitespace-pre-wrap break-words leading-relaxed">
-            {message.content}
-          </div>
-        )}
+          ) : (
+            <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+              {message.content}
+            </div>
+          )}
+        </div>
       </div>
       
       {!isEditing && (
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity">
-          {message.role === "user" && (
+        <div className="max-w-3xl mx-auto px-4 md:px-8 mt-3">
+          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+            {message.role === "user" && (
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={handleEdit}
+                className="h-7 px-2 text-xs text-gray-500"
+              >
+                <Pencil size={14} className="mr-1" />
+                Edit
+              </Button>
+            )}
+            
+            {message.role === "bot" && (
+              <>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={handleTextToSpeech}
+                  className="h-7 px-2 text-xs text-gray-500"
+                >
+                  <VolumeIcon size={14} className="mr-1" />
+                  Speak
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={handleCopy}
+                  className="h-7 px-2 text-xs text-gray-500"
+                >
+                  <Copy size={14} className={cn("mr-1", isCopied ? "text-green-500" : "")} />
+                  {isCopied ? "Copied!" : "Copy"}
+                </Button>
+              </>
+            )}
+            
             <Button 
-              size="icon" 
+              size="sm" 
               variant="ghost" 
-              onClick={handleEdit}
-              className="w-8 h-8"
+              onClick={handleDelete}
+              className="h-7 px-2 text-xs text-gray-500 hover:text-red-500"
             >
-              <Pencil size={16} />
+              <Trash size={14} className="mr-1" />
+              Delete
             </Button>
-          )}
-          
-          {message.role === "bot" && (
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              onClick={handleCopy}
-              className="w-8 h-8"
-            >
-              <Copy size={16} className={isCopied ? "text-green-500" : ""} />
-            </Button>
-          )}
-          
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            onClick={handleDelete}
-            className="w-8 h-8 text-destructive"
-          >
-            <Trash size={16} />
-          </Button>
+          </div>
         </div>
       )}
     </div>
