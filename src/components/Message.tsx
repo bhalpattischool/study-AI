@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,6 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
-  // Typing animation effect for bot messages
   useEffect(() => {
     if (message.role === 'bot' && !isEditing) {
       setIsTyping(true);
@@ -148,7 +146,6 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
     
     setEditedContent(newText);
     
-    // Re-focus and position cursor
     setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
@@ -259,7 +256,7 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  code({node, inline, className, children, ...props}) {
+                  code({node, className, children, ...props}) {
                     const match = /language-(\w+)/.exec(className || '')
                     return !inline && match ? (
                       <SyntaxHighlighter
