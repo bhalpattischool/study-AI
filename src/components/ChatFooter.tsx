@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Paperclip, Mic, SendHorizonal, MicOff, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ChatFooterProps {
   onSend: (message: string) => void;
@@ -16,6 +17,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
   const [transcript, setTranscript] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const isMobile = useIsMobile();
 
   // Auto-resize textarea
   useEffect(() => {
@@ -31,7 +33,6 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
       const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognitionAPI();
       
-      // Changed from continuous to false to prevent repeated transcription
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = true;
       
@@ -46,7 +47,6 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
       };
       
       recognitionRef.current.onend = () => {
-        // Automatically stop listening when recognition ends
         setIsListening(false);
       };
       
@@ -74,7 +74,6 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
       recognitionRef.current.stop();
       setIsListening(false);
     } else {
-      // Reset transcript when starting new listening session
       setTranscript('');
       recognitionRef.current.start();
       setIsListening(true);
@@ -88,12 +87,10 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
       setInput('');
       setTranscript('');
       
-      // Reset height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
       
-      // Stop listening if active
       if (isListening) {
         toggleListening();
       }
@@ -108,28 +105,30 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white dark:bg-gray-800 border-t border-purple-100 dark:border-purple-900 shadow-lg animate-fade-in z-10">
+    <div className="fixed bottom-0 left-0 right-0 p-3 pb-safe bg-white dark:bg-gray-800 border-t border-purple-100 dark:border-purple-900 shadow-lg animate-fade-in z-10">
       <div className="relative max-w-3xl mx-auto">
         <Textarea
           ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Message Study AI..."
+          placeholder={isMobile ? "Message..." : "Message Study AI..."}
           className="resize-none min-h-[48px] max-h-[200px] py-3 pr-14 pl-4 rounded-xl border-purple-200 shadow-md focus:border-purple-400 focus:ring-2 focus:ring-purple-300 focus:ring-opacity-50 transition-all dark:bg-gray-700 dark:border-gray-600 dark:focus:border-purple-500"
           disabled={isLoading}
           rows={1}
         />
         
         <div className="absolute right-3 bottom-3 flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 rounded-md text-purple-400 hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900 dark:hover:text-purple-300 transition-colors"
-            title="Attach files"
-          >
-            <Paperclip size={16} />
-          </Button>
+          {!isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 rounded-md text-purple-400 hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900 dark:hover:text-purple-300 transition-colors"
+              title="Attach files"
+            >
+              <Paperclip size={16} />
+            </Button>
+          )}
           
           <Button
             variant="ghost"
@@ -160,11 +159,13 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
         </div>
       </div>
       
-      <div className="max-w-3xl mx-auto mt-2 text-xs text-center text-purple-500 dark:text-purple-400 flex items-center justify-center gap-1">
-        <Sparkles size={12} className="text-yellow-500" />
-        Study AI - Smart learning assistant
-        <Sparkles size={12} className="text-yellow-500" />
-      </div>
+      {!isMobile && (
+        <div className="max-w-3xl mx-auto mt-2 text-xs text-center text-purple-500 dark:text-purple-400 flex items-center justify-center gap-1">
+          <Sparkles size={12} className="text-yellow-500" />
+          Study AI - Smart learning assistant
+          <Sparkles size={12} className="text-yellow-500" />
+        </div>
+      )}
     </div>
   );
 };
