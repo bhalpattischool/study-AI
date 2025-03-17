@@ -1,14 +1,16 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Copy, Trash, Pencil, Check, X, User, VolumeIcon, Code, Bold, Italic, List, Heading, Heart } from "lucide-react";
+import { Copy, Trash, Pencil, Check, X, User, VolumeIcon, Code, Bold, Italic, List, Heading, Heart, Volume2, VolumeX } from "lucide-react";
 import { chatDB, Message as MessageType } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Switch } from "@/components/ui/switch";
 
 interface MessageProps {
   message: MessageType;
@@ -24,6 +26,8 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isCopied, setIsCopied] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [isTTSEnabled, setIsTTSEnabled] = useState(true);
+  const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     if (message.role === 'bot' && !isEditing) {
@@ -100,11 +104,33 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
   };
 
   const handleTextToSpeech = () => {
+    // If TTS is disabled, don't do anything
+    if (!isTTSEnabled) {
+      toast.info("Text-to-speech is currently disabled");
+      return;
+    }
+    
+    // Stop any existing speech
+    if (speechSynthesisRef.current) {
+      window.speechSynthesis.cancel();
+    }
+    
     const utterance = new SpeechSynthesisUtterance(message.content);
     utterance.rate = 1;
     utterance.pitch = 1;
+    speechSynthesisRef.current = utterance;
     window.speechSynthesis.speak(utterance);
     toast.success("Playing audio");
+  };
+
+  const toggleTTS = () => {
+    // Cancel any ongoing speech when turning off
+    if (isTTSEnabled && speechSynthesisRef.current) {
+      window.speechSynthesis.cancel();
+    }
+    
+    setIsTTSEnabled(!isTTSEnabled);
+    toast.success(isTTSEnabled ? "Text-to-speech disabled" : "Text-to-speech enabled");
   };
 
   const handleLike = () => {
@@ -326,11 +352,26 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
                   {isLiked ? "Liked" : "Like"}
                 </Button>
                 
+                <div className="flex items-center gap-1 h-7 px-2 text-xs text-indigo-500 dark:text-indigo-400">
+                  {isTTSEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                  <span className="mr-1">TTS</span>
+                  <Switch 
+                    checked={isTTSEnabled}
+                    onCheckedChange={toggleTTS} 
+                    className="scale-75 data-[state=checked]:bg-indigo-500"
+                  />
+                </div>
+                
                 <Button 
                   size="sm" 
                   variant="ghost" 
                   onClick={handleTextToSpeech}
-                  className="h-7 px-2 text-xs text-indigo-500 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900 transition-colors"
+                  className={cn(
+                    "h-7 px-2 text-xs transition-colors",
+                    !isTTSEnabled 
+                      ? "text-gray-400 cursor-not-allowed" 
+                      : "text-indigo-500 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900"
+                  )}
                 >
                   <VolumeIcon size={14} className="mr-1" />
                   Speak

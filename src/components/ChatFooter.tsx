@@ -13,6 +13,7 @@ interface ChatFooterProps {
 const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
@@ -29,16 +30,24 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
       const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognitionAPI();
-      recognitionRef.current.continuous = true;
+      
+      // Changed from continuous to false to prevent repeated transcription
+      recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = true;
       
       recognitionRef.current.onresult = (event) => {
-        const transcript = Array.from(event.results)
+        const currentTranscript = Array.from(event.results)
           .map(result => result[0])
           .map(result => result.transcript)
           .join('');
         
-        setInput(transcript);
+        setTranscript(currentTranscript);
+        setInput(currentTranscript);
+      };
+      
+      recognitionRef.current.onend = () => {
+        // Automatically stop listening when recognition ends
+        setIsListening(false);
       };
       
       recognitionRef.current.onerror = (event) => {
@@ -65,6 +74,8 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
       recognitionRef.current.stop();
       setIsListening(false);
     } else {
+      // Reset transcript when starting new listening session
+      setTranscript('');
       recognitionRef.current.start();
       setIsListening(true);
       toast.success('Listening... Speak now');
@@ -75,6 +86,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading }) => {
     if (input.trim() && !isLoading) {
       onSend(input.trim());
       setInput('');
+      setTranscript('');
       
       // Reset height
       if (textareaRef.current) {
