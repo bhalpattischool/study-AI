@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -6,10 +5,12 @@ import { toast } from "sonner";
 import { Copy, Trash, Pencil, Check, X, User, VolumeIcon, Code, Bold, Italic, List, Heading, Heart } from "lucide-react";
 import { chatDB, Message as MessageType } from "@/lib/db";
 import { cn } from "@/lib/utils";
-import ReactMarkdown from 'react-markdown';
+import * as ReactMarkdownLib from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+const ReactMarkdown = ReactMarkdownLib.default;
 
 interface MessageProps {
   message: MessageType;
