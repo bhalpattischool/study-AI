@@ -261,11 +261,10 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  code({node, className, children, ...props}) {
+                  code({node, inline, className, children, ...props}) {
                     const match = /language-(\w+)/.exec(className || '');
-                    const isInline = 'inline' in props ? Boolean(props.inline) : false;
                     
-                    return !isInline && match ? (
+                    return !inline && match ? (
                       <SyntaxHighlighter
                         language={match[1]}
                         style={atomDark}

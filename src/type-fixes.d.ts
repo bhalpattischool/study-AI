@@ -17,9 +17,21 @@ interface Window {
 }
 
 declare module 'react-markdown' {
+  import React from 'react';
+  
+  interface ReactMarkdownProps {
+    children: string;
+    remarkPlugins?: any[];
+    components?: any;
+  }
+  
   interface CodeProps {
+    node?: any;
     inline?: boolean;
     className?: string;
     children: React.ReactNode;
   }
+  
+  const ReactMarkdown: React.FC<ReactMarkdownProps>;
+  export default ReactMarkdown;
 }
