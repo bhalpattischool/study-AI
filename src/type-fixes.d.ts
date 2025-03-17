@@ -15,3 +15,11 @@ interface Window {
   SpeechRecognition: new () => SpeechRecognition;
   webkitSpeechRecognition: new () => SpeechRecognition;
 }
+
+declare module 'react-markdown' {
+  interface CodeProps {
+    inline?: boolean;
+    className?: string;
+    children: React.ReactNode;
+  }
+}
