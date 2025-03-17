@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import Message from './Message';
 import EmptyChatUI from './EmptyChatUI';
 import ChatFooter from './ChatFooter';
-import { Loader2 } from 'lucide-react';
 
 interface ChatProps {
   chatId: string;
@@ -16,6 +15,7 @@ interface ChatProps {
 const Chat: React.FC<ChatProps> = ({ chatId, onChatUpdated }) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResponding, setIsResponding] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,10 +42,11 @@ const Chat: React.FC<ChatProps> = ({ chatId, onChatUpdated }) => {
   };
 
   const handleSend = async (input: string) => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || isResponding) return;
 
     try {
       setIsLoading(true);
+      setIsResponding(true);
       
       // Add user message
       const userMessage = await chatDB.addMessage(chatId, input.trim(), 'user');
@@ -54,8 +55,12 @@ const Chat: React.FC<ChatProps> = ({ chatId, onChatUpdated }) => {
       
       if (onChatUpdated) onChatUpdated();
 
-      // Get AI response
-      const response = await generateResponse(input.trim());
+      // Get current conversation history before adding new response
+      const currentChat = await chatDB.getChat(chatId);
+      const chatHistory = currentChat?.messages || [];
+
+      // Get AI response with conversation history
+      const response = await generateResponse(input.trim(), chatHistory);
       
       // Add bot message
       const botMessage = await chatDB.addMessage(chatId, response, 'bot');
@@ -68,6 +73,7 @@ const Chat: React.FC<ChatProps> = ({ chatId, onChatUpdated }) => {
       toast.error('Failed to send message');
     } finally {
       setIsLoading(false);
+      setIsResponding(false);
     }
   };
 
@@ -125,7 +131,11 @@ const Chat: React.FC<ChatProps> = ({ chatId, onChatUpdated }) => {
         )}
       </div>
       
-      <ChatFooter onSend={handleSend} isLoading={isLoading} />
+      <ChatFooter 
+        onSend={handleSend} 
+        isLoading={isLoading} 
+        isDisabled={isResponding}
+      />
     </div>
   );
 };
