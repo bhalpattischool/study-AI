@@ -55,11 +55,13 @@ const Chat: React.FC<ChatProps> = ({ chatId, onChatUpdated }) => {
       
       if (onChatUpdated) onChatUpdated();
 
-      // Get current conversation history before adding new response
+      // Get current conversation history
       const currentChat = await chatDB.getChat(chatId);
       const chatHistory = currentChat?.messages || [];
+      
+      console.log("Sending chat with history length:", chatHistory.length);
 
-      // Get AI response with conversation history
+      // Get AI response with complete conversation history
       const response = await generateResponse(input.trim(), chatHistory);
       
       // Add bot message

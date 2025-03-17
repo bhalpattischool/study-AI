@@ -13,11 +13,13 @@ export async function generateResponse(prompt: string, history: Message[] = []):
       parts: [{ text: msg.content }]
     }));
 
-    // Add the current prompt
+    // Add the current prompt to the history
     messages.push({
       role: "user",
       parts: [{ text: prompt }]
     });
+
+    console.log("Sending complete history to API:", messages);
 
     const response = await fetch(`${API_URL}?key=${API_KEY}`, {
       method: "POST",
