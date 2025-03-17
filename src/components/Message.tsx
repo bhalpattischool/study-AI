@@ -264,7 +264,9 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
                 components={{
                   code({node, className, children, ...props}) {
                     const match = /language-(\w+)/.exec(className || '');
-                    const isInline = props.inline || false; // Fix: Use isInline instead of inline
+                    // Extract the inline prop from props with a default value of false
+                    const isInline = 'inline' in props ? Boolean(props.inline) : false;
+                    
                     return !isInline && match ? (
                       <SyntaxHighlighter
                         language={match[1]}
