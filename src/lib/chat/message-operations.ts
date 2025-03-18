@@ -18,6 +18,7 @@ export async function addMessage(
     role,
     timestamp: Date.now(),
     chatId,
+    bookmarked: false,
   };
 
   chat.messages.push(message);
@@ -68,4 +69,23 @@ export async function deleteMessage(
   }
 
   await saveChat(db, chat);
+}
+
+export async function toggleMessageBookmark(
+  db: IDBDatabase,
+  chatId: string, 
+  messageId: string
+): Promise<boolean> {
+  const chat = await getChat(db, chatId);
+  if (!chat) throw new Error("Chat not found");
+
+  const messageIndex = chat.messages.findIndex(m => m.id === messageId);
+  if (messageIndex === -1) throw new Error("Message not found");
+
+  // Toggle bookmark status
+  const isBookmarked = !chat.messages[messageIndex].bookmarked;
+  chat.messages[messageIndex].bookmarked = isBookmarked;
+  
+  await saveChat(db, chat);
+  return isBookmarked;
 }

@@ -2,18 +2,20 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Copy, Trash, Pencil, User, VolumeIcon, Heart, Volume2, VolumeX } from "lucide-react";
+import { Copy, Trash, Pencil, User, VolumeIcon, Heart, Volume2, VolumeX, Bookmark, BookmarkCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MessageActionsProps {
   isUserMessage: boolean;
   isCopied: boolean;
   isLiked: boolean;
+  isBookmarked: boolean;
   isTTSEnabled: boolean;
   handleEdit: () => void;
   handleCopy: () => void;
   handleDelete: () => void;
   handleLike: () => void;
+  handleBookmark: () => void;
   handleTextToSpeech: () => void;
   toggleTTS: () => void;
 }
@@ -22,11 +24,13 @@ const MessageActions: React.FC<MessageActionsProps> = ({
   isUserMessage,
   isCopied,
   isLiked,
+  isBookmarked,
   isTTSEnabled,
   handleEdit,
   handleCopy,
   handleDelete,
   handleLike,
+  handleBookmark,
   handleTextToSpeech,
   toggleTTS
 }) => {
@@ -46,6 +50,30 @@ const MessageActions: React.FC<MessageActionsProps> = ({
           Edit
         </Button>
       )}
+      
+      <Button 
+        size="sm" 
+        variant="ghost" 
+        onClick={handleBookmark}
+        className={cn(
+          "h-7 px-2 text-xs transition-colors",
+          isBookmarked 
+            ? "text-amber-500" 
+            : "text-gray-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900"
+        )}
+      >
+        {isBookmarked ? (
+          <>
+            <BookmarkCheck size={14} className="mr-1 fill-amber-500" />
+            Saved
+          </>
+        ) : (
+          <>
+            <Bookmark size={14} className="mr-1" />
+            Save
+          </>
+        )}
+      </Button>
       
       {!isUserMessage && (
         <>

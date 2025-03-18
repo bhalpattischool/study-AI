@@ -7,7 +7,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Copy, Trash, Pencil, Heart, VolumeIcon, VolumeX } from "lucide-react";
+import { Copy, Trash, Pencil, Heart, VolumeIcon, VolumeX, Bookmark, BookmarkCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -15,11 +15,13 @@ interface MessageContextMenuProps {
   children: React.ReactNode;
   isUserMessage: boolean;
   isLiked: boolean;
+  isBookmarked: boolean;
   isTTSEnabled: boolean;
   onCopy: () => void;
   onEdit?: () => void;
   onDelete: () => void;
   onLike?: () => void;
+  onBookmark: () => void;
   onTextToSpeech?: () => void;
   onToggleTTS?: () => void;
 }
@@ -28,11 +30,13 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   children,
   isUserMessage,
   isLiked,
+  isBookmarked,
   isTTSEnabled,
   onCopy,
   onEdit,
   onDelete,
   onLike,
+  onBookmark,
   onTextToSpeech,
   onToggleTTS,
 }) => {
@@ -59,6 +63,26 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
             Edit
           </ContextMenuItem>
         )}
+        
+        <ContextMenuItem 
+          onClick={onBookmark}
+          className={cn(
+            "flex items-center cursor-pointer text-sm",
+            isBookmarked && "text-amber-500"
+          )}
+        >
+          {isBookmarked ? (
+            <>
+              <BookmarkCheck size={16} className="mr-2 fill-amber-500" />
+              Remove Bookmark
+            </>
+          ) : (
+            <>
+              <Bookmark size={16} className="mr-2" />
+              Bookmark
+            </>
+          )}
+        </ContextMenuItem>
         
         {!isUserMessage && (
           <>

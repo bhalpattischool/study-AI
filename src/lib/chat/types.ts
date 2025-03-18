@@ -5,6 +5,7 @@ export interface Message {
   role: "user" | "bot";
   timestamp: number;
   chatId: string;
+  bookmarked?: boolean;
 }
 
 export interface Chat {

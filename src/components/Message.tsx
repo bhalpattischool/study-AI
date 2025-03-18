@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -6,6 +7,7 @@ import MessageBody from './message/MessageBody';
 import MessageActions from './message/MessageActions';
 import MessageContextMenu from './message/MessageContextMenu';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { toggleMessageBookmark } from '@/lib/chat/message-operations';
 
 interface MessageProps {
   message: MessageType;
@@ -20,6 +22,7 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(!!message.bookmarked);
   const { isTTSEnabled, toggleTTS, handleTextToSpeech } = useTextToSpeech();
 
   useEffect(() => {
@@ -45,6 +48,11 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
       setDisplayedContent(message.content);
     }
   }, [message.content, message.role, isEditing]);
+
+  // Update local state when message bookmarked status changes
+  useEffect(() => {
+    setIsBookmarked(!!message.bookmarked);
+  }, [message.bookmarked]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -97,6 +105,25 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
     }
   };
 
+  const handleBookmark = async () => {
+    try {
+      const db = await (chatDB as any).dbReady;
+      const newBookmarkStatus = await toggleMessageBookmark(db, message.chatId, message.id);
+      setIsBookmarked(newBookmarkStatus);
+      
+      toast.success(newBookmarkStatus 
+        ? "Message saved to bookmarks" 
+        : "Message removed from bookmarks"
+      );
+      
+      // Refresh message data
+      onEdited();
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      toast.error("Failed to update bookmark status");
+    }
+  };
+
   const isUserMessage = message.role === "user";
 
   return (
@@ -105,18 +132,21 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
         "py-6 group transition-colors duration-300",
         isUserMessage 
           ? "bg-white dark:bg-gray-800" 
-          : "bg-purple-50 dark:bg-gray-900"
+          : "bg-purple-50 dark:bg-gray-900",
+        isBookmarked && "border-l-4 border-amber-400"
       )}
     >
       {!isEditing ? (
         <MessageContextMenu
           isUserMessage={isUserMessage}
           isLiked={isLiked}
+          isBookmarked={isBookmarked}
           isTTSEnabled={isTTSEnabled}
           onCopy={handleCopy}
           onEdit={isUserMessage ? handleEdit : undefined}
           onDelete={handleDelete}
           onLike={!isUserMessage ? handleLike : undefined}
+          onBookmark={handleBookmark}
           onTextToSpeech={!isUserMessage ? () => handleTextToSpeech(message.content) : undefined}
           onToggleTTS={!isUserMessage ? toggleTTS : undefined}
         >
@@ -153,11 +183,13 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
             isUserMessage={isUserMessage}
             isCopied={isCopied}
             isLiked={isLiked}
+            isBookmarked={isBookmarked}
             isTTSEnabled={isTTSEnabled}
             handleEdit={handleEdit}
             handleCopy={handleCopy}
             handleDelete={handleDelete}
             handleLike={handleLike}
+            handleBookmark={handleBookmark}
             handleTextToSpeech={() => handleTextToSpeech(message.content)}
             toggleTTS={toggleTTS}
           />
