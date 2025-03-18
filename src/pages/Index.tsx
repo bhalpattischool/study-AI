@@ -1,22 +1,28 @@
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { chatDB } from '@/lib/db';
 import Sidebar from '@/components/Sidebar';
 import Chat from '@/components/Chat';
 import ChatHeader from '@/components/ChatHeader';
 import { toast } from "sonner";
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, LogIn, UserCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { currentUser, isLoading: authLoading } = useAuth();
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    initializeChat();
-  }, []);
+    if (!authLoading) {
+      initializeChat();
+    }
+  }, [authLoading]);
 
   const initializeChat = async () => {
     try {
@@ -63,7 +69,7 @@ const Index = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-gray-900 dark:to-purple-950">
         <div className="flex flex-col items-center gap-4 animate-pulse">
@@ -90,6 +96,34 @@ const Index = () => {
         <ChatHeader 
           onToggleSidebar={toggleSidebar} 
           onNewChat={handleNewChat}
+          rightContent={
+            <div className="flex items-center gap-2">
+              {currentUser ? (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  asChild
+                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/40"
+                >
+                  <Link to="/profile">
+                    <UserCircle className="h-5 w-5" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/40"
+                >
+                  <Link to="/login">
+                    <LogIn className="h-4 w-4 mr-1" />
+                    Sign In
+                  </Link>
+                </Button>
+              )}
+            </div>
+          }
         />
         
         {currentChatId && (
