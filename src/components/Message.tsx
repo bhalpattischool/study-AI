@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { chatDB, Message as MessageType } from "@/lib/db";
 import MessageBody from './message/MessageBody';
 import MessageActions from './message/MessageActions';
+import MessageContextMenu from './message/MessageContextMenu';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 
 interface MessageProps {
@@ -108,16 +108,41 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
           : "bg-purple-50 dark:bg-gray-900"
       )}
     >
-      <MessageBody 
-        isUserMessage={isUserMessage}
-        isEditing={isEditing}
-        editedContent={editedContent}
-        setEditedContent={setEditedContent}
-        handleSaveEdit={handleSaveEdit}
-        handleCancelEdit={handleCancelEdit}
-        isTyping={isTyping}
-        displayedContent={displayedContent}
-      />
+      {!isEditing ? (
+        <MessageContextMenu
+          isUserMessage={isUserMessage}
+          isLiked={isLiked}
+          isTTSEnabled={isTTSEnabled}
+          onCopy={handleCopy}
+          onEdit={isUserMessage ? handleEdit : undefined}
+          onDelete={handleDelete}
+          onLike={!isUserMessage ? handleLike : undefined}
+          onTextToSpeech={!isUserMessage ? () => handleTextToSpeech(message.content) : undefined}
+          onToggleTTS={!isUserMessage ? toggleTTS : undefined}
+        >
+          <MessageBody 
+            isUserMessage={isUserMessage}
+            isEditing={isEditing}
+            editedContent={editedContent}
+            setEditedContent={setEditedContent}
+            handleSaveEdit={handleSaveEdit}
+            handleCancelEdit={handleCancelEdit}
+            isTyping={isTyping}
+            displayedContent={displayedContent}
+          />
+        </MessageContextMenu>
+      ) : (
+        <MessageBody 
+          isUserMessage={isUserMessage}
+          isEditing={isEditing}
+          editedContent={editedContent}
+          setEditedContent={setEditedContent}
+          handleSaveEdit={handleSaveEdit}
+          handleCancelEdit={handleCancelEdit}
+          isTyping={isTyping}
+          displayedContent={displayedContent}
+        />
+      )}
       
       {!isEditing && (
         <div className={cn(
