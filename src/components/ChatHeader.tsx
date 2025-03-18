@@ -10,12 +10,14 @@ interface ChatHeaderProps {
   onToggleSidebar: () => void;
   onNewChat: () => void;
   className?: string;
+  children?: React.ReactNode;  // Add this line to accept children
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ 
   onToggleSidebar, 
   onNewChat, 
   className,
+  children,  // Add this to the props
 }) => {
   const isMobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
@@ -61,6 +63,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         >
           {isDarkMode ? <Sun size={18} /> : <MoonStar size={18} />}
         </Button>
+        
+        {/* Add support for children */}
+        {children}
       </div>
     </header>
   );
