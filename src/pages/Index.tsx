@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { chatDB } from '@/lib/db';
@@ -30,10 +29,8 @@ const Index = () => {
       const chats = await chatDB.getAllChats();
       
       if (chats.length > 0) {
-        // Load the most recent chat
         setCurrentChatId(chats[0].id);
       } else {
-        // Create a new chat if none exists
         const newChat = await chatDB.createNewChat();
         setCurrentChatId(newChat.id);
       }
@@ -96,35 +93,34 @@ const Index = () => {
         <ChatHeader 
           onToggleSidebar={toggleSidebar} 
           onNewChat={handleNewChat}
-          rightContent={
-            <div className="flex items-center gap-2">
-              {currentUser ? (
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  asChild
-                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/40"
-                >
-                  <Link to="/profile">
-                    <UserCircle className="h-5 w-5" />
-                  </Link>
-                </Button>
-              ) : (
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/40"
-                >
-                  <Link to="/login">
-                    <LogIn className="h-4 w-4 mr-1" />
-                    Sign In
-                  </Link>
-                </Button>
-              )}
-            </div>
-          }
-        />
+        >
+          <div className="flex items-center gap-2">
+            {currentUser ? (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                asChild
+                className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/40"
+              >
+                <Link to="/profile">
+                  <UserCircle className="h-5 w-5" />
+                </Link>
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost"
+                size="sm"
+                asChild
+                className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/40"
+              >
+                <Link to="/login">
+                  <LogIn className="h-4 w-4 mr-1" />
+                  Sign In
+                </Link>
+              </Button>
+            )}
+          </div>
+        </ChatHeader>
         
         {currentChatId && (
           <div className="flex-1 overflow-hidden">
