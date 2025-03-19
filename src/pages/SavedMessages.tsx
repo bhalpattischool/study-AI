@@ -11,6 +11,7 @@ import { ArrowLeft, BookmarkCheck, Search, MessageSquare, Trash } from 'lucide-r
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toggleMessageBookmark } from '@/lib/chat/message-operations';
 
 const SavedMessages = () => {
   const { currentUser, isLoading } = useAuth();
@@ -54,7 +55,8 @@ const SavedMessages = () => {
   const handleRemoveBookmark = async (message: Message) => {
     try {
       const db = await (chatDB as any).dbReady;
-      await chatDB.toggleMessageBookmark(message.chatId, message.id);
+      // Use the directly imported toggleMessageBookmark function
+      await toggleMessageBookmark(db, message.chatId, message.id);
       toast.success('Bookmark removed');
       loadSavedMessages();
     } catch (error) {

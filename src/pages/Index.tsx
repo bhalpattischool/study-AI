@@ -81,10 +81,8 @@ const Index = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-900">
+      {/* Pass only the props that Sidebar component expects */}
       <Sidebar 
-        currentChatId={currentChatId} 
-        onChatSelect={handleChatSelect} 
-        onNewChat={handleNewChat}
         isOpen={isSidebarOpen || !isMobile}
         onClose={() => setIsSidebarOpen(false)}
       />
