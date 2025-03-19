@@ -6,8 +6,12 @@ import { logoutUser, uploadProfileImage, auth } from '@/lib/firebase';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { LogOut, Upload, User, Book, Sparkles, Home, BookmarkCheck, LogIn, UserPlus } from 'lucide-react';
+import { 
+  LogOut, Upload, User, Book, Sparkles, Home, 
+  BookmarkCheck, LogIn, UserPlus, Settings, Volume2, Mic
+} from 'lucide-react';
 import { Separator } from "@/components/ui/separator";
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 
 const Profile = () => {
   const { currentUser, isLoading } = useAuth();
@@ -15,6 +19,7 @@ const Profile = () => {
   const [educationLevel, setEducationLevel] = useState('');
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
+  const { isTTSEnabled, toggleTTS } = useTextToSpeech();
 
   useEffect(() => {
     if (!isLoading && !currentUser) {
@@ -174,6 +179,15 @@ const Profile = () => {
                     >
                       <BookmarkCheck className="h-4 w-4 mr-2 text-purple-500" />
                       Saved Messages
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={toggleTTS}
+                    >
+                      <Volume2 className="h-4 w-4 mr-2 text-purple-500" />
+                      {isTTSEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
                     </Button>
                     
                     <Button 

@@ -1,8 +1,9 @@
 
 import React from 'react';
 import SuggestionButton from './SuggestionButton';
-import { MessageSquare, Sparkles, FileText, Code, BookOpen } from 'lucide-react';
+import { MessageSquare, Code, FileText, BookOpen } from 'lucide-react';
 import { getTimeBasedGreeting } from '@/utils/timeUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EmptyChatUIProps {
   onCreateImage: () => void;
@@ -20,11 +21,13 @@ const EmptyChatUI: React.FC<EmptyChatUIProps> = ({
   onMore
 }) => {
   const greeting = getTimeBasedGreeting();
+  const { currentUser } = useAuth();
+  const displayName = currentUser?.displayName || '';
   
   return (
     <div className="flex flex-col items-center justify-center h-full p-4 space-y-8">
-      <h1 className="text-3xl font-medium text-gray-800 dark:text-gray-200 animate-fade-in">
-        {greeting}
+      <h1 className="text-3xl font-medium text-gray-800 dark:text-gray-200 animate-fade-in text-center">
+        {greeting}{displayName ? `, ${displayName}` : ''}
       </h1>
       <h2 className="text-xl text-gray-600 dark:text-gray-400">
         How can Study AI assist you today?

@@ -8,13 +8,8 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { Home, User } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SidebarProps {
@@ -24,7 +19,6 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   if (isMobile) {
@@ -38,12 +32,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </SheetDescription>
           </SheetHeader>
           <div className="py-4">
-            <Link to="/" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Link to="/" onClick={onClose} className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
               <Home className="h-4 w-4" />
               <span>Home</span>
             </Link>
             
-            <Link to="/profile" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Link to="/profile" onClick={onClose} className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
               <User className="h-4 w-4" />
               <span>My Profile</span>
             </Link>

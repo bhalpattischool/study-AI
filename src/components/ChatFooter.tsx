@@ -2,9 +2,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Paperclip, Mic, SendHorizonal, MicOff, Sparkles } from "lucide-react";
+import { Paperclip, Mic, SendHorizonal, MicOff, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 
 interface ChatFooterProps {
   onSend: (message: string) => void;
@@ -19,6 +20,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isMobile = useIsMobile();
+  const { isTTSEnabled, toggleTTS } = useTextToSpeech();
 
   // Auto-resize textarea
   useEffect(() => {
@@ -34,7 +36,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
       const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognitionAPI();
       
-      recognitionRef.current.continuous = false;
+      recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
       
       recognitionRef.current.onresult = (event) => {
@@ -123,17 +125,15 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
         />
         
         <div className="absolute right-3 bottom-3 flex items-center gap-2">
-          {!isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 rounded-md text-purple-400 hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900 dark:hover:text-purple-300 transition-colors"
-              title="Attach files"
-              disabled={isDisabled}
-            >
-              <Paperclip size={16} />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTTS}
+            className="h-7 w-7 rounded-md text-purple-400 hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900 dark:hover:text-purple-300 transition-colors"
+            title={isTTSEnabled ? "Disable text-to-speech" : "Enable text-to-speech"}
+          >
+            {isTTSEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </Button>
           
           <Button
             variant="ghost"

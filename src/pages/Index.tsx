@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { chatDB } from '@/lib/db';
@@ -9,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sparkles, LogIn, UserCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import ChatHistory from '@/components/ChatHistory';
 
 const Index = () => {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -81,7 +83,6 @@ const Index = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-900">
-      {/* Pass only the props that Sidebar component expects */}
       <Sidebar 
         isOpen={isSidebarOpen || !isMobile}
         onClose={() => setIsSidebarOpen(false)}
@@ -93,6 +94,13 @@ const Index = () => {
           onNewChat={handleNewChat}
         >
           <div className="flex items-center gap-2">
+            {currentChatId && (
+              <ChatHistory 
+                onSelectChat={handleChatSelect}
+                currentChatId={currentChatId}
+              />
+            )}
+            
             {currentUser ? (
               <Button 
                 variant="ghost" 
