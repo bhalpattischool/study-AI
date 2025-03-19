@@ -2,24 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { logoutUser, uploadProfileImage, auth } from '@/lib/firebase';
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "sonner";
-import { 
-  LogOut, Upload, User, Book, Sparkles, Home, 
-  BookmarkCheck, LogIn, UserPlus, Settings, Volume2, Mic
-} from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { Separator } from "@/components/ui/separator";
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import ProfileHeader from '@/components/profile/ProfileHeader';
+import UserInfoCards from '@/components/profile/UserInfoCards';
+import ProfileNavigation from '@/components/profile/ProfileNavigation';
 
 const Profile = () => {
   const { currentUser, isLoading } = useAuth();
   const [userCategory, setUserCategory] = useState('');
   const [educationLevel, setEducationLevel] = useState('');
-  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
-  const { isTTSEnabled, toggleTTS } = useTextToSpeech();
 
   useEffect(() => {
     if (!isLoading && !currentUser) {
@@ -32,36 +26,6 @@ const Profile = () => {
       setEducationLevel(localStorage.getItem('educationLevel') || '');
     }
   }, [currentUser, isLoading, navigate]);
-
-  const handleProfileImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0] && currentUser) {
-      const file = e.target.files[0];
-      
-      try {
-        setUploading(true);
-        await uploadProfileImage(currentUser.uid, file);
-        toast.success("Profile image updated successfully!");
-        
-        // Force refresh to update UI
-        window.location.reload();
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        toast.error("Failed to update profile image");
-      } finally {
-        setUploading(false);
-      }
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-      navigate('/login');
-    } catch (error) {
-      console.error("Error logging out:", error);
-      toast.error("Failed to log out");
-    }
-  };
 
   if (isLoading) {
     return (
@@ -82,7 +46,7 @@ const Profile = () => {
                 variant="ghost" 
                 size="icon"
                 className="text-white hover:bg-white/20"
-                onClick={handleLogout}
+                onClick={() => navigate('/')}
               >
                 <LogOut className="h-5 w-5" />
               </Button>
@@ -90,138 +54,16 @@ const Profile = () => {
           </div>
           
           <div className="p-6">
-            <div className="flex flex-col items-center -mt-12 mb-6">
-              <div className="relative">
-                <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-800">
-                  {currentUser?.photoURL ? (
-                    <AvatarImage src={currentUser.photoURL} alt={currentUser.displayName || 'User'} />
-                  ) : (
-                    <AvatarFallback className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200 text-lg">
-                      {currentUser?.displayName ? currentUser.displayName.charAt(0).toUpperCase() : "U"}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                
-                <label htmlFor="profile-image" className="absolute bottom-0 right-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer border-2 border-white dark:border-gray-800">
-                  <Upload className="h-4 w-4 text-white" />
-                </label>
-                <input
-                  id="profile-image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleProfileImageChange}
-                  className="hidden"
-                  disabled={uploading}
-                />
-                
-                {uploading && (
-                  <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center">
-                    <div className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></div>
-                  </div>
-                )}
-              </div>
-              
-              <h2 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
-                {currentUser?.displayName || 'User'}
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {currentUser?.email}
-              </p>
-            </div>
+            <ProfileHeader currentUser={currentUser} />
             
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-gray-700/50 rounded-lg">
-                <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full">
-                  <User className="h-5 w-5 text-purple-600 dark:text-purple-300" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Category</p>
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    {userCategory ? userCategory.charAt(0).toUpperCase() + userCategory.slice(1) : 'Not specified'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-gray-700/50 rounded-lg">
-                <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full">
-                  <Book className="h-5 w-5 text-purple-600 dark:text-purple-300" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Education Level</p>
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    {educationLevel ? educationLevel.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <UserInfoCards 
+              userCategory={userCategory} 
+              educationLevel={educationLevel} 
+            />
 
             <Separator className="my-6" />
             
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Navigation</h3>
-              
-              <div className="grid grid-cols-1 gap-3">
-                <Button 
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/')}
-                >
-                  <Home className="h-4 w-4 mr-2 text-purple-500" />
-                  Home
-                </Button>
-                
-                {currentUser ? (
-                  <>
-                    <Button 
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => navigate('/saved-messages')}
-                    >
-                      <BookmarkCheck className="h-4 w-4 mr-2 text-purple-500" />
-                      Saved Messages
-                    </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={toggleTTS}
-                    >
-                      <Volume2 className="h-4 w-4 mr-2 text-purple-500" />
-                      {isTTSEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
-                    </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="h-4 w-4 mr-2 text-purple-500" />
-                      Logout
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button 
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => navigate('/login')}
-                    >
-                      <LogIn className="h-4 w-4 mr-2 text-purple-500" />
-                      Login
-                    </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => navigate('/signup')}
-                    >
-                      <UserPlus className="h-4 w-4 mr-2 text-purple-500" />
-                      Register
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
+            <ProfileNavigation isAuthenticated={!!currentUser} />
           </div>
         </div>
       </div>
