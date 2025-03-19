@@ -107,8 +107,8 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
 
   const handleBookmark = async () => {
     try {
-      const db = await (chatDB as any).dbReady;
-      const newBookmarkStatus = await toggleMessageBookmark(db, message.chatId, message.id);
+      // Remove the db argument since it's no longer needed
+      const newBookmarkStatus = await toggleMessageBookmark(message.chatId, message.id);
       setIsBookmarked(newBookmarkStatus);
       
       toast.success(newBookmarkStatus 
