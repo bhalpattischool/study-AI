@@ -35,6 +35,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setIsLoading(false);
+      
+      // Reset message limit reached when user logs in
+      if (user) {
+        setMessageLimitReached(false);
+      }
     });
 
     return unsubscribe;

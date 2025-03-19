@@ -1,135 +1,159 @@
-
-import React, { useState, useEffect } from 'react';
-import { chatDB, Chat } from '@/lib/db';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "sonner";
-import { MessageSquare, Trash, X } from "lucide-react";
-import NewChatButton from './NewChatButton';
+import { Book, Home, LogOut, MessageSquare, Settings, Sparkles, User, BookmarkCheck } from 'lucide-react';
+import { logoutUser } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 
-interface SidebarProps {
-  currentChatId: string | null;
-  onChatSelect: (chatId: string) => void;
-  onNewChat: () => void;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ 
-  currentChatId, 
-  onChatSelect, 
-  onNewChat, 
-  isOpen,
-  onClose 
-}) => {
-  const [chats, setChats] = useState<Chat[]>([]);
+const Sidebar = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    loadChats();
-  }, [currentChatId]);
-
-  const loadChats = async () => {
+  const handleLogout = async () => {
     try {
-      const allChats = await chatDB.getAllChats();
-      setChats(allChats);
+      await logoutUser();
+      navigate('/login');
     } catch (error) {
-      console.error('Error loading chats:', error);
-      toast.error('Failed to load chat history');
+      console.error("Error logging out:", error);
     }
   };
 
-  const handleDeleteChat = async (e: React.MouseEvent, chatId: string) => {
-    e.stopPropagation(); // Prevent triggering the chat selection
-    try {
-      await chatDB.deleteChat(chatId);
-      toast.success('Chat deleted');
-      
-      // If we deleted the current chat, trigger a new chat creation
-      if (chatId === currentChatId) {
-        onNewChat();
-      }
-      
-      // Refresh the chat list
-      loadChats();
-    } catch (error) {
-      console.error('Error deleting chat:', error);
-      toast.error('Failed to delete chat');
-    }
-  };
-
-  return (
-    <>
-      <aside 
-        className={cn(
-          "bg-sidebar text-sidebar-foreground w-72 flex flex-col border-r border-sidebar-border",
-          "transition-all duration-300 ease-in-out h-full",
-          isMobile ? "fixed inset-y-0 left-0 z-40" : "relative",
-          isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"
-        )}
-      >
-        {isMobile && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute top-4 right-4 z-10" 
-            onClick={onClose}
-          >
-            <X size={20} />
+  if (isMobile) {
+    return (
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <Sparkles className="h-5 w-5" />
           </Button>
-        )}
-        
-        <div className="p-4">
-          <NewChatButton onClick={onNewChat} />
-        </div>
-        
-        <ScrollArea className="flex-1">
-          <div className="p-2 space-y-1">
-            {chats.map((chat) => (
-              <div 
-                key={chat.id} 
-                className={cn(
-                  "group flex items-center gap-2 p-2 rounded-md cursor-pointer",
-                  "transition-colors truncate hover:bg-sidebar-accent",
-                  chat.id === currentChatId && "bg-sidebar-accent"
-                )}
-                onClick={() => onChatSelect(chat.id)}
-              >
-                <MessageSquare size={16} className="flex-shrink-0" />
-                <span className="flex-1 truncate text-sm">{chat.title}</span>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6"
-                  onClick={(e) => handleDeleteChat(e, chat.id)}
-                >
-                  <Trash size={14} className="text-sidebar-foreground/70 hover:text-destructive" />
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64">
+          <SheetHeader>
+            <SheetTitle>Study AI</SheetTitle>
+            <SheetDescription>
+              Navigate your learning journey.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-4">
+            <Link to="/" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+              <Home className="h-4 w-4" />
+              <span>Home</span>
+            </Link>
+            {currentUser ? (
+              <>
+                <Link to="/profile" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <User className="h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
+                <Link to="/saved-messages" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <BookmarkCheck className="h-4 w-4" />
+                  <span>Saved Messages</span>
+                </Link>
+                <Button variant="ghost" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 w-full justify-start" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
                 </Button>
-              </div>
-            ))}
-            
-            {chats.length === 0 && (
-              <div className="py-8 text-center text-sidebar-foreground/50 italic text-sm">
-                No chat history
-              </div>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <User className="h-4 w-4" />
+                  <span>Login</span>
+                </Link>
+                <Link to="/signup" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <Book className="h-4 w-4" />
+                  <span>Signup</span>
+                </Link>
+              </>
             )}
           </div>
-        </ScrollArea>
-        
-        <div className="p-4 text-xs text-sidebar-foreground/50 border-t border-sidebar-border">
-          Gemini Chat
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <div className="hidden md:flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700">
+        <Link to="/" className="text-lg font-semibold">Study AI</Link>
+      </div>
+      <div className="flex-grow flex flex-col justify-between">
+        <div className="flex-grow px-4 py-6">
+          <Link to="/" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Home className="h-4 w-4" />
+            <span>Home</span>
+          </Link>
+          {currentUser ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 w-full justify-start">
+                  <Avatar className="w-6 h-6">
+                    {currentUser.photoURL ? (
+                      <AvatarImage src={currentUser.photoURL} alt={currentUser.displayName || 'User'} />
+                    ) : (
+                      <AvatarFallback className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200 text-sm">
+                        {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : "U"}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <span>Account</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                {currentUser ? (
+                  <DropdownMenuItem asChild>
+                    <Link to="/saved-messages" className="cursor-pointer">
+                      <BookmarkCheck className="mr-2 h-4 w-4" />
+                      Saved Messages
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+                <DropdownMenuItem onSelect={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Link to="/login" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                <User className="h-4 w-4" />
+                <span>Login</span>
+              </Link>
+              <Link to="/signup" className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                <Book className="h-4 w-4" />
+                <span>Signup</span>
+              </Link>
+            </>
+          )}
         </div>
-      </aside>
-      
-      {isMobile && isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/30 z-30 backdrop-blur-sm"
-          onClick={onClose}
-        />
-      )}
-    </>
+        <div className="px-4 py-6 border-t border-gray-200 dark:border-gray-700">
+          <a href="https://github.com/AntonioErdeljac/next13-ai-chatbot" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+            © 2024 Study AI
+          </a>
+        </div>
+      </div>
+    </div>
   );
 };
 

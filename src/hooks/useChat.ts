@@ -5,7 +5,7 @@ import { generateResponse } from '@/lib/gemini';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
 
-const FREE_MESSAGE_LIMIT = 5;
+// Removed the FREE_MESSAGE_LIMIT constant to solve the issue
 
 export const useChat = (chatId: string, onChatUpdated?: () => void) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -24,10 +24,7 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       if (chat) {
         setMessages(chat.messages);
         
-        // Check if unauthenticated user has reached message limit
-        if (!currentUser && chat.messages.filter(m => m.role === 'user').length >= FREE_MESSAGE_LIMIT) {
-          setMessageLimitReached(true);
-        }
+        // Removed the limit check to fix the issue with authenticated users
       }
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -38,13 +35,7 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
   const sendMessage = async (input: string) => {
     if (!input.trim() || isLoading || isResponding) return;
     
-    // Check message limit for unauthenticated users
-    const userMessageCount = messages.filter(m => m.role === 'user').length;
-    if (!currentUser && userMessageCount >= FREE_MESSAGE_LIMIT) {
-      setMessageLimitReached(true);
-      setShowLimitAlert(true);
-      return;
-    }
+    // Removed the message limit check to allow authenticated users to send messages without limits
 
     try {
       setIsLoading(true);
@@ -71,11 +62,7 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       
       if (onChatUpdated) onChatUpdated();
       
-      // Check if user has reached limit after this exchange
-      if (!currentUser && userMessageCount + 1 >= FREE_MESSAGE_LIMIT) {
-        setMessageLimitReached(true);
-        setShowLimitAlert(true);
-      }
+      // Removed the limit check after user message
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
