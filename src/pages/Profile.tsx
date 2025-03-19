@@ -6,7 +6,8 @@ import { logoutUser, uploadProfileImage, auth } from '@/lib/firebase';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { LogOut, Upload, User, Book, Sparkles } from 'lucide-react';
+import { LogOut, Upload, User, Book, Sparkles, Home, BookmarkCheck, LogIn, UserPlus } from 'lucide-react';
+import { Separator } from "@/components/ui/separator";
 
 const Profile = () => {
   const { currentUser, isLoading } = useAuth();
@@ -148,18 +149,66 @@ const Profile = () => {
                 </div>
               </div>
             </div>
+
+            <Separator className="my-6" />
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Navigation</h3>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <Button 
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => navigate('/')}
+                >
+                  <Home className="h-4 w-4 mr-2 text-purple-500" />
+                  Home
+                </Button>
+                
+                {currentUser ? (
+                  <>
+                    <Button 
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => navigate('/saved-messages')}
+                    >
+                      <BookmarkCheck className="h-4 w-4 mr-2 text-purple-500" />
+                      Saved Messages
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2 text-purple-500" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => navigate('/login')}
+                    >
+                      <LogIn className="h-4 w-4 mr-2 text-purple-500" />
+                      Login
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => navigate('/signup')}
+                    >
+                      <UserPlus className="h-4 w-4 mr-2 text-purple-500" />
+                      Register
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <div className="mt-6 flex justify-center">
-          <Button 
-            variant="outline"
-            className="text-sm"
-            onClick={() => navigate('/')}
-          >
-            <Sparkles className="h-4 w-4 mr-2 text-purple-500" />
-            Return to Study AI
-          </Button>
         </div>
       </div>
     </div>
