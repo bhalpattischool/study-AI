@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,7 +18,12 @@ import { logoutUser } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-const Sidebar = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -33,12 +39,7 @@ const Sidebar = () => {
 
   if (isMobile) {
     return (
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <Sparkles className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
+      <Sheet open={isOpen} onOpenChange={onClose ? (open) => !open && onClose() : undefined}>
         <SheetContent side="left" className="w-64">
           <SheetHeader>
             <SheetTitle>Study AI</SheetTitle>
