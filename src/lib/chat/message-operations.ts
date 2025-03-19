@@ -4,12 +4,11 @@ import { saveChat } from "./chat-operations";
 import { Message } from "./types";
 
 export async function addMessage(
-  db: IDBDatabase, 
   chatId: string, 
   content: string, 
   role: "user" | "bot"
 ): Promise<Message> {
-  const chat = await getChat(db, chatId);
+  const chat = await getChat(chatId);
   if (!chat) throw new Error("Chat not found");
 
   const message: Message = {
@@ -29,32 +28,30 @@ export async function addMessage(
     chat.title = content.slice(0, 30) + (content.length > 30 ? "..." : "");
   }
   
-  await saveChat(db, chat);
+  await saveChat(chat);
   return message;
 }
 
 export async function editMessage(
-  db: IDBDatabase, 
   chatId: string, 
   messageId: string, 
   content: string
 ): Promise<void> {
-  const chat = await getChat(db, chatId);
+  const chat = await getChat(chatId);
   if (!chat) throw new Error("Chat not found");
 
   const messageIndex = chat.messages.findIndex(m => m.id === messageId);
   if (messageIndex === -1) throw new Error("Message not found");
 
   chat.messages[messageIndex].content = content;
-  await saveChat(db, chat);
+  await saveChat(chat);
 }
 
 export async function deleteMessage(
-  db: IDBDatabase,
   chatId: string, 
   messageId: string
 ): Promise<void> {
-  const chat = await getChat(db, chatId);
+  const chat = await getChat(chatId);
   if (!chat) throw new Error("Chat not found");
 
   const messageIndex = chat.messages.findIndex(m => m.id === messageId);
@@ -68,15 +65,14 @@ export async function deleteMessage(
     chat.messages.splice(messageIndex, 1);
   }
 
-  await saveChat(db, chat);
+  await saveChat(chat);
 }
 
 export async function toggleMessageBookmark(
-  db: IDBDatabase,
   chatId: string, 
   messageId: string
 ): Promise<boolean> {
-  const chat = await getChat(db, chatId);
+  const chat = await getChat(chatId);
   if (!chat) throw new Error("Chat not found");
 
   const messageIndex = chat.messages.findIndex(m => m.id === messageId);
@@ -86,6 +82,6 @@ export async function toggleMessageBookmark(
   const isBookmarked = !chat.messages[messageIndex].bookmarked;
   chat.messages[messageIndex].bookmarked = isBookmarked;
   
-  await saveChat(db, chat);
+  await saveChat(chat);
   return isBookmarked;
 }

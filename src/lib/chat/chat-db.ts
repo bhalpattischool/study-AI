@@ -11,35 +11,35 @@ import {
 import {
   addMessage as addMessageOperation,
   editMessage as editMessageOperation,
-  deleteMessage as deleteMessageOperation
+  deleteMessage as deleteMessageOperation,
+  toggleMessageBookmark as toggleMessageBookmarkOperation
 } from "./message-operations";
 
 export class ChatDB {
-  private db: IDBDatabase | null = null;
-  private dbReady: Promise<IDBDatabase>;
+  private dbReady: Promise<void>;
 
   constructor() {
     this.dbReady = this.initDB();
   }
 
-  private async initDB(): Promise<IDBDatabase> {
-    this.db = await initDB();
-    return this.db;
+  private async initDB(): Promise<void> {
+    await initDB();
+    return;
   }
 
   async getAllChats(): Promise<Chat[]> {
-    const db = await this.dbReady;
-    return getAllChatsOperation(db);
+    await this.dbReady;
+    return getAllChatsOperation();
   }
 
   async getChat(id: string): Promise<Chat | null> {
-    const db = await this.dbReady;
-    return getChatOperation(db, id);
+    await this.dbReady;
+    return getChatOperation(id);
   }
 
   async saveChat(chat: Chat): Promise<void> {
-    const db = await this.dbReady;
-    return saveChatOperation(db, chat);
+    await this.dbReady;
+    return saveChatOperation(chat);
   }
 
   async updateChatTitle(id: string, title: string): Promise<void> {
@@ -51,8 +51,8 @@ export class ChatDB {
   }
 
   async deleteChat(id: string): Promise<void> {
-    const db = await this.dbReady;
-    return deleteChatOperation(db, id);
+    await this.dbReady;
+    return deleteChatOperation(id);
   }
 
   async createNewChat(): Promise<Chat> {
@@ -70,18 +70,23 @@ export class ChatDB {
   }
 
   async addMessage(chatId: string, content: string, role: "user" | "bot"): Promise<Message> {
-    const db = await this.dbReady;
-    return addMessageOperation(db, chatId, content, role);
+    await this.dbReady;
+    return addMessageOperation(chatId, content, role);
   }
 
   async editMessage(chatId: string, messageId: string, content: string): Promise<void> {
-    const db = await this.dbReady;
-    return editMessageOperation(db, chatId, messageId, content);
+    await this.dbReady;
+    return editMessageOperation(chatId, messageId, content);
   }
 
   async deleteMessage(chatId: string, messageId: string): Promise<void> {
-    const db = await this.dbReady;
-    return deleteMessageOperation(db, chatId, messageId);
+    await this.dbReady;
+    return deleteMessageOperation(chatId, messageId);
+  }
+
+  async toggleMessageBookmark(chatId: string, messageId: string): Promise<boolean> {
+    await this.dbReady;
+    return toggleMessageBookmarkOperation(chatId, messageId);
   }
 }
 
