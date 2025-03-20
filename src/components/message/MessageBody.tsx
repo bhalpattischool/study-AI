@@ -56,11 +56,13 @@ const MessageBody: React.FC<MessageBodyProps> = ({
             handleCancelEdit={handleCancelEdit}
           />
         ) : (
-          <MessageMarkdownContent 
-            content={displayedContent}
-            isTyping={isTyping}
-            isBot={!isUserMessage}
-          />
+          <div className="w-full overflow-x-visible overflow-y-hidden break-words whitespace-pre-wrap">
+            <MessageMarkdownContent 
+              content={displayedContent}
+              isTyping={isTyping}
+              isBot={!isUserMessage}
+            />
+          </div>
         )}
       </div>
     </div>

@@ -18,7 +18,7 @@ const MessageList: React.FC<MessageListProps> = ({
   onMessageDeleted 
 }) => {
   return (
-    <div className="pb-36 sm:pb-48 w-full max-w-full overflow-hidden">
+    <div className="pb-36 sm:pb-48 w-full max-w-full overflow-hidden space-y-4">
       {messages.map((message) => (
         <Message
           key={message.id}
