@@ -1,17 +1,22 @@
+import { ThemeProvider } from "@/components/theme-provider"
+import { SessionProvider } from "next-auth/react"
 
-import React from 'react';
-import { ThemeProvider } from './providers/ThemeProvider';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
+import { LanguageProvider } from './contexts/LanguageContext';
 
-const ThemeWrapper: React.FC = () => {
+interface ThemeWrapperProps {
+  children: React.ReactNode
+  session?: any
+}
+
+// Wrap the application with both ThemeProvider and LanguageProvider
+export function ThemeWrapper({ children, session }: ThemeWrapperProps) {
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <LanguageProvider>
+        <SessionProvider session={session}>
+          {children}
+        </SessionProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
-};
-
-export default ThemeWrapper;
+}
