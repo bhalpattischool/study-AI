@@ -29,16 +29,16 @@ const ProfileNavigation: React.FC<ProfileNavigationProps> = ({ isAuthenticated }
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white">Navigation</h3>
+    <div className="space-y-4 w-full">
+      <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">Navigation</h3>
       
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-2 sm:gap-3">
         <Button 
           variant="outline"
-          className="w-full justify-start"
+          className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
           onClick={() => navigate('/')}
         >
-          <Home className="h-4 w-4 mr-2 text-purple-500" />
+          <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
           Home
         </Button>
         
@@ -46,28 +46,30 @@ const ProfileNavigation: React.FC<ProfileNavigationProps> = ({ isAuthenticated }
           <>
             <Button 
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
               onClick={() => navigate('/saved-messages')}
             >
-              <BookmarkCheck className="h-4 w-4 mr-2 text-purple-500" />
+              <BookmarkCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
               Saved Messages
             </Button>
             
             <Button 
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
               onClick={toggleTTS}
             >
-              <Volume2 className="h-4 w-4 mr-2 text-purple-500" />
-              {isTTSEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
+              <Volume2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
+              <span className="truncate">
+                {isTTSEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
+              </span>
             </Button>
             
             <Button 
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
               onClick={handleLogout}
             >
-              <LogOut className="h-4 w-4 mr-2 text-purple-500" />
+              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
               Logout
             </Button>
           </>
@@ -75,19 +77,19 @@ const ProfileNavigation: React.FC<ProfileNavigationProps> = ({ isAuthenticated }
           <>
             <Button 
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
               onClick={() => navigate('/login')}
             >
-              <LogIn className="h-4 w-4 mr-2 text-purple-500" />
+              <LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
               Login
             </Button>
             
             <Button 
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
               onClick={() => navigate('/signup')}
             >
-              <UserPlus className="h-4 w-4 mr-2 text-purple-500" />
+              <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
               Register
             </Button>
           </>
