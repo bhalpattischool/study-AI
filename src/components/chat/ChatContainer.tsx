@@ -53,12 +53,12 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50 dark:from-gray-800 dark:to-gray-900">
+    <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50 dark:from-gray-800 dark:to-gray-900 w-full overflow-hidden">
       {showLimitAlert && (
         <MessageLimitAlert onClose={() => setShowLimitAlert(false)} />
       )}
       
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full">
         {messages.length === 0 ? (
           <EmptyChatState onSendMessage={handleSend} />
         ) : (

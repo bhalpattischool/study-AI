@@ -129,7 +129,7 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
   return (
     <div 
       className={cn(
-        "py-6 group transition-colors duration-300",
+        "py-4 sm:py-6 group transition-colors duration-300 w-full max-w-full overflow-hidden",
         isUserMessage 
           ? "bg-white dark:bg-gray-800" 
           : "bg-purple-50 dark:bg-gray-900",
@@ -176,7 +176,7 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
       
       {!isEditing && (
         <div className={cn(
-          "max-w-3xl mx-auto px-4 md:px-8 mt-3",
+          "w-full max-w-full mx-auto px-3 sm:px-4 md:px-8 mt-2 sm:mt-3",
           isUserMessage ? "text-right" : "text-left"
         )}>
           <MessageActions 

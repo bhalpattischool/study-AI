@@ -88,7 +88,7 @@ const Index = () => {
         onClose={() => setIsSidebarOpen(false)}
       />
       
-      <main className="flex-1 flex flex-col h-full">
+      <main className="flex-1 flex flex-col h-full w-full overflow-hidden">
         <ChatHeader 
           onToggleSidebar={toggleSidebar} 
           onNewChat={handleNewChat}
@@ -129,7 +129,7 @@ const Index = () => {
         </ChatHeader>
         
         {currentChatId && (
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden w-full">
             <Chat 
               chatId={currentChatId} 
               onChatUpdated={() => {}} 

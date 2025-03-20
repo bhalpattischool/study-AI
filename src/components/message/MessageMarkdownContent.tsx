@@ -19,7 +19,8 @@ const MessageMarkdownContent: React.FC<MessageMarkdownContentProps> = ({
 }) => {
   return (
     <div className={cn(
-      "prose dark:prose-invert max-w-none prose-p:my-1 prose-pre:my-2 prose-pre:p-0 prose-headings:mt-3 prose-headings:mb-2",
+      "prose dark:prose-invert max-w-none w-full break-words overflow-hidden prose-p:my-1 prose-pre:my-2 prose-headings:mt-3 prose-headings:mb-2",
+      "prose-pre:overflow-x-auto prose-code:whitespace-pre-wrap",
       isTyping && isBot && "after:content-['▎'] after:animate-pulse after:ml-0.5 after:text-purple-500"
     )}>
       <ReactMarkdown
@@ -33,15 +34,28 @@ const MessageMarkdownContent: React.FC<MessageMarkdownContentProps> = ({
                 language={match[1]}
                 style={atomDark}
                 PreTag="div"
+                wrapLines={true}
+                wrapLongLines={true}
                 {...props}
+                customStyle={{
+                  borderRadius: '0.375rem',
+                  overflowX: 'auto',
+                  maxWidth: '100%'
+                }}
               >
                 {String(children).replace(/\n$/, '')}
               </SyntaxHighlighter>
             ) : (
-              <code className={className} {...props}>
+              <code className={cn(className, "whitespace-pre-wrap")} {...props}>
                 {children}
               </code>
             )
+          },
+          p({children}) {
+            return <p className="whitespace-pre-wrap break-words">{children}</p>
+          },
+          a({children, href}) {
+            return <a href={href} className="break-words" target="_blank" rel="noopener noreferrer">{children}</a>
           }
         }}
       >

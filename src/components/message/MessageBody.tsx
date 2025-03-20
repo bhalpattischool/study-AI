@@ -28,7 +28,7 @@ const MessageBody: React.FC<MessageBodyProps> = ({
 }) => {
   return (
     <div className={cn(
-      "max-w-3xl mx-auto px-4 md:px-8 flex gap-4",
+      "w-full max-w-full mx-auto px-3 sm:px-4 md:px-8 flex gap-3 sm:gap-4",
       isUserMessage ? "flex-row-reverse" : "flex-row"
     )}>
       <div 
@@ -43,10 +43,10 @@ const MessageBody: React.FC<MessageBodyProps> = ({
       </div>
       
       <div className={cn(
-        "flex-1 min-w-0",
+        "flex-1 min-w-0 max-w-full overflow-hidden break-words",
         isUserMessage 
-          ? "bg-purple-100 dark:bg-gray-700 px-4 py-3 rounded-2xl rounded-tr-none shadow-sm"
-          : "bg-white dark:bg-gray-800 px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-purple-100 dark:border-gray-700"
+          ? "bg-purple-100 dark:bg-gray-700 px-3 sm:px-4 py-2 sm:py-3 rounded-2xl rounded-tr-none shadow-sm"
+          : "bg-white dark:bg-gray-800 px-3 sm:px-4 py-2 sm:py-3 rounded-2xl rounded-tl-none shadow-sm border border-purple-100 dark:border-gray-700"
       )}>
         {isEditing ? (
           <MessageEditor 
