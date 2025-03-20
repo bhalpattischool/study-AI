@@ -1,21 +1,16 @@
-import { ThemeProvider } from "@/components/theme-provider"
-import { SessionProvider } from "next-auth/react"
 
+import { ThemeProvider } from "./providers/ThemeProvider"
 import { LanguageProvider } from './contexts/LanguageContext';
 
 interface ThemeWrapperProps {
   children: React.ReactNode
-  session?: any
 }
 
-// Wrap the application with both ThemeProvider and LanguageProvider
-export function ThemeWrapper({ children, session }: ThemeWrapperProps) {
+export function ThemeWrapper({ children }: ThemeWrapperProps) {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+    <ThemeProvider>
       <LanguageProvider>
-        <SessionProvider session={session}>
-          {children}
-        </SessionProvider>
+        {children}
       </LanguageProvider>
     </ThemeProvider>
   );
