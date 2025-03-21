@@ -1,7 +1,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light' | 'dark' | 'system';
+
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+  storageKey?: string;
+}
 
 interface ThemeContextType {
   theme: Theme;
@@ -10,12 +16,16 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>('light');
+export const ThemeProvider = ({ 
+  children, 
+  defaultTheme = 'system', 
+  storageKey = 'theme' 
+}: ThemeProviderProps) => {
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
 
   useEffect(() => {
     // Check if user previously selected a theme
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    const savedTheme = localStorage.getItem(storageKey) as Theme | null;
     
     if (savedTheme) {
       setTheme(savedTheme);
@@ -23,7 +33,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       // Use system preference as fallback
       setTheme('dark');
     }
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     // Update document class when theme changes
@@ -34,8 +44,8 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     }
     
     // Save to localStorage
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    localStorage.setItem(storageKey, theme);
+  }, [theme, storageKey]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
