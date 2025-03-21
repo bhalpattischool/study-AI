@@ -19,7 +19,7 @@ interface TranslationKeys {
   planStudy: string;
   assistHomework: string;
   motivate: string;
-  // Additional keys for QuizGenerator
+  // QuizGenerator translations
   quizDescription: string;
   topic: string;
   topicPlaceholder: string;
@@ -29,13 +29,13 @@ interface TranslationKeys {
   hard: string;
   numberOfQuestions: string;
   processing: string;
-  // Additional keys for NotesGenerator
+  // NotesGenerator translations
   notesDescription: string;
   noteFormat: string;
   concise: string;
   comprehensive: string;
   examFocused: string;
-  // Additional keys for StudyPlanner
+  // StudyPlanner translations
   plannerDescription: string;
   examName: string;
   examNamePlaceholder: string;
@@ -47,7 +47,7 @@ interface TranslationKeys {
   hours: string;
   plusHours: string;
   generatePlan: string;
-  // Additional keys for HomeworkAssistant
+  // HomeworkAssistant translations
   homeworkDescription: string;
   subject: string;
   mathematics: string;
@@ -64,7 +64,7 @@ interface TranslationKeys {
   justHint: string;
   checkWork: string;
   getHelp: string;
-  // Additional keys for MotivationSystem
+  // MotivationSystem translations
   motivationDescription: string;
   studyMotivation: string;
   motivationDescription1: string;
