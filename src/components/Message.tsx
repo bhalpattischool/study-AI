@@ -31,7 +31,7 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
       setDisplayedContent('');
       
       let i = 0;
-      const typingSpeed = 15; // ms per character
+      const typingSpeed = 5; // Changed from 15 to 5 ms per character to make it faster
       
       const typingInterval = setInterval(() => {
         if (i < message.content.length) {
