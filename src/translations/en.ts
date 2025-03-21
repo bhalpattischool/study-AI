@@ -4,7 +4,7 @@ import { TranslationKeys } from '../types/translation-types';
 export const englishTranslations: TranslationKeys = {
   // Common translations
   advancedStudyTools: 'Advanced Study Tools',
-  personalizedTools: 'Your Personalized Learning Assistant',
+  personalizedTools: 'Personalized tools to enhance your study experience',
   language: 'Language',
   english: 'English',
   hindi: 'Hindi',
@@ -16,13 +16,13 @@ export const englishTranslations: TranslationKeys = {
   generateQuiz: 'Generate Quiz',
   generateNotes: 'Generate Notes',
   planStudy: 'Plan Study',
-  assistHomework: 'Get Help',
-  motivate: 'Get Motivated',
+  assistHomework: 'Assist Homework',
+  motivate: 'Motivate',
   
   // QuizGenerator translations
-  quizDescription: 'Create custom quizzes based on your topics of study',
+  quizDescription: 'Generate a quiz based on your topic and preferences to test your knowledge',
   topic: 'Topic',
-  topicPlaceholder: 'Enter the subject or topic (e.g., Photosynthesis)',
+  topicPlaceholder: 'Enter the topic for your quiz',
   difficulty: 'Difficulty',
   easy: 'Easy',
   medium: 'Medium',
@@ -31,27 +31,27 @@ export const englishTranslations: TranslationKeys = {
   processing: 'Processing...',
   
   // NotesGenerator translations
-  notesDescription: 'Generate comprehensive study notes on any topic',
+  notesDescription: 'Create comprehensive notes on any topic to help with your studies',
   noteFormat: 'Note Format',
-  concise: 'Concise (Key Points)',
-  comprehensive: 'Comprehensive (Detailed)',
-  examFocused: 'Exam-Focused',
+  concise: 'Concise',
+  comprehensive: 'Comprehensive',
+  examFocused: 'Exam Focused',
   
   // StudyPlanner translations
-  plannerDescription: 'Create a customized study plan for your exams',
+  plannerDescription: 'Create a personalized study plan for your upcoming exams',
   examName: 'Exam Name',
   examNamePlaceholder: 'Enter the name of your exam',
   examDate: 'Exam Date',
   subjects: 'Subjects',
-  subjectsPlaceholder: 'List subjects to study (comma separated)',
-  hoursAvailable: 'Hours Available Daily',
+  subjectsPlaceholder: 'Enter subjects separated by commas',
+  hoursAvailable: 'Hours Available Per Day',
   hour: 'hour',
   hours: 'hours',
   plusHours: '5+ hours',
-  generatePlan: 'Generate Study Plan',
+  generatePlan: 'Generate Plan',
   
   // HomeworkAssistant translations
-  homeworkDescription: 'Get help with difficult homework problems',
+  homeworkDescription: 'Get assistance with your homework and assignments',
   subject: 'Subject',
   mathematics: 'Mathematics',
   physics: 'Physics',
@@ -61,23 +61,23 @@ export const englishTranslations: TranslationKeys = {
   geography: 'Geography',
   computerScience: 'Computer Science',
   yourProblem: 'Your Problem',
-  problemPlaceholder: 'Type or paste your homework problem here',
+  problemPlaceholder: 'Describe your homework problem in detail',
   helpType: 'Type of Help',
   stepByStep: 'Step-by-Step Solution',
-  justHint: 'Just Give Me a Hint',
+  justHint: 'Just a Hint',
   checkWork: 'Check My Work',
   getHelp: 'Get Help',
   
   // MotivationSystem translations
-  motivationDescription: 'Get motivation and support for your study journey',
+  motivationDescription: 'Get personalized motivation to keep you focused on your studies',
   studyMotivation: 'Study Motivation',
-  motivationDescription1: 'Get personalized motivation to study',
+  motivationDescription1: 'General study motivation to keep you focused',
   examPreparation: 'Exam Preparation',
-  motivationDescription2: 'Mental preparation for upcoming exams',
+  motivationDescription2: 'Motivation specifically for exam preparation',
   overcomeProcrastination: 'Overcome Procrastination',
-  motivationDescription3: 'Break through study blocks',
+  motivationDescription3: 'Tips and motivation to overcome procrastination',
   dailyAffirmations: 'Daily Affirmations',
-  motivationDescription4: 'Positive statements for students',
-  studyEnergyBoost: 'Energy Boost',
-  motivationDescription5: 'Quick mental refreshers'
+  motivationDescription4: 'Positive affirmations to keep you motivated',
+  studyEnergyBoost: 'Study Energy Boost',
+  motivationDescription5: 'Quick motivation to boost your study energy'
 };
