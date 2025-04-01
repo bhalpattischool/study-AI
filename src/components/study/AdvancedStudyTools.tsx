@@ -7,7 +7,7 @@ import StudyPlanner from './StudyPlanner';
 import HomeworkAssistant from './HomeworkAssistant';
 import MotivationSystem from './MotivationSystem';
 import TeacherMode from './TeacherMode';
-import { BrainCircuit, FileText, Calendar, BookOpen, Sparkles, Globe, ChalkboardTeacher } from 'lucide-react';
+import { BrainCircuit, FileText, Calendar, BookOpen, Sparkles, Globe, GraduationCap } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LanguageProvider, useLanguage, Language } from '@/contexts/LanguageContext';
 
@@ -79,7 +79,7 @@ const AdvancedStudyTools: React.FC<AdvancedStudyToolsProps> = ({ onSendMessage }
             {t('motivationSystem').split(' ')[0]}
           </TabsTrigger>
           <TabsTrigger value="teacher" className="flex flex-col items-center py-2 px-1 text-xs sm:text-sm">
-            <ChalkboardTeacher className="h-4 w-4 mb-1" />
+            <GraduationCap className="h-4 w-4 mb-1" />
             {t('teacherMode').split(' ')[0]}
           </TabsTrigger>
         </TabsList>

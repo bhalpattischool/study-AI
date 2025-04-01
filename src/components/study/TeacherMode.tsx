@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Check, UserCircle, ChalkboardTeacher } from 'lucide-react';
+import { Check, UserCircle, GraduationCap } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TeacherModeProps {
@@ -71,7 +71,7 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
       <CardContent className="pt-6">
         <div className="mb-4">
           <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-medium mb-2">
-            <ChalkboardTeacher className="h-5 w-5" />
+            <GraduationCap className="h-5 w-5" />
             <h3 className="text-lg font-semibold">{t('teacherMode')}</h3>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
