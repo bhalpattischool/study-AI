@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -132,7 +132,7 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
       }
       
       // Get student name
-      const studentName = form.getValues('studentName') || t('student');
+      const studentName = form.getValues('studentName') || t('studentName');
       
       // Format a follow-up question
       const question = language === 'hi' 
@@ -158,8 +158,8 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
     
     const teachingStyle = data.teachingStyle === 'teacher' 
       ? (language === 'hi' 
-        ? `इसे एक वास्तविक शिक्षक की तरह पढ़ाएं जो मुझे सीधे "${data.studentName || 'विद्यार्थी'}" के रूप में संबोधित करे`
-        : `Teach this like a real teacher who addresses me directly as "${data.studentName || 'student'}"`)
+        ? `इसे एक वास्तविक शिक्षक की तरह पढ़ाएं जो मुझे सीधे "${data.studentName || t('studentName')}" के रूप में संबोधित करे`
+        : `Teach this like a real teacher who addresses me directly as "${data.studentName || t('studentName')}"`)
       : (language === 'hi'
         ? 'मानक टेक्स्ट-आधारित सामग्री प्रदान करें'
         : 'Provide standard text-based content');
@@ -192,22 +192,22 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
       prompt = `एक पेशेवर शिक्षक के रूप में कार्य करें ${data.teachingStyle === 'teacher' ? 'इंटरैक्टिव शिक्षण मोड' : 'मानक शिक्षण मोड'} में।
 विषय: ${selectedSubject}
 अध्याय: ${data.chapter}
-विद्यार्थी का नाम: ${data.studentName || 'विद्यार्थी'}
+विद्यार्थी का नाम: ${data.studentName || t('studentName')}
 दृष्टिकोण: ${teachingStyle}
 विवरण स्तर: ${category}
 कार्रवाई: ${action}
 
-${data.teachingStyle === 'teacher' ? `मुझे सीधे "${data.studentName || 'विद्यार्थी'}" के रूप में संबोधित करें, समझ सुनिश्चित करने के लिए कभी-कभी प्रश्न पूछें, और इस तरह से पढ़ाएं जो एक लाइव कक्षा अनुभव जैसा लगे। कृपया पाठ को रोचक, संवादात्मक और सरल भाषा में प्रस्तुत करें जैसे कि आप वास्तव में एक कक्षा में बोल रहे हों।` : ''}${voiceResponseRequest}`;
+${data.teachingStyle === 'teacher' ? `मुझे सीधे "${data.studentName || t('studentName')}" के रूप में संबोधित करें, समझ सुनिश्चित करने के लिए कभी-कभी प्रश्न पूछें, और इस तरह से पढ़ाएं जो एक लाइव कक्षा अनुभव जैसा लगे। कृपया पाठ को रोचक, संवादात्मक और सरल भाषा में प्रस्तुत करें जैसे कि आप वास्तव में एक कक्षा में बोल रहे हों।` : ''}${voiceResponseRequest}`;
     } else {
       prompt = `Act as a professional teacher in ${data.teachingStyle === 'teacher' ? 'interactive teaching mode' : 'standard teaching mode'}. 
 Subject: ${selectedSubject}
 Chapter: ${data.chapter}
-Student Name: ${data.studentName || 'Student'}
+Student Name: ${data.studentName || t('studentName')}
 Approach: ${teachingStyle}
 Detail Level: ${category}
 Action: ${action}
 
-${data.teachingStyle === 'teacher' ? `Address me directly as "${data.studentName || 'Student'}", ask questions occasionally to ensure understanding, and teach in a way that feels like a live classroom experience. Please present the lesson in an engaging, conversational, and simple language as if you're actually speaking in a classroom.` : ''}${voiceResponseRequest}`;
+${data.teachingStyle === 'teacher' ? `Address me directly as "${data.studentName || t('studentName')}", ask questions occasionally to ensure understanding, and teach in a way that feels like a live classroom experience. Please present the lesson in an engaging, conversational, and simple language as if you're actually speaking in a classroom.` : ''}${voiceResponseRequest}`;
     }
     
     onSendMessage(prompt);
@@ -484,3 +484,4 @@ ${data.teachingStyle === 'teacher' ? `Address me directly as "${data.studentName
 };
 
 export default TeacherMode;
+
