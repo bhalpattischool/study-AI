@@ -2,10 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Paperclip, Mic, SendHorizonal, MicOff, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Mic, MicOff, SendHorizonal, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChatFooterProps {
   onSend: (message: string) => void;
@@ -21,6 +22,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isMobile = useIsMobile();
   const { isTTSEnabled, toggleTTS } = useTextToSpeech();
+  const { language } = useLanguage();
 
   // Auto-resize textarea
   useEffect(() => {
@@ -38,6 +40,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
       
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-US';
       
       recognitionRef.current.onresult = (event) => {
         const currentTranscript = Array.from(event.results)
@@ -56,7 +59,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error', event.error);
         setIsListening(false);
-        toast.error('Speech recognition failed. Please try again.');
+        toast.error(language === 'hi' ? 'वाक् पहचान विफल। पुनः प्रयास करें।' : 'Speech recognition failed. Please try again.');
       };
     }
     
@@ -66,10 +69,17 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
       }
     };
   }, []);
+  
+  // Update recognition language when app language changes
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-US';
+    }
+  }, [language]);
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
-      toast.error('Speech recognition is not supported in your browser');
+      toast.error(language === 'hi' ? 'आपके ब्राउज़र में वाक् पहचान समर्थित नहीं है' : 'Speech recognition is not supported in your browser');
       return;
     }
     
@@ -80,7 +90,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
       setTranscript('');
       recognitionRef.current.start();
       setIsListening(true);
-      toast.success('Listening... Speak now');
+      toast.success(language === 'hi' ? 'सुन रहा है... अब बोलें' : 'Listening... Speak now');
     }
   };
 
@@ -115,7 +125,11 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isDisabled ? "Waiting for AI to respond..." : (isMobile ? "Message..." : "Message Study AI...")}
+          placeholder={isDisabled 
+            ? (language === 'hi' ? "AI प्रतिक्रिया का इंतज़ार कर रहा है..." : "Waiting for AI to respond...")
+            : (isMobile 
+              ? (language === 'hi' ? "संदेश..." : "Message...") 
+              : (language === 'hi' ? "स्टडी AI को संदेश भेजें..." : "Message Study AI..."))}
           className={`resize-none min-h-[48px] max-h-[200px] py-3 pr-14 pl-4 rounded-xl border-purple-200 shadow-md 
             focus:border-purple-400 focus:ring-2 focus:ring-purple-300 focus:ring-opacity-50 transition-all 
             dark:bg-gray-700 dark:border-gray-600 dark:focus:border-purple-500
@@ -130,7 +144,9 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
             size="icon"
             onClick={toggleTTS}
             className="h-7 w-7 rounded-md text-purple-400 hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900 dark:hover:text-purple-300 transition-colors"
-            title={isTTSEnabled ? "Disable text-to-speech" : "Enable text-to-speech"}
+            title={isTTSEnabled 
+              ? (language === 'hi' ? "टेक्स्ट-टू-स्पीच अक्षम करें" : "Disable text-to-speech") 
+              : (language === 'hi' ? "टेक्स्ट-टू-स्पीच सक्षम करें" : "Enable text-to-speech")}
           >
             {isTTSEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </Button>
@@ -145,7 +161,9 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
                 ? 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-300 animate-pulse' 
                 : 'text-purple-400 hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900 dark:hover:text-purple-300'
             } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title={isListening ? 'Stop recording' : 'Voice input'}
+            title={isListening 
+              ? (language === 'hi' ? 'रिकॉर्डिंग बंद करें' : 'Stop recording') 
+              : (language === 'hi' ? 'आवाज़ इनपुट' : 'Voice input')}
           >
             {isListening ? <MicOff size={16} /> : <Mic size={16} />}
           </Button>
@@ -169,9 +187,9 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
       
       {!isMobile && (
         <div className="max-w-3xl mx-auto mt-2 text-xs text-center text-purple-500 dark:text-purple-400 flex items-center justify-center gap-1">
-          <Sparkles size={12} className="text-yellow-500" />
-          Study AI - Smart learning assistant
-          <Sparkles size={12} className="text-yellow-500" />
+          <span className="text-yellow-500">✨</span>
+          {language === 'hi' ? "स्टडी AI - स्मार्ट लर्निंग सहायक" : "Study AI - Smart learning assistant"}
+          <span className="text-yellow-500">✨</span>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const useTextToSpeech = () => {
   const [isTTSEnabled, setIsTTSEnabled] = useState(() => {
@@ -12,6 +13,7 @@ export const useTextToSpeech = () => {
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const { language } = useLanguage();
 
   // Initialize available voices
   useEffect(() => {
@@ -25,9 +27,9 @@ export const useTextToSpeech = () => {
         if (savedVoice) {
           setSelectedVoice(savedVoice);
         } else {
-          // Set a default voice - prefer a female English voice if available
+          // Set a default voice based on current language
           const defaultVoice = voices.find(voice => 
-            voice.lang.includes('en') && voice.name.toLowerCase().includes('female')
+            voice.lang.includes(language === 'hi' ? 'hi' : 'en')
           ) || voices[0];
           
           setSelectedVoice(defaultVoice.name);
@@ -51,7 +53,7 @@ export const useTextToSpeech = () => {
         window.speechSynthesis.cancel();
       }
     };
-  }, []);
+  }, [language]);
 
   // Clean up speech synthesis when component unmounts
   useEffect(() => {
@@ -70,7 +72,7 @@ export const useTextToSpeech = () => {
   const handleTextToSpeech = (content: string) => {
     // If TTS is disabled, don't do anything
     if (!isTTSEnabled) {
-      toast.info("Text-to-speech is currently disabled");
+      toast.info(language === 'hi' ? "टेक्स्ट-टू-स्पीच वर्तमान में अक्षम है" : "Text-to-speech is currently disabled");
       return;
     }
     
@@ -83,13 +85,16 @@ export const useTextToSpeech = () => {
       
       // Clean up content - remove code blocks and markdown
       let cleanContent = content
-        .replace(/```[\s\S]*?```/g, 'Code block omitted.')
+        .replace(/```[\s\S]*?```/g, language === 'hi' ? 'कोड ब्लॉक हटा दिया गया।' : 'Code block omitted.')
         .replace(/`([^`]+)`/g, '$1')
         .replace(/\*\*([^*]+)\*\*/g, '$1')
         .replace(/\*([^*]+)\*/g, '$1')
         .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
         
       const utterance = new SpeechSynthesisUtterance(cleanContent);
+      
+      // Set appropriate language
+      utterance.lang = language === 'hi' ? 'hi-IN' : 'en-US';
       
       // Set voice if selected
       if (selectedVoice) {
@@ -99,23 +104,24 @@ export const useTextToSpeech = () => {
         }
       }
       
-      utterance.rate = 1;
+      // Adjust speed based on language
+      utterance.rate = language === 'hi' ? 0.9 : 1;
       utterance.pitch = 1;
       
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = (event) => {
         console.error('Speech synthesis error:', event);
-        toast.error("Failed to play speech");
+        toast.error(language === 'hi' ? "वाणी चलाने में विफल" : "Failed to play speech");
         setIsSpeaking(false);
       };
       
       speechSynthesisRef.current = utterance;
       window.speechSynthesis.speak(utterance);
-      toast.success("Playing audio");
+      toast.success(language === 'hi' ? "ऑडियो चल रहा है" : "Playing audio");
     } catch (error) {
       console.error('TTS error:', error);
-      toast.error("Text-to-speech is not available on this device");
+      toast.error(language === 'hi' ? "इस डिवाइस पर टेक्स्ट-टू-स्पीच उपलब्ध नहीं है" : "Text-to-speech is not available on this device");
     }
   };
 
@@ -134,12 +140,21 @@ export const useTextToSpeech = () => {
     }
     
     setIsTTSEnabled(!isTTSEnabled);
-    toast.success(isTTSEnabled ? "Text-to-speech disabled" : "Text-to-speech enabled");
+    toast.success(isTTSEnabled 
+      ? (language === 'hi' ? "टेक्स्ट-टू-स्पीच अक्षम किया गया" : "Text-to-speech disabled") 
+      : (language === 'hi' ? "टेक्स्ट-टू-स्पीच सक्षम किया गया" : "Text-to-speech enabled")
+    );
   };
 
   const setVoice = (voiceName: string) => {
     setSelectedVoice(voiceName);
     localStorage.setItem('tts-voice', voiceName);
+  };
+
+  // Find and suggest appropriate voice for current language
+  const getRecommendedVoice = () => {
+    const langCode = language === 'hi' ? 'hi' : 'en';
+    return availableVoices.find(voice => voice.lang.includes(langCode))?.name || selectedVoice;
   };
 
   return {
@@ -150,6 +165,7 @@ export const useTextToSpeech = () => {
     stopSpeaking,
     availableVoices,
     selectedVoice,
-    setVoice
+    setVoice,
+    getRecommendedVoice
   };
 };
