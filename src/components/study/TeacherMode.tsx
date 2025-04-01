@@ -1,32 +1,34 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { GraduationCap, Mic, MicOff, Volume2, VolumeX, Headphones, MessageSquare, BookOpen } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
+import { Form } from '@/components/ui/form';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { toast } from 'sonner';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { TeacherFormValues, TeacherModeProps } from './teacher/types';
 
-interface TeacherModeProps {
-  onSendMessage: (message: string) => void;
-}
+// Import sub-components
+import StudentNameField from './teacher/StudentNameField';
+import SubjectFields from './teacher/SubjectFields';
+import AudioControls from './teacher/AudioControls';
+import TeachingStyleRadio from './teacher/TeachingStyleRadio';
+import CategoryRadio from './teacher/CategoryRadio';
+import ActionRadio from './teacher/ActionRadio';
+import SubmitButton from './teacher/SubmitButton';
+import StudentQuestion from './teacher/StudentQuestion';
 
 const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
   const { t, language } = useLanguage();
   const [isProcessing, setIsProcessing] = useState(false);
   const [customSubject, setCustomSubject] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const [useVoiceResponse, setUseVoiceResponse] = useState(true);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const { isTTSEnabled, toggleTTS, isSpeaking, handleTextToSpeech, stopSpeaking } = useTextToSpeech();
+  const { isTTSEnabled, toggleTTS } = useTextToSpeech();
+  const { isListening, toggleListening } = useSpeechRecognition(language);
   
-  const form = useForm({
+  const form = useForm<TeacherFormValues>({
     defaultValues: {
       subject: '',
       customSubjectText: '',
@@ -39,84 +41,6 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
     }
   });
 
-  // Initialize speech recognition
-  useEffect(() => {
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognitionAPI();
-      
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-US';
-      
-      recognitionRef.current.onresult = (event) => {
-        const currentTranscript = Array.from(event.results)
-          .map(result => result[0])
-          .map(result => result.transcript)
-          .join('');
-        
-        const questionField = document.getElementById('student-question') as HTMLInputElement;
-        if (questionField) {
-          questionField.value = currentTranscript;
-        }
-      };
-      
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
-      
-      recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error', event.error);
-        setIsListening(false);
-        toast.error(language === 'hi' ? 'वाक् पहचान विफल हो गई। कृपया पुनः प्रयास करें।' : 'Speech recognition failed. Please try again.');
-      };
-    }
-    
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
-  }, [language]);
-  
-  // Update recognition language when app language changes
-  useEffect(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-US';
-    }
-  }, [language]);
-
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
-      toast.error(language === 'hi' ? 'आपके ब्राउज़र में वाक् पहचान समर्थित नहीं है' : 'Speech recognition is not supported in your browser');
-      return;
-    }
-    
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    } else {
-      recognitionRef.current.start();
-      setIsListening(true);
-      toast.success(language === 'hi' ? 'सुन रहा है... अब बोलें' : 'Listening... Speak now');
-    }
-  };
-
-  const subjects = [
-    { value: 'mathematics', label: t('mathematics') },
-    { value: 'physics', label: t('physics') },
-    { value: 'chemistry', label: t('chemistry') },
-    { value: 'biology', label: t('biology') },
-    { value: 'history', label: t('history') },
-    { value: 'geography', label: t('geography') },
-    { value: 'computerScience', label: t('computerScience') },
-    { value: 'literature', label: t('literature') },
-    { value: 'economics', label: t('economics') },
-    { value: 'psychology', label: t('psychology') },
-    { value: 'sociology', label: t('sociology') },
-    { value: 'custom', label: t('customSubject') },
-  ];
-
   const handleSubjectChange = (value: string) => {
     form.setValue('subject', value);
     setCustomSubject(value === 'custom');
@@ -125,12 +49,6 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
   const sendStudentQuestion = () => {
     const questionField = document.getElementById('student-question') as HTMLInputElement;
     if (questionField && questionField.value.trim()) {
-      // Stop listening if active
-      if (isListening && recognitionRef.current) {
-        recognitionRef.current.stop();
-        setIsListening(false);
-      }
-      
       // Get student name
       const studentName = form.getValues('studentName') || t('studentName');
       
@@ -229,259 +147,37 @@ ${data.teachingStyle === 'teacher' ? `Address me directly as "${data.studentName
 
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="studentName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('studentName')}</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder={t('enterStudentName')} 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <StudentNameField form={form} />
+
+            <SubjectFields 
+              form={form} 
+              customSubject={customSubject} 
+              onSubjectChange={handleSubjectChange} 
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="subject"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('subject')}</FormLabel>
-                    <Select 
-                      onValueChange={handleSubjectChange} 
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('selectSubject')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {subjects.map((subject) => (
-                          <SelectItem key={subject.value} value={subject.value}>
-                            {subject.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {customSubject && (
-                <FormField
-                  control={form.control}
-                  name="customSubjectText"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('customSubject')}</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder={t('enterCustomSubject')} 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <FormField
-                control={form.control}
-                name="chapter"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('chapter')}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder={t('enterChapter')} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleTTS}
-                  className={`${isTTSEnabled ? 'bg-purple-100 dark:bg-purple-900' : ''}`}
-                >
-                  {isTTSEnabled ? (
-                    <><Volume2 size={16} className="mr-1" /> {language === 'hi' ? 'आवाज़ चालू' : 'Voice On'}</>
-                  ) : (
-                    <><VolumeX size={16} className="mr-1" /> {language === 'hi' ? 'आवाज़ बंद' : 'Voice Off'}</>
-                  )}
-                </Button>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setUseVoiceResponse(!useVoiceResponse)}
-                  className={`${useVoiceResponse ? 'bg-purple-100 dark:bg-purple-900' : ''}`}
-                >
-                  {useVoiceResponse ? (
-                    <><Headphones size={16} className="mr-1" /> {language === 'hi' ? 'आवाज़ जवाब चालू' : 'Voice Response On'}</>
-                  ) : (
-                    <><BookOpen size={16} className="mr-1" /> {language === 'hi' ? 'आवाज़ जवाब बंद' : 'Voice Response Off'}</>
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <FormField
-              control={form.control}
-              name="teachingStyle"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel>{t('teachingStyle')}</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="teacher" id="teacher" />
-                        <Label htmlFor="teacher" className="font-normal cursor-pointer">{t('teacherStyleInteractive')}</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="standard" id="standard" />
-                        <Label htmlFor="standard" className="font-normal cursor-pointer">{t('teacherStyleStandard')}</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <AudioControls 
+              isTTSEnabled={isTTSEnabled} 
+              useVoiceResponse={useVoiceResponse} 
+              toggleTTS={toggleTTS} 
+              setUseVoiceResponse={setUseVoiceResponse} 
             />
 
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel>{t('category')}</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="concise" id="concise" />
-                        <Label htmlFor="concise" className="font-normal cursor-pointer">{t('categoryConcise')}</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="detailed" id="detailed" />
-                        <Label htmlFor="detailed" className="font-normal cursor-pointer">{t('categoryDetailed')}</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <TeachingStyleRadio form={form} />
+            <CategoryRadio form={form} />
+            <ActionRadio form={form} />
 
-            <FormField
-              control={form.control}
-              name="action"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel>{t('action')}</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="notes" id="notes" />
-                        <Label htmlFor="notes" className="font-normal cursor-pointer">{t('actionNotes')}</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="read" id="read" />
-                        <Label htmlFor="read" className="font-normal cursor-pointer">{t('actionRead')}</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <span className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
-                  {t('processing')}
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" />
-                  {t('generateTeaching')}
-                </span>
-              )}
-            </Button>
+            <SubmitButton isProcessing={isProcessing} />
           </form>
         </Form>
 
-        <div className="mt-6 border-t border-purple-100 dark:border-purple-800 pt-4">
-          <h4 className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
-            {language === 'hi' ? 'छात्र प्रश्नोत्तरी' : 'Student Questions'}
-          </h4>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-            {language === 'hi' ? 'अपना प्रश्न पूछें जैसे आप कक्षा में हैं' : 'Ask your question as if you are in class'}
-          </p>
-          
-          <div className="flex gap-2">
-            <Input
-              id="student-question"
-              placeholder={language === 'hi' ? "आपका प्रश्न यहां टाइप करें या बोलें..." : "Type or speak your question here..."}
-              className="flex-1"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={toggleListening}
-              className={`${isListening ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 animate-pulse' : ''}`}
-            >
-              {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-            </Button>
-            <Button
-              type="button"
-              onClick={sendStudentQuestion}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-            >
-              <MessageSquare size={16} />
-            </Button>
-          </div>
-        </div>
+        <StudentQuestion 
+          isListening={isListening} 
+          toggleListening={() => toggleListening('student-question')} 
+          sendStudentQuestion={sendStudentQuestion} 
+        />
       </CardContent>
     </Card>
   );
 };
 
 export default TeacherMode;
-
