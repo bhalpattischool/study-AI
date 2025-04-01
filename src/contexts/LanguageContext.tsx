@@ -14,7 +14,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [language, setLanguage] = useState<Language>('en');
 
   const t = (key: keyof TranslationKeys): string => {
-    return translations[language][key];
+    return translations[language][key] || key;
   };
 
   return (

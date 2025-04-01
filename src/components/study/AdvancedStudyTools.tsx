@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import QuizGenerator from './QuizGenerator';
@@ -105,5 +104,4 @@ const AdvancedStudyTools: React.FC<AdvancedStudyToolsProps> = ({ onSendMessage }
   );
 };
 
-// Export the component with the LanguageProvider
 export default AdvancedStudyTools;
