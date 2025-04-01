@@ -59,7 +59,11 @@ const HomeworkAssistant: React.FC<HomeworkAssistantProps> = ({ onSendMessage }) 
       'english': 'अंग्रेज़ी',
       'history': 'इतिहास',
       'geography': 'भूगोल',
-      'computer science': 'कंप्यूटर विज्ञान'
+      'computer science': 'कंप्यूटर विज्ञान',
+      'literature': 'साहित्य',
+      'economics': 'अर्थशास्त्र',
+      'psychology': 'मनोविज्ञान',
+      'sociology': 'समाजशास्त्र'
     };
     return subjectMap[englishSubject] || englishSubject;
   };
@@ -94,6 +98,10 @@ const HomeworkAssistant: React.FC<HomeworkAssistantProps> = ({ onSendMessage }) 
             <option value="history">{t('history')}</option>
             <option value="geography">{t('geography')}</option>
             <option value="computer science">{t('computerScience')}</option>
+            <option value="literature">{t('literature')}</option>
+            <option value="economics">{t('economics')}</option>
+            <option value="psychology">{t('psychology')}</option>
+            <option value="sociology">{t('sociology')}</option>
           </select>
         </div>
 

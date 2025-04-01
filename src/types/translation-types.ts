@@ -62,6 +62,10 @@ export interface TranslationKeys {
   history: string;
   geography: string;
   computerScience: string;
+  literature: string;
+  economics: string;
+  psychology: string;
+  sociology: string;
   yourProblem: string;
   problemPlaceholder: string;
   helpType: string;
@@ -88,6 +92,10 @@ export interface TranslationKeys {
   chapter: string;
   enterChapter: string;
   selectSubject: string;
+  customSubject: string;
+  enterCustomSubject: string;
+  studentName: string;
+  enterStudentName: string;
   teachingStyle: string;
   teacherStyleInteractive: string;
   teacherStyleStandard: string;

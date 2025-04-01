@@ -16,12 +16,15 @@ interface TeacherModeProps {
 }
 
 const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [customSubject, setCustomSubject] = useState(false);
   const form = useForm({
     defaultValues: {
       subject: '',
+      customSubjectText: '',
       chapter: '',
+      studentName: '',
       teachingStyle: 'teacher',
       category: 'concise',
       action: 'read'
@@ -36,31 +39,70 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
     { value: 'history', label: t('history') },
     { value: 'geography', label: t('geography') },
     { value: 'computerScience', label: t('computerScience') },
+    { value: 'literature', label: t('literature') },
+    { value: 'economics', label: t('economics') },
+    { value: 'psychology', label: t('psychology') },
+    { value: 'sociology', label: t('sociology') },
+    { value: 'custom', label: t('customSubject') },
   ];
+
+  const handleSubjectChange = (value: string) => {
+    form.setValue('subject', value);
+    setCustomSubject(value === 'custom');
+  };
 
   const handleSubmit = form.handleSubmit((data) => {
     setIsProcessing(true);
     
+    const selectedSubject = customSubject ? data.customSubjectText : data.subject;
+    
     const teachingStyle = data.teachingStyle === 'teacher' 
-      ? 'Teach this like a real teacher who addresses me directly' 
-      : 'Provide standard text-based content';
+      ? (language === 'en' 
+        ? `Teach this like a real teacher who addresses me directly as "${data.studentName || 'student'}"`
+        : `इसे एक वास्तविक शिक्षक की तरह पढ़ाएं जो मुझे सीधे "${data.studentName || 'विद्यार्थी'}" के रूप में संबोधित करे`)
+      : (language === 'en'
+        ? 'Provide standard text-based content'
+        : 'मानक टेक्स्ट-आधारित सामग्री प्रदान करें');
       
     const category = data.category === 'concise'
-      ? 'Keep it concise and highlight the main points'
-      : 'Give a detailed explanation with complete information';
+      ? (language === 'en'
+        ? 'Keep it concise and highlight the main points'
+        : 'इसे संक्षिप्त रखें और मुख्य बिंदुओं पर प्रकाश डालें')
+      : (language === 'en'
+        ? 'Give a detailed explanation with complete information'
+        : 'पूरी जानकारी के साथ विस्तृत व्याख्या दें');
       
     const action = data.action === 'notes'
-      ? 'Generate study notes that I can use'
-      : 'Explain the content for understanding';
+      ? (language === 'en'
+        ? 'Generate study notes that I can use'
+        : 'अध्ययन नोट्स तैयार करें जिन्हें मैं उपयोग कर सकूं')
+      : (language === 'en'
+        ? 'Explain the content for understanding'
+        : 'समझने के लिए सामग्री की व्याख्या करें');
     
-    const prompt = `Act as a professional teacher in ${data.teachingStyle === 'teacher' ? 'interactive teaching mode' : 'standard teaching mode'}. 
-    Subject: ${data.subject}
-    Chapter: ${data.chapter}
-    Approach: ${teachingStyle}
-    Detail Level: ${category}
-    Action: ${action}
+    let prompt = '';
     
-    ${data.teachingStyle === 'teacher' ? 'Address me directly as a student, ask questions occasionally to ensure understanding, and teach in a way that feels like a live classroom experience.' : ''}`;
+    if (language === 'en') {
+      prompt = `Act as a professional teacher in ${data.teachingStyle === 'teacher' ? 'interactive teaching mode' : 'standard teaching mode'}. 
+Subject: ${selectedSubject}
+Chapter: ${data.chapter}
+Student Name: ${data.studentName || 'Student'}
+Approach: ${teachingStyle}
+Detail Level: ${category}
+Action: ${action}
+
+${data.teachingStyle === 'teacher' ? `Address me directly as "${data.studentName || 'Student'}", ask questions occasionally to ensure understanding, and teach in a way that feels like a live classroom experience.` : ''}`;
+    } else {
+      prompt = `एक पेशेवर शिक्षक के रूप में कार्य करें ${data.teachingStyle === 'teacher' ? 'इंटरैक्टिव शिक्षण मोड' : 'मानक शिक्षण मोड'} में।
+विषय: ${selectedSubject}
+अध्याय: ${data.chapter}
+विद्यार्थी का नाम: ${data.studentName || 'विद्यार्थी'}
+दृष्टिकोण: ${teachingStyle}
+विवरण स्तर: ${category}
+कार्रवाई: ${action}
+
+${data.teachingStyle === 'teacher' ? `मुझे सीधे "${data.studentName || 'विद्यार्थी'}" के रूप में संबोधित करें, समझ सुनिश्चित करने के लिए कभी-कभी प्रश्न पूछें, और इस तरह से पढ़ाएं जो एक लाइव कक्षा अनुभव जैसा लगे।` : ''}`;
+    }
     
     onSendMessage(prompt);
     setIsProcessing(false);
@@ -81,6 +123,23 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
 
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="studentName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('studentName')}</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder={t('enterStudentName')} 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -89,7 +148,7 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
                   <FormItem>
                     <FormLabel>{t('subject')}</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
+                      onValueChange={handleSubjectChange} 
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -109,6 +168,25 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
                   </FormItem>
                 )}
               />
+
+              {customSubject && (
+                <FormField
+                  control={form.control}
+                  name="customSubjectText"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('customSubject')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder={t('enterCustomSubject')} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
