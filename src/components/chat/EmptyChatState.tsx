@@ -5,6 +5,7 @@ import StudyFeatures from '../StudyFeatures';
 import AdvancedStudyTools from '../study/AdvancedStudyTools';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sparkles, Lightbulb } from 'lucide-react';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 
 interface EmptyChatStateProps {
   onSendMessage: (message: string) => void;
@@ -41,7 +42,9 @@ const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSendMessage }) => {
           </TabsContent>
           
           <TabsContent value="advanced">
-            <AdvancedStudyTools onSendMessage={onSendMessage} />
+            <LanguageProvider>
+              <AdvancedStudyTools onSendMessage={onSendMessage} />
+            </LanguageProvider>
           </TabsContent>
         </Tabs>
       </div>

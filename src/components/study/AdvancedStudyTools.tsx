@@ -9,20 +9,11 @@ import MotivationSystem from './MotivationSystem';
 import TeacherMode from './TeacherMode';
 import { BrainCircuit, FileText, Calendar, BookOpen, Sparkles, Globe, GraduationCap } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LanguageProvider, useLanguage, Language } from '@/contexts/LanguageContext';
+import { useLanguage, Language } from '@/contexts/LanguageContext';
 
 interface AdvancedStudyToolsProps {
   onSendMessage: (message: string) => void;
 }
-
-// Wrapper component that provides language context
-const AdvancedStudyToolsWithLanguage: React.FC<AdvancedStudyToolsProps> = (props) => {
-  return (
-    <LanguageProvider>
-      <AdvancedStudyTools {...props} />
-    </LanguageProvider>
-  );
-};
 
 const AdvancedStudyTools: React.FC<AdvancedStudyToolsProps> = ({ onSendMessage }) => {
   const [activeTab, setActiveTab] = useState('quiz');
@@ -114,4 +105,5 @@ const AdvancedStudyTools: React.FC<AdvancedStudyToolsProps> = ({ onSendMessage }
   );
 };
 
-export default AdvancedStudyToolsWithLanguage;
+// Export the component with the LanguageProvider
+export default AdvancedStudyTools;
