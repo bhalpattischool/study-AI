@@ -13,11 +13,13 @@ export const englishTranslations: TranslationKeys = {
   studyPlanner: 'Study Planner',
   homeworkAssistant: 'Homework Assistant',
   motivationSystem: 'Motivation System',
+  teacherMode: 'Teacher Mode',
   generateQuiz: 'Generate Quiz',
   generateNotes: 'Generate Notes',
   planStudy: 'Plan Study',
   assistHomework: 'Assist Homework',
   motivate: 'Motivate',
+  generateTeaching: 'Start Teaching',
   
   // QuizGenerator translations
   quizDescription: 'Generate a quiz based on your topic and preferences to test your knowledge',
@@ -79,5 +81,20 @@ export const englishTranslations: TranslationKeys = {
   dailyAffirmations: 'Daily Affirmations',
   motivationDescription4: 'Positive affirmations to keep you motivated',
   studyEnergyBoost: 'Study Energy Boost',
-  motivationDescription5: 'Quick motivation to boost your study energy'
+  motivationDescription5: 'Quick motivation to boost your study energy',
+  
+  // TeacherMode translations
+  teacherModeDescription: 'Learn like you have a real teacher guiding you through the topic',
+  chapter: 'Chapter',
+  enterChapter: 'Enter the chapter or topic name',
+  selectSubject: 'Select a subject',
+  teachingStyle: 'Teaching Style',
+  teacherStyleInteractive: 'Learn from a Teacher (interactive classroom experience)',
+  teacherStyleStandard: 'Standard Learning (text-based content)',
+  category: 'Learning Approach',
+  categoryConcise: 'Concise Study (highlight main points)',
+  categoryDetailed: 'Detailed Study (complete explanation)',
+  action: 'What do you want?',
+  actionNotes: 'Generate Notes (auto-generate study notes)',
+  actionRead: 'Just Teach (explain for understanding)'
 };

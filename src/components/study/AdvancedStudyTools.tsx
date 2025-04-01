@@ -6,7 +6,8 @@ import NotesGenerator from './NotesGenerator';
 import StudyPlanner from './StudyPlanner';
 import HomeworkAssistant from './HomeworkAssistant';
 import MotivationSystem from './MotivationSystem';
-import { BrainCircuit, FileText, Calendar, BookOpen, Sparkles, Globe } from 'lucide-react';
+import TeacherMode from './TeacherMode';
+import { BrainCircuit, FileText, Calendar, BookOpen, Sparkles, Globe, ChalkboardTeacher } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LanguageProvider, useLanguage, Language } from '@/contexts/LanguageContext';
 
@@ -56,7 +57,7 @@ const AdvancedStudyTools: React.FC<AdvancedStudyToolsProps> = ({ onSendMessage }
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-5 bg-purple-50 dark:bg-gray-800 p-1">
+        <TabsList className="w-full grid grid-cols-6 bg-purple-50 dark:bg-gray-800 p-1">
           <TabsTrigger value="quiz" className="flex flex-col items-center py-2 px-1 text-xs sm:text-sm">
             <BrainCircuit className="h-4 w-4 mb-1" />
             {t('quizGenerator').split(' ')[0]}
@@ -76,6 +77,10 @@ const AdvancedStudyTools: React.FC<AdvancedStudyToolsProps> = ({ onSendMessage }
           <TabsTrigger value="motivation" className="flex flex-col items-center py-2 px-1 text-xs sm:text-sm">
             <Sparkles className="h-4 w-4 mb-1" />
             {t('motivationSystem').split(' ')[0]}
+          </TabsTrigger>
+          <TabsTrigger value="teacher" className="flex flex-col items-center py-2 px-1 text-xs sm:text-sm">
+            <ChalkboardTeacher className="h-4 w-4 mb-1" />
+            {t('teacherMode').split(' ')[0]}
           </TabsTrigger>
         </TabsList>
         
@@ -98,6 +103,10 @@ const AdvancedStudyTools: React.FC<AdvancedStudyToolsProps> = ({ onSendMessage }
           
           <TabsContent value="motivation" className="mt-0">
             <MotivationSystem onSendMessage={onSendMessage} />
+          </TabsContent>
+          
+          <TabsContent value="teacher" className="mt-0">
+            <TeacherMode onSendMessage={onSendMessage} />
           </TabsContent>
         </div>
       </Tabs>

@@ -13,11 +13,13 @@ export const hindiTranslations: TranslationKeys = {
   studyPlanner: 'अध्ययन योजनाकार',
   homeworkAssistant: 'होमवर्क सहायक',
   motivationSystem: 'प्रेरणा प्रणाली',
+  teacherMode: 'शिक्षक मोड',
   generateQuiz: 'क्विज़ बनाएं',
   generateNotes: 'नोट्स बनाएं',
   planStudy: 'अध्ययन योजना',
   assistHomework: 'होमवर्क में सहायता',
   motivate: 'प्रेरित करें',
+  generateTeaching: 'पढ़ाना शुरू करें',
   
   // QuizGenerator translations
   quizDescription: 'अपने ज्ञान का परीक्षण करने के लिए अपने विषय और प्राथमिकताओं के आधार पर एक क्विज़ उत्पन्न करें',
@@ -79,5 +81,20 @@ export const hindiTranslations: TranslationKeys = {
   dailyAffirmations: 'दैनिक सकारात्मक कथन',
   motivationDescription4: 'आपको प्रेरित रखने के लिए सकारात्मक कथन',
   studyEnergyBoost: 'अध्ययन ऊर्जा बढ़ावा',
-  motivationDescription5: 'आपकी अध्ययन ऊर्जा को बढ़ावा देने के लिए त्वरित प्रेरणा'
+  motivationDescription5: 'आपकी अध्ययन ऊर्जा को बढ़ावा देने के लिए त्वरित प्रेरणा',
+  
+  // TeacherMode translations
+  teacherModeDescription: 'ऐसे सीखें जैसे कोई असली शिक्षक आपको विषय के माध्यम से मार्गदर्शन कर रहा हो',
+  chapter: 'अध्याय',
+  enterChapter: 'अध्याय या टॉपिक का नाम दर्ज करें',
+  selectSubject: 'विषय चुनें',
+  teachingStyle: 'पढ़ाने का तरीका',
+  teacherStyleInteractive: 'शिक्षक से सीखें (इंटरैक्टिव कक्षा अनुभव)',
+  teacherStyleStandard: 'सामान्य सीखना (टेक्स्ट आधारित सामग्री)',
+  category: 'सीखने का तरीका',
+  categoryConcise: 'संक्षिप्त अध्ययन (मुख्य बिंदु हाइलाइट होंगे)',
+  categoryDetailed: 'विस्तृत अध्ययन (पूरी व्याख्या के साथ)',
+  action: 'आप क्या चाहते हैं?',
+  actionNotes: 'नोट्स बनाएं (स्वचालित अध्ययन नोट्स)',
+  actionRead: 'सिर्फ पढ़ाएं (समझने के लिए व्याख्या)'
 };

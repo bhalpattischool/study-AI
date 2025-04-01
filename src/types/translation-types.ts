@@ -13,11 +13,13 @@ export interface TranslationKeys {
   studyPlanner: string;
   homeworkAssistant: string;
   motivationSystem: string;
+  teacherMode: string;
   generateQuiz: string;
   generateNotes: string;
   planStudy: string;
   assistHomework: string;
   motivate: string;
+  generateTeaching: string;
   
   // QuizGenerator translations
   quizDescription: string;
@@ -80,6 +82,21 @@ export interface TranslationKeys {
   motivationDescription4: string;
   studyEnergyBoost: string;
   motivationDescription5: string;
+  
+  // TeacherMode translations
+  teacherModeDescription: string;
+  chapter: string;
+  enterChapter: string;
+  selectSubject: string;
+  teachingStyle: string;
+  teacherStyleInteractive: string;
+  teacherStyleStandard: string;
+  category: string;
+  categoryConcise: string;
+  categoryDetailed: string;
+  action: string;
+  actionNotes: string;
+  actionRead: string;
 }
 
 export type TranslationsRecord = Record<Language, TranslationKeys>;
