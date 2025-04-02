@@ -10,11 +10,13 @@ import UserInfoCards from '@/components/profile/UserInfoCards';
 import ProfileNavigation from '@/components/profile/ProfileNavigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Profile = () => {
   const { currentUser, isLoading } = useAuth();
   const [userCategory, setUserCategory] = useState('');
   const [educationLevel, setEducationLevel] = useState('');
+  const [activeTab, setActiveTab] = useState('info');
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -56,20 +58,33 @@ const Profile = () => {
             </div>
           </div>
           
-          <ScrollArea className="h-[calc(100vh-12rem)]">
-            <div className="p-4 sm:p-6">
-              <ProfileHeader currentUser={currentUser} />
-              
-              <UserInfoCards 
-                userCategory={userCategory} 
-                educationLevel={educationLevel} 
-              />
-
-              <Separator className="my-6" />
-              
-              <ProfileNavigation isAuthenticated={!!currentUser} />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="px-4 pt-4">
+              <TabsList className="w-full grid grid-cols-2">
+                <TabsTrigger value="info">Profile Info</TabsTrigger>
+                <TabsTrigger value="nav">Navigation</TabsTrigger>
+              </TabsList>
             </div>
-          </ScrollArea>
+            
+            <ScrollArea className="h-[calc(100vh-12rem)]">
+              <TabsContent value="info" className="m-0">
+                <div className="p-4 sm:p-6">
+                  <ProfileHeader currentUser={currentUser} />
+                  
+                  <UserInfoCards 
+                    userCategory={userCategory} 
+                    educationLevel={educationLevel} 
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="nav" className="m-0">
+                <div className="p-4 sm:p-6">
+                  <ProfileNavigation isAuthenticated={!!currentUser} />
+                </div>
+              </TabsContent>
+            </ScrollArea>
+          </Tabs>
         </div>
       </div>
     </div>

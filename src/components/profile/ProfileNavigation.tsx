@@ -5,10 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { 
   Home, BookmarkCheck, LogOut, LogIn, 
-  UserPlus, Volume2 
+  UserPlus, Volume2, History, School, MessageSquare 
 } from 'lucide-react';
 import { logoutUser } from '@/lib/firebase';
 import { toast } from "sonner";
+import ChatHistory from '@/components/ChatHistory';
 
 interface ProfileNavigationProps {
   isAuthenticated: boolean;
@@ -51,6 +52,33 @@ const ProfileNavigation: React.FC<ProfileNavigationProps> = ({ isAuthenticated }
             >
               <BookmarkCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
               Saved Messages
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
+              onClick={() => navigate('/chat-history')}
+            >
+              <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-blue-500" />
+              Chat History
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
+              onClick={() => navigate('/teacher-chats')}
+            >
+              <School className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-green-500" />
+              Teacher Chats
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
+              onClick={() => navigate('/feedback')}
+            >
+              <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-orange-500" />
+              Share Feedback
             </Button>
             
             <Button 
