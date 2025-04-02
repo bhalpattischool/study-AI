@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import SuggestionButton from './SuggestionButton';
-import { MessageSquare, Code, FileText, BookOpen, Bell, Calculator, Brain, GraduationCap } from 'lucide-react';
+import { MessageSquare, Code, FileText, BookOpen, Bell, Calculator, Brain, GraduationCap, Clock } from 'lucide-react';
 import { getTimeBasedGreeting } from '@/utils/timeUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import StudyTimer from './study/StudyTimer';

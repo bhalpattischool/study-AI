@@ -1,7 +1,7 @@
 
 import * as React from "react"
 import { SidebarContext, SIDEBAR_COOKIE_NAME, SIDEBAR_COOKIE_MAX_AGE } from "./types"
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 import Cookies from "js-cookie"
 
 interface SidebarProviderProps {
@@ -15,7 +15,7 @@ export function SidebarProvider({
 }: SidebarProviderProps) {
   const [open, setOpen] = React.useState(false)
   const [openMobile, setOpenMobile] = React.useState(false)
-  const isMobile = useMobile()
+  const isMobile = useIsMobile()
   const [state, setState] = React.useState<"expanded" | "collapsed">(() => {
     // Get the state from cookie on client-side
     if (typeof window !== "undefined") {
