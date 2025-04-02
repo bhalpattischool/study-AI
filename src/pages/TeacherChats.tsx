@@ -6,16 +6,29 @@ import { chatDB } from '@/lib/db';
 import { Chat, Message } from '@/lib/db';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Search, School, Calendar, Trash2 } from 'lucide-react';
+import { ArrowLeft, Search, School, Calendar, Trash2, Edit, Eye, MoreHorizontal } from 'lucide-react';
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const TeacherChats = () => {
   const { currentUser, isLoading } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editingChatTitle, setEditingChatTitle] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -79,8 +92,10 @@ const TeacherChats = () => {
   };
 
   const handleDeleteChat = async (chatId: string, e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     
     try {
       await chatDB.deleteChat(chatId);
@@ -96,6 +111,44 @@ const TeacherChats = () => {
 
   const handleChatClick = (chatId: string) => {
     navigate('/', { state: { activeChatId: chatId } });
+  };
+
+  const handleEditChat = async (chatId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Find the chat and set it for editing
+    const chat = chats.find(c => c.id === chatId);
+    if (chat) {
+      setEditingChatId(chatId);
+      setEditingChatTitle(chat.title);
+    }
+  };
+
+  const saveEditedChat = async () => {
+    if (!editingChatId || !editingChatTitle.trim()) {
+      toast.error('Chat title cannot be empty');
+      return;
+    }
+
+    try {
+      // In a real app, you'd update the chat in the database
+      // Here we'll just update it locally for demonstration
+      const updatedChats = chats.map(chat => 
+        chat.id === editingChatId 
+          ? { ...chat, title: editingChatTitle } 
+          : chat
+      );
+      
+      setChats(updatedChats);
+      setEditingChatId(null);
+      toast.success('Chat updated successfully');
+    } catch (error) {
+      console.error('Error updating chat:', error);
+      toast.error('Failed to update chat');
+    }
   };
 
   const filteredChats = chats.filter(chat => 
@@ -167,43 +220,173 @@ const TeacherChats = () => {
               <ScrollArea className="h-[calc(100vh-250px)]">
                 <div className="grid gap-4">
                   {filteredChats.map((chat) => (
-                    <div 
-                      key={chat.id}
-                      onClick={() => handleChatClick(chat.id)}
-                      className="cursor-pointer rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                    >
-                      <div className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            <School className="h-5 w-5 text-green-500 mr-2" />
-                            <h3 className="font-medium text-gray-900 dark:text-white">
-                              {chat.title}
-                            </h3>
+                    <ContextMenu key={chat.id}>
+                      <ContextMenuTrigger>
+                        <div 
+                          className={cn(
+                            "relative cursor-pointer rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors",
+                            editingChatId === chat.id && "border-green-500 dark:border-green-500"
+                          )}
+                        >
+                          <div className="p-4">
+                            {editingChatId === chat.id ? (
+                              <div className="mb-3" onClick={(e) => e.stopPropagation()}>
+                                <Input
+                                  value={editingChatTitle}
+                                  onChange={(e) => setEditingChatTitle(e.target.value)}
+                                  placeholder="Enter chat title"
+                                  className="mb-2"
+                                  autoFocus
+                                />
+                                <div className="flex space-x-2">
+                                  <Button 
+                                    size="sm" 
+                                    onClick={saveEditedChat}
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={() => setEditingChatId(null)}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center">
+                                    <School className="h-5 w-5 text-green-500 mr-2" />
+                                    <h3 className="font-medium text-gray-900 dark:text-white">
+                                      {chat.title}
+                                    </h3>
+                                  </div>
+                                  
+                                  {/* Desktop: Show all buttons */}
+                                  <div className="hidden sm:flex space-x-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
+                                      onClick={(e) => handleChatClick(chat.id)}
+                                      title="View chat"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                      onClick={(e) => handleEditChat(chat.id, e)}
+                                      title="Edit chat"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                      onClick={(e) => handleDeleteChat(chat.id, e)}
+                                      title="Delete chat"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                  
+                                  {/* Mobile: Show dropdown menu */}
+                                  <div className="block sm:hidden">
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8 rounded-full"
+                                        >
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="end">
+                                        <div className="flex flex-col">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="justify-start rounded-none text-left pl-2 pr-6"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleChatClick(chat.id);
+                                            }}
+                                          >
+                                            <Eye className="h-4 w-4 mr-2" /> View
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="justify-start rounded-none text-left pl-2 pr-6"
+                                            onClick={(e) => handleEditChat(chat.id, e)}
+                                          >
+                                            <Edit className="h-4 w-4 mr-2" /> Edit
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="justify-start rounded-none text-left pl-2 pr-6 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                            onClick={(e) => handleDeleteChat(chat.id, e)}
+                                          >
+                                            <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                          </Button>
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  <Calendar className="h-3.5 w-3.5 mr-1" />
+                                  <span>{formatDate(chat.timestamp)} at {formatTime(chat.timestamp)}</span>
+                                  <span className="mx-2">•</span>
+                                  <span>{chat.messages.length} messages</span>
+                                </div>
+                                
+                                {chat.messages.length > 0 && (
+                                  <div className="mt-3 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                                    {chat.messages[chat.messages.length - 1].content}
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            onClick={(e) => handleDeleteChat(chat.id, e)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        
-                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          <Calendar className="h-3.5 w-3.5 mr-1" />
-                          <span>{formatDate(chat.timestamp)} at {formatTime(chat.timestamp)}</span>
-                          <span className="mx-2">•</span>
-                          <span>{chat.messages.length} messages</span>
-                        </div>
-                        
-                        {chat.messages.length > 0 && (
-                          <div className="mt-3 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                            {chat.messages[chat.messages.length - 1].content}
+                          {/* Touch-friendly action hint for mobile */}
+                          <div className="text-xs text-center py-1 bg-gray-50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-gray-700 sm:hidden">
+                            Press and hold for options
                           </div>
-                        )}
-                      </div>
-                    </div>
+                        </div>
+                      </ContextMenuTrigger>
+                      <ContextMenuContent className="w-40">
+                        <ContextMenuItem
+                          className="flex items-center text-sm cursor-pointer"
+                          onClick={() => handleChatClick(chat.id)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          className="flex items-center text-sm cursor-pointer"
+                          onClick={(e) => handleEditChat(chat.id)}
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          className="flex items-center text-sm cursor-pointer text-red-500"
+                          onClick={() => handleDeleteChat(chat.id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </ContextMenuItem>
+                      </ContextMenuContent>
+                    </ContextMenu>
                   ))}
                 </div>
               </ScrollArea>
