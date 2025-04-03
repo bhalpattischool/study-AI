@@ -14,6 +14,7 @@ import SavedMessages from "./pages/SavedMessages";
 import ChatHistory from "./pages/ChatHistory";
 import TeacherChats from "./pages/TeacherChats";
 import Feedback from "./pages/Feedback";
+import StudentActivities from "./pages/StudentActivities";
 import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/chat-history" element={<ChatHistory />} />
           <Route path="/teacher-chats" element={<TeacherChats />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/student-activities" element={<StudentActivities />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

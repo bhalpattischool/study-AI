@@ -1,15 +1,19 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
-import { 
-  Home, BookmarkCheck, LogOut, LogIn, 
-  UserPlus, Volume2, History, School, MessageSquare 
+import {
+  History,
+  Bookmark,
+  LogOut,
+  GraduationCap,
+  MessageSquare,
+  ThumbsUp,
+  Activity
 } from 'lucide-react';
 import { logoutUser } from '@/lib/firebase';
-import { toast } from "sonner";
-import ChatHistory from '@/components/ChatHistory';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileNavigationProps {
   isAuthenticated: boolean;
@@ -17,112 +21,91 @@ interface ProfileNavigationProps {
 
 const ProfileNavigation: React.FC<ProfileNavigationProps> = ({ isAuthenticated }) => {
   const navigate = useNavigate();
-  const { isTTSEnabled, toggleTTS } = useTextToSpeech();
-
+  
   const handleLogout = async () => {
     try {
       await logoutUser();
+      toast.success('Successfully logged out');
       navigate('/login');
     } catch (error) {
-      console.error("Error logging out:", error);
-      toast.error("Failed to log out");
+      console.error('Logout error:', error);
+      toast.error('Failed to log out');
     }
   };
-
+  
   return (
-    <div className="space-y-4 w-full">
-      <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">Navigation</h3>
+    <div className="space-y-3">
+      <Button 
+        variant="outline" 
+        size="lg" 
+        className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700" 
+        asChild
+      >
+        <Link to="/chat-history">
+          <History className="mr-2 h-5 w-5 text-purple-600" />
+          Chat History
+        </Link>
+      </Button>
+
+      <Button 
+        variant="outline" 
+        size="lg" 
+        className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700" 
+        asChild
+      >
+        <Link to="/saved-messages">
+          <Bookmark className="mr-2 h-5 w-5 text-purple-600" />
+          Saved Messages
+        </Link>
+      </Button>
+
+      <Button 
+        variant="outline" 
+        size="lg" 
+        className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700" 
+        asChild
+      >
+        <Link to="/teacher-chats">
+          <GraduationCap className="mr-2 h-5 w-5 text-purple-600" />
+          Teacher Chats
+        </Link>
+      </Button>
+
+      <Button 
+        variant="outline" 
+        size="lg" 
+        className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700" 
+        asChild
+      >
+        <Link to="/student-activities">
+          <Activity className="mr-2 h-5 w-5 text-purple-600" />
+          Student Activities
+        </Link>
+      </Button>
+
+      <Button 
+        variant="outline" 
+        size="lg" 
+        className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700" 
+        asChild
+      >
+        <Link to="/feedback">
+          <ThumbsUp className="mr-2 h-5 w-5 text-purple-600" />
+          Send Feedback
+        </Link>
+      </Button>
       
-      <div className="grid grid-cols-1 gap-2 sm:gap-3">
+      {isAuthenticated && (
         <Button 
-          variant="outline"
-          className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
-          onClick={() => navigate('/')}
+          variant="destructive" 
+          size="lg" 
+          className="w-full justify-start" 
+          onClick={handleLogout}
         >
-          <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
-          Home
+          <LogOut className="mr-2 h-5 w-5" />
+          Log Out
         </Button>
-        
-        {isAuthenticated ? (
-          <>
-            <Button 
-              variant="outline"
-              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
-              onClick={() => navigate('/saved-messages')}
-            >
-              <BookmarkCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
-              Saved Messages
-            </Button>
-            
-            <Button 
-              variant="outline"
-              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
-              onClick={() => navigate('/chat-history')}
-            >
-              <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-blue-500" />
-              Chat History
-            </Button>
-            
-            <Button 
-              variant="outline"
-              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
-              onClick={() => navigate('/teacher-chats')}
-            >
-              <School className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-green-500" />
-              Teacher Chats
-            </Button>
-            
-            <Button 
-              variant="outline"
-              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
-              onClick={() => navigate('/feedback')}
-            >
-              <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-orange-500" />
-              Share Feedback
-            </Button>
-            
-            <Button 
-              variant="outline"
-              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
-              onClick={toggleTTS}
-            >
-              <Volume2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
-              <span className="truncate">
-                {isTTSEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
-              </span>
-            </Button>
-            
-            <Button 
-              variant="outline"
-              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
-              Logout
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button 
-              variant="outline"
-              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
-              onClick={() => navigate('/login')}
-            >
-              <LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
-              Login
-            </Button>
-            
-            <Button 
-              variant="outline"
-              className="w-full justify-start text-sm sm:text-base py-1.5 sm:py-2"
-              onClick={() => navigate('/signup')}
-            >
-              <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-purple-500" />
-              Register
-            </Button>
-          </>
-        )}
-      </div>
+      )}
     </div>
   );
 };
