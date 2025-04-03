@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { chatDB } from '@/lib/db';
 import Sidebar from '@/components/Sidebar';
 import Chat from '@/components/Chat';
@@ -18,12 +18,43 @@ const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { currentUser, isLoading: authLoading } = useAuth();
   const isMobile = useIsMobile();
+  const location = useLocation();
 
   useEffect(() => {
     if (!authLoading) {
       initializeChat();
     }
   }, [authLoading]);
+
+  // Handle chat ID from navigation state
+  useEffect(() => {
+    const handleNavigationState = async () => {
+      if (location.state?.activeChatId) {
+        const chatId = location.state.activeChatId;
+        try {
+          // Verify the chat exists before setting it
+          const chat = await chatDB.getChat(chatId);
+          if (chat) {
+            setCurrentChatId(chatId);
+            // Show a welcome toast when coming from teacher chats
+            if (location.state.source === 'teacher-chats') {
+              toast.success('Teacher chat loaded successfully');
+            }
+          } else {
+            console.error('Chat not found:', chatId);
+            initializeChat(); // Fallback to default chat
+          }
+        } catch (error) {
+          console.error('Error loading chat from navigation:', error);
+          initializeChat(); // Fallback to default chat
+        }
+      }
+    };
+
+    if (!isLoading && location.state?.activeChatId) {
+      handleNavigationState();
+    }
+  }, [location.state, isLoading]);
 
   const initializeChat = async () => {
     try {

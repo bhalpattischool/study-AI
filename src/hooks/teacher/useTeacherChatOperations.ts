@@ -11,7 +11,13 @@ export const useTeacherChatOperations = (chats: Chat[], setChats: React.Dispatch
     if (isBatchDeleteMode) {
       toggleChatSelection(chatId);
     } else {
-      navigate('/', { state: { activeChatId: chatId } });
+      // Navigate to the home page with the selected chat ID as state
+      navigate('/', { 
+        state: { 
+          activeChatId: chatId,
+          source: 'teacher-chats' // Add source to track where we came from
+        } 
+      });
     }
   };
 

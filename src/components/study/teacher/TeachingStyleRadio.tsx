@@ -12,7 +12,7 @@ interface TeachingStyleRadioProps {
 }
 
 const TeachingStyleRadio: React.FC<TeachingStyleRadioProps> = ({ form }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   return (
     <FormField
@@ -29,11 +29,19 @@ const TeachingStyleRadio: React.FC<TeachingStyleRadioProps> = ({ form }) => {
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="teacher" id="teacher" />
-                <Label htmlFor="teacher" className="font-normal cursor-pointer">{t('teacherStyleInteractive')}</Label>
+                <Label htmlFor="teacher" className="font-normal cursor-pointer">
+                  {language === 'hi' 
+                    ? 'एकदम असली शिक्षक की तरह (इंटरैक्टिव और जीवंत)' 
+                    : 'Like a real teacher (interactive & engaging)'}
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="standard" id="standard" />
-                <Label htmlFor="standard" className="font-normal cursor-pointer">{t('teacherStyleStandard')}</Label>
+                <Label htmlFor="standard" className="font-normal cursor-pointer">
+                  {language === 'hi'
+                    ? 'मानक शैक्षणिक शैली (सीधे तथ्य और जानकारी)'
+                    : 'Standard educational style (direct facts and information)'}
+                </Label>
               </div>
             </RadioGroup>
           </FormControl>
