@@ -2,7 +2,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, MessageSquare, HandRaised } from 'lucide-react';
+import { Mic, MicOff, MessageSquare, Hand } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -22,7 +22,7 @@ const StudentQuestion: React.FC<StudentQuestionProps> = ({
   return (
     <div className="mt-6 border-t border-purple-100 dark:border-purple-800 pt-4">
       <h4 className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-2 flex items-center">
-        <HandRaised className="h-4 w-4 mr-1" />
+        <Hand className="h-4 w-4 mr-1" />
         {language === 'hi' ? 'अपने शिक्षक से पूछें' : 'Ask Your Teacher'}
       </h4>
       <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
@@ -50,7 +50,7 @@ const StudentQuestion: React.FC<StudentQuestionProps> = ({
           className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
           title={language === 'hi' ? "हाथ उठाएं" : "Raise hand"}
         >
-          <HandRaised size={16} className="mr-1" />
+          <Hand size={16} className="mr-1" />
           {language === 'hi' ? "पूछें" : "Ask"}
         </Button>
       </div>
