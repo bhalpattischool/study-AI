@@ -116,7 +116,8 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
     let prompt = '';
     
     if (language === 'hi') {
-      prompt = `एक वास्तविक कक्षा शिक्षक के रूप में कार्य करें ${data.teachingStyle === 'teacher' ? 'जो बहुत उत्साही, प्रभावशाली और प्रेरणादायक हैं' : 'मानक शिक्षण मोड में'।}
+      // Fixed the syntax error by removing the danda character (।) and properly closing the template string
+      prompt = `एक वास्तविक कक्षा शिक्षक के रूप में कार्य करें ${data.teachingStyle === 'teacher' ? 'जो बहुत उत्साही, प्रभावशाली और प्रेरणादायक हैं' : 'मानक शिक्षण मोड में'}
 विषय: ${selectedSubject}
 अध्याय: ${data.chapter}
 विद्यार्थी का नाम: ${data.studentName || t('studentName')}
