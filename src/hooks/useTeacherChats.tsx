@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +12,8 @@ export const useTeacherChats = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingChatTitle, setEditingChatTitle] = useState('');
+  const [selectedChats, setSelectedChats] = useState<Set<string>>(new Set());
+  const [isBatchDeleteMode, setIsBatchDeleteMode] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -91,8 +92,74 @@ export const useTeacherChats = () => {
     }
   };
 
+  const handleBatchDelete = async () => {
+    if (selectedChats.size === 0) {
+      toast.error('No chats selected');
+      return;
+    }
+    
+    try {
+      const deletePromises = Array.from(selectedChats).map(chatId => 
+        chatDB.deleteChat(chatId)
+      );
+      
+      await Promise.all(deletePromises);
+      
+      // Update local state by filtering out deleted chats
+      setChats(chats.filter(chat => !selectedChats.has(chat.id)));
+      
+      // Reset selection
+      setSelectedChats(new Set());
+      setIsBatchDeleteMode(false);
+      
+      toast.success(`${selectedChats.size} chat(s) deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting multiple chats:', error);
+      toast.error('Failed to delete selected chats');
+    }
+  };
+
   const handleChatClick = (chatId: string) => {
-    navigate('/', { state: { activeChatId: chatId } });
+    if (isBatchDeleteMode) {
+      toggleChatSelection(chatId);
+    } else {
+      navigate('/', { state: { activeChatId: chatId } });
+    }
+  };
+
+  const toggleChatSelection = (chatId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    setSelectedChats(prevSelected => {
+      const newSelected = new Set(prevSelected);
+      if (newSelected.has(chatId)) {
+        newSelected.delete(chatId);
+      } else {
+        newSelected.add(chatId);
+      }
+      return newSelected;
+    });
+  };
+
+  const toggleBatchDeleteMode = () => {
+    setIsBatchDeleteMode(!isBatchDeleteMode);
+    if (isBatchDeleteMode) {
+      // Clear selections when exiting batch delete mode
+      setSelectedChats(new Set());
+    }
+  };
+
+  const selectAllChats = () => {
+    if (filteredChats.length === selectedChats.size) {
+      // If all are selected, deselect all
+      setSelectedChats(new Set());
+    } else {
+      // Otherwise, select all visible chats
+      setSelectedChats(new Set(filteredChats.map(chat => chat.id)));
+    }
   };
 
   const handleEditChat = async (chatId: string, e?: React.MouseEvent) => {
@@ -159,6 +226,12 @@ export const useTeacherChats = () => {
     saveEditedChat,
     formatDate,
     formatTime,
-    cancelEditing: () => setEditingChatId(null)
+    cancelEditing: () => setEditingChatId(null),
+    isBatchDeleteMode,
+    toggleBatchDeleteMode,
+    selectedChats,
+    toggleChatSelection,
+    handleBatchDelete,
+    selectAllChats
   };
 };

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeacherChatList from '@/components/teacher/TeacherChatList';
 import TeacherChatSearch from '@/components/teacher/TeacherChatSearch';
@@ -25,7 +25,13 @@ const TeacherChats = () => {
     saveEditedChat,
     formatDate,
     formatTime,
-    cancelEditing
+    cancelEditing,
+    isBatchDeleteMode,
+    toggleBatchDeleteMode,
+    selectedChats,
+    toggleChatSelection,
+    handleBatchDelete,
+    selectAllChats
   } = useTeacherChats();
 
   if (isLoading) {
@@ -39,16 +45,55 @@ const TeacherChats = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-green-50 dark:from-gray-800 dark:to-gray-900 p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/')}
-            className="mr-2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">Teacher Chats</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/')}
+              className="mr-2"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl font-bold">Teacher Chats</h1>
+          </div>
+          
+          {chats.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant={isBatchDeleteMode ? "destructive" : "outline"}
+                size="sm"
+                onClick={toggleBatchDeleteMode}
+                className="text-sm"
+              >
+                {isBatchDeleteMode ? "Cancel" : "Select Multiple"}
+              </Button>
+              
+              {isBatchDeleteMode && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={selectAllChats}
+                    className="text-sm"
+                  >
+                    {selectedChats.size === chats.length ? "Deselect All" : "Select All"}
+                  </Button>
+                  
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBatchDelete}
+                    disabled={selectedChats.size === 0}
+                    className="text-sm"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete ({selectedChats.size})
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-6">
@@ -78,6 +123,9 @@ const TeacherChats = () => {
                 onCancelEdit={cancelEditing}
                 formatDate={formatDate}
                 formatTime={formatTime}
+                isBatchDeleteMode={isBatchDeleteMode}
+                selectedChats={selectedChats}
+                onToggleSelection={toggleChatSelection}
               />
             )}
           </div>
