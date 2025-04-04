@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,8 +54,19 @@ const StudentPointsHistory: React.FC<StudentPointsHistoryProps> = ({ currentUser
             if (savedHistory) {
               const history = JSON.parse(savedHistory);
               
+              // Ensure we have the correct type structure
+              const typedHistory = history.map((item: any) => {
+                return {
+                  id: item.id || Date.now(),
+                  type: item.type || 'activity', 
+                  points: item.points || 0,
+                  description: item.description || '',
+                  timestamp: item.timestamp || new Date().toISOString()
+                } as PointsHistoryItem;
+              });
+              
               // Sort by timestamp (newest first)
-              const sortedHistory = [...history].sort((a, b) => 
+              const sortedHistory = [...typedHistory].sort((a, b) => 
                 new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
               );
               
@@ -85,8 +97,19 @@ const StudentPointsHistory: React.FC<StudentPointsHistoryProps> = ({ currentUser
           if (savedHistory) {
             const history = JSON.parse(savedHistory);
             
+            // Ensure we have the correct type structure
+            const typedHistory = history.map((item: any) => {
+              return {
+                id: item.id || Date.now(),
+                type: item.type || 'activity',
+                points: item.points || 0,
+                description: item.description || '',
+                timestamp: item.timestamp || new Date().toISOString()
+              } as PointsHistoryItem;
+            });
+            
             // Sort by timestamp (newest first)
-            const sortedHistory = [...history].sort((a, b) => 
+            const sortedHistory = [...typedHistory].sort((a, b) => 
               new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
             );
             
