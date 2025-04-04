@@ -8,6 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Download, Share2, Link2, User, Award, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
