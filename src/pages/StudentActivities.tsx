@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Target, CheckSquare, Award, QrCode, ArrowLeft } from 'lucide-react';
+import { Target, CheckSquare, Award, QrCode, ArrowLeft, Users } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StudentGoals from '@/components/student/StudentGoals';
 import StudentTasks from '@/components/student/StudentTasks';
 import StudentPointsHistory from '@/components/student/StudentPointsHistory';
 import StudentProfileQR from '@/components/student/StudentProfileQR';
+import StudentLeaderboard from '@/components/student/StudentLeaderboard';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const StudentActivities = () => {
@@ -106,7 +107,7 @@ const StudentActivities = () => {
         <Card className="bg-white dark:bg-gray-800 shadow-md">
           <CardHeader>
             <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="goals" className="text-xs sm:text-sm">
                   <Target className="h-4 w-4 mr-1 hidden sm:inline" />
                   लक्ष्य
@@ -118,6 +119,10 @@ const StudentActivities = () => {
                 <TabsTrigger value="history" className="text-xs sm:text-sm">
                   <Award className="h-4 w-4 mr-1 hidden sm:inline" />
                   इतिहास
+                </TabsTrigger>
+                <TabsTrigger value="leaderboard" className="text-xs sm:text-sm">
+                  <Users className="h-4 w-4 mr-1 hidden sm:inline" />
+                  लीडरबोर्ड
                 </TabsTrigger>
               </TabsList>
             
@@ -144,6 +149,10 @@ const StudentActivities = () => {
                 
                 <TabsContent value="history" className="m-0">
                   <StudentPointsHistory currentUser={currentUser} />
+                </TabsContent>
+                
+                <TabsContent value="leaderboard" className="m-0">
+                  <StudentLeaderboard currentUser={currentUser} />
                 </TabsContent>
               </ScrollArea>
             </Tabs>

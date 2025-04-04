@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Award, BookOpen, CheckSquare, Target, Calendar } from 'lucide-react';
+import { Award, BookOpen, CheckSquare, Target, Calendar, Star, Trophy, LogIn } from 'lucide-react';
 
 interface PointsHistoryItem {
   id: number;
-  type: 'goal' | 'task' | 'activity' | 'login' | 'streak';
+  type: 'goal' | 'task' | 'activity' | 'login' | 'streak' | 'achievement' | 'quiz';
   points: number;
   description: string;
   timestamp: string;
@@ -72,8 +72,10 @@ const StudentPointsHistory: React.FC<StudentPointsHistoryProps> = ({ currentUser
       case 'task': return <CheckSquare className="h-4 w-4 text-green-500" />;
       case 'activity': return <BookOpen className="h-4 w-4 text-purple-500" />;
       case 'streak': return <Calendar className="h-4 w-4 text-amber-500" />;
+      case 'achievement': return <Trophy className="h-4 w-4 text-yellow-500" />;
+      case 'quiz': return <Star className="h-4 w-4 text-blue-500" />;
       case 'login': 
-      default: return <Award className="h-4 w-4 text-blue-500" />;
+      default: return <LogIn className="h-4 w-4 text-blue-500" />;
     }
   };
   
