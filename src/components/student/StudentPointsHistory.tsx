@@ -2,8 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Award, BookOpen, CheckSquare, Target, Calendar, Star, Trophy, LogIn } from 'lucide-react';
+import { Award, BookOpen, CheckSquare, Target, Calendar, Star, Trophy, LogIn, Filter } from 'lucide-react';
 import { getUserPointsHistory } from '@/lib/firebase';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface PointsHistoryItem {
   id: number;
@@ -19,8 +33,11 @@ interface StudentPointsHistoryProps {
 
 const StudentPointsHistory: React.FC<StudentPointsHistoryProps> = ({ currentUser }) => {
   const [historyItems, setHistoryItems] = useState<PointsHistoryItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<PointsHistoryItem[]>([]);
   const [groupedByDate, setGroupedByDate] = useState<Record<string, PointsHistoryItem[]>>({});
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<string>('all');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'points-high' | 'points-low'>('newest');
   
   useEffect(() => {
     if (currentUser) {
@@ -124,9 +141,37 @@ const StudentPointsHistory: React.FC<StudentPointsHistoryProps> = ({ currentUser
     }
   }, [currentUser]);
   
+  // Apply filters and sorting
+  useEffect(() => {
+    // First apply type filter
+    let result = [...historyItems];
+    
+    if (filter !== 'all') {
+      result = result.filter(item => item.type === filter);
+    }
+    
+    // Then apply sorting
+    switch (sortOrder) {
+      case 'newest':
+        result.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        break;
+      case 'oldest':
+        result.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        break;
+      case 'points-high':
+        result.sort((a, b) => b.points - a.points);
+        break;
+      case 'points-low':
+        result.sort((a, b) => a.points - b.points);
+        break;
+    }
+    
+    setFilteredItems(result);
+  }, [historyItems, filter, sortOrder]);
+  
   // Group history items by date
   useEffect(() => {
-    const grouped = historyItems.reduce<Record<string, PointsHistoryItem[]>>((acc, item) => {
+    const grouped = filteredItems.reduce<Record<string, PointsHistoryItem[]>>((acc, item) => {
       const date = new Date(item.timestamp).toLocaleDateString('hi-IN');
       if (!acc[date]) {
         acc[date] = [];
@@ -136,7 +181,7 @@ const StudentPointsHistory: React.FC<StudentPointsHistoryProps> = ({ currentUser
     }, {});
     
     setGroupedByDate(grouped);
-  }, [historyItems]);
+  }, [filteredItems]);
   
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -151,6 +196,23 @@ const StudentPointsHistory: React.FC<StudentPointsHistoryProps> = ({ currentUser
     }
   };
   
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'goal': return 'लक्ष्य';
+      case 'task': return 'कार्य';
+      case 'activity': return 'गतिविधि';
+      case 'streak': return 'स्ट्रीक';
+      case 'achievement': return 'उपलब्धि';
+      case 'quiz': return 'क्विज़';
+      case 'login': return 'लॉगिन';
+      default: return type;
+    }
+  };
+  
+  const calculateTotalPoints = () => {
+    return filteredItems.reduce((total, item) => total + item.points, 0);
+  };
+  
   return (
     <CardContent className="p-4">
       <div className="space-y-4">
@@ -163,6 +225,62 @@ const StudentPointsHistory: React.FC<StudentPointsHistoryProps> = ({ currentUser
             {historyItems.length} गतिविधियां
           </Badge>
         </div>
+        
+        <div className="flex items-center justify-between gap-2">
+          <Select 
+            value={filter} 
+            onValueChange={(value) => setFilter(value)}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="सभी टाइप" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">सभी टाइप</SelectItem>
+              <SelectItem value="goal">लक्ष्य</SelectItem>
+              <SelectItem value="task">कार्य</SelectItem>
+              <SelectItem value="activity">गतिविधि</SelectItem>
+              <SelectItem value="streak">स्ट्रीक</SelectItem>
+              <SelectItem value="achievement">उपलब्धि</SelectItem>
+              <SelectItem value="quiz">क्विज़</SelectItem>
+              <SelectItem value="login">लॉगिन</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <Filter className="h-4 w-4" />
+                क्रम
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setSortOrder('newest')}>
+                नवीनतम पहले
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOrder('oldest')}>
+                पुराने पहले
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOrder('points-high')}>
+                अधिक पॉइंट्स पहले
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOrder('points-low')}>
+                कम पॉइंट्स पहले
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        
+        {filter !== 'all' && (
+          <div className="flex items-center justify-between bg-purple-50 dark:bg-purple-900/20 p-2 rounded-md">
+            <div className="flex items-center gap-2">
+              {getTypeIcon(filter)}
+              <span className="text-sm font-medium">{getTypeLabel(filter)}</span>
+            </div>
+            <Badge variant="secondary">
+              कुल: {calculateTotalPoints()} पॉइंट्स
+            </Badge>
+          </div>
+        )}
         
         {loading ? (
           <div className="flex justify-center py-8">

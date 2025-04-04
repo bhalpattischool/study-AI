@@ -6,13 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Target, CheckSquare, Award, QrCode, ArrowLeft, Users } from 'lucide-react';
+import { Target, CheckSquare, Award, QrCode, ArrowLeft, Users, BarChart, Flame, Clock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StudentGoals from '@/components/student/StudentGoals';
 import StudentTasks from '@/components/student/StudentTasks';
 import StudentPointsHistory from '@/components/student/StudentPointsHistory';
 import StudentProfileQR from '@/components/student/StudentProfileQR';
 import StudentLeaderboard from '@/components/student/StudentLeaderboard';
+import StudentDailyStreak from '@/components/student/StudentDailyStreak';
+import StudyTimerWidget from '@/components/student/StudyTimerWidget';
+import StudentLearningProgress from '@/components/student/StudentLearningProgress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const StudentActivities = () => {
@@ -104,29 +107,42 @@ const StudentActivities = () => {
           </CardContent>
         </Card>
         
+        {/* Study Timer Card */}
+        <Card className="mb-4 bg-white dark:bg-gray-800 shadow-md">
+          <StudyTimerWidget currentUser={currentUser} />
+        </Card>
+        
         <Card className="bg-white dark:bg-gray-800 shadow-md">
           <CardHeader>
             <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="goals" className="text-xs sm:text-sm">
-                  <Target className="h-4 w-4 mr-1 hidden sm:inline" />
-                  लक्ष्य
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="goals" className="text-xs">
+                  <Target className="h-4 w-4 md:mr-1" />
+                  <span className="hidden md:inline">लक्ष्य</span>
                 </TabsTrigger>
-                <TabsTrigger value="tasks" className="text-xs sm:text-sm">
-                  <CheckSquare className="h-4 w-4 mr-1 hidden sm:inline" />
-                  कार्य
+                <TabsTrigger value="tasks" className="text-xs">
+                  <CheckSquare className="h-4 w-4 md:mr-1" />
+                  <span className="hidden md:inline">कार्य</span>
                 </TabsTrigger>
-                <TabsTrigger value="history" className="text-xs sm:text-sm">
-                  <Award className="h-4 w-4 mr-1 hidden sm:inline" />
-                  इतिहास
+                <TabsTrigger value="streak" className="text-xs">
+                  <Flame className="h-4 w-4 md:mr-1" />
+                  <span className="hidden md:inline">स्ट्रीक</span>
                 </TabsTrigger>
-                <TabsTrigger value="leaderboard" className="text-xs sm:text-sm">
-                  <Users className="h-4 w-4 mr-1 hidden sm:inline" />
-                  लीडरबोर्ड
+                <TabsTrigger value="progress" className="text-xs">
+                  <BarChart className="h-4 w-4 md:mr-1" />
+                  <span className="hidden md:inline">प्रगति</span>
+                </TabsTrigger>
+                <TabsTrigger value="history" className="text-xs">
+                  <Award className="h-4 w-4 md:mr-1" />
+                  <span className="hidden md:inline">इतिहास</span>
+                </TabsTrigger>
+                <TabsTrigger value="leaderboard" className="text-xs">
+                  <Users className="h-4 w-4 md:mr-1" />
+                  <span className="hidden md:inline">लीडरबोर्ड</span>
                 </TabsTrigger>
               </TabsList>
             
-              <ScrollArea className="h-[calc(100vh-20rem)]">
+              <ScrollArea className="h-[calc(100vh-25rem)]">
                 <TabsContent value="goals" className="m-0">
                   <StudentGoals 
                     studentPoints={studentPoints} 
@@ -145,6 +161,14 @@ const StudentActivities = () => {
                     setStudentLevel={setStudentLevel}
                     currentUser={currentUser}
                   />
+                </TabsContent>
+                
+                <TabsContent value="streak" className="m-0">
+                  <StudentDailyStreak currentUser={currentUser} />
+                </TabsContent>
+                
+                <TabsContent value="progress" className="m-0">
+                  <StudentLearningProgress currentUser={currentUser} />
                 </TabsContent>
                 
                 <TabsContent value="history" className="m-0">
