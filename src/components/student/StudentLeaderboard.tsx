@@ -40,7 +40,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
     
     // Get all keys from localStorage that contain "_points"
     const allKeys = Object.keys(localStorage);
-    const userPointsKeys = allKeys.filter(key => key.includes('_points'));
+    const userPointsKeys = allKeys.filter(key => key.includes('_points') && !key.includes('_points_history'));
     
     // Collect student data
     const studentsData: Student[] = [];
@@ -52,13 +52,21 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
       
       // Try to get the user's name from other localStorage entries if available
       // In a real app, this would come from the database
-      let name = 'Student_' + userId.substring(0, 5);
+      let name = localStorage.getItem(`${userId}_displayName`) || `Student_${userId.substring(0, 5)}`;
+      let photoURL = localStorage.getItem(`${userId}_photoURL`) || undefined;
       
       // Flag if this is the current user
       const isCurrentUser = userId === currentUser.uid;
       
       if (isCurrentUser && currentUser.displayName) {
         name = currentUser.displayName;
+        photoURL = currentUser.photoURL;
+        
+        // Store current user's display name and photo for future use
+        localStorage.setItem(`${userId}_displayName`, currentUser.displayName);
+        if (currentUser.photoURL) {
+          localStorage.setItem(`${userId}_photoURL`, currentUser.photoURL);
+        }
       }
       
       studentsData.push({
@@ -67,28 +75,10 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
         points,
         level,
         rank: 0, // Will be calculated after sorting
-        photoURL: isCurrentUser ? currentUser.photoURL : undefined,
+        photoURL,
         isCurrentUser
       });
     });
-    
-    // Add some dummy data if we have fewer than 10 students (for demonstration)
-    if (studentsData.length < 10) {
-      const existingIds = new Set(studentsData.map(s => s.id));
-      
-      for (let i = studentsData.length; i < 10; i++) {
-        const dummyId = `dummy_${i}`;
-        if (!existingIds.has(dummyId)) {
-          studentsData.push({
-            id: dummyId,
-            name: `छात्र_${i + 1}`,
-            points: Math.floor(Math.random() * 1000),
-            level: Math.floor(Math.random() * 10) + 1,
-            rank: 0,
-          });
-        }
-      }
-    }
     
     // Sort by points (descending)
     studentsData.sort((a, b) => b.points - a.points);
@@ -106,7 +96,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
     
     // If user is in top 10, give them a bonus
     const currentUserRecord = studentsData.find(s => s.isCurrentUser);
-    if (currentUserRecord && currentUserRecord.rank <= 10) {
+    if (currentUserRecord && currentUserRecord.rank <= 10 && studentsData.length > 5) {
       // Check if bonus was already given
       const bonusKey = `${currentUser.uid}_top10_bonus`;
       if (!localStorage.getItem(bonusKey)) {
@@ -191,7 +181,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
           <div className="flex justify-center py-8">
             <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full"></div>
           </div>
-        ) : (
+        ) : students.length > 0 ? (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -247,6 +237,11 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                 ))}
               </TableBody>
             </Table>
+          </div>
+        ) : (
+          <div className="text-center py-8 border rounded-md">
+            <Users className="h-10 w-10 mx-auto text-gray-300 mb-2" />
+            <p className="text-gray-500">अभी कोई छात्र रजिस्टर नहीं हुआ है</p>
           </div>
         )}
       </div>

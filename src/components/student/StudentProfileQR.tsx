@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, Share2, Link2, User, Award, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import QRCode from 'qrcode';
 
 interface StudentProfileQRProps {
   currentUser: any;
@@ -24,7 +25,6 @@ const StudentProfileQR: React.FC<StudentProfileQRProps> = ({
   studentLevel 
 }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [profileUrl, setProfileUrl] = useState<string>('');
   
   useEffect(() => {
@@ -54,29 +54,24 @@ const StudentProfileQR: React.FC<StudentProfileQRProps> = ({
       achievements: getTopAchievements()
     };
     
-    // Convert to base64 encoded JSON string
-    const jsonString = JSON.stringify(profileData);
-    const encodedData = btoa(jsonString);
-    
     // Generate profile URL to include in QR
     const baseUrl = window.location.origin;
     const profileLink = `${baseUrl}/student-profile/${currentUser.uid}`;
     
-    // Generate QR code URL using Google Charts API
-    const googleChartsUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(profileLink)}&choe=UTF-8`;
-    setQrCodeUrl(googleChartsUrl);
-    
     try {
-      // Convert QR code to data URL for download
-      const response = await fetch(googleChartsUrl);
-      const blob = await response.blob();
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setQrDataUrl(reader.result as string);
-      };
-      reader.readAsDataURL(blob);
+      // Generate QR code using the qrcode library
+      const qrDataUrl = await QRCode.toDataURL(profileLink, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#5a287d', // Purple color for dots
+          light: '#FFFFFF', // White background
+        }
+      });
+      setQrCodeUrl(qrDataUrl);
     } catch (error) {
       console.error('Error generating QR code:', error);
+      toast.error('QR कोड जनरेट करने में समस्या आई');
     }
   };
   
@@ -96,10 +91,10 @@ const StudentProfileQR: React.FC<StudentProfileQRProps> = ({
   };
   
   const downloadQRCode = () => {
-    if (!qrDataUrl) return;
+    if (!qrCodeUrl) return;
     
     const a = document.createElement('a');
-    a.href = qrDataUrl;
+    a.href = qrCodeUrl;
     a.download = `${currentUser?.displayName || 'student'}-profile-qr.png`;
     document.body.appendChild(a);
     a.click();
