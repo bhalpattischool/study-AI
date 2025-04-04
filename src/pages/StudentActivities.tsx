@@ -120,34 +120,34 @@ const StudentActivities = () => {
                   इतिहास
                 </TabsTrigger>
               </TabsList>
+            
+              <ScrollArea className="h-[calc(100vh-20rem)]">
+                <TabsContent value="goals" className="m-0">
+                  <StudentGoals 
+                    studentPoints={studentPoints} 
+                    setStudentPoints={setStudentPoints} 
+                    studentLevel={studentLevel}
+                    setStudentLevel={setStudentLevel}
+                    currentUser={currentUser}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="tasks" className="m-0">
+                  <StudentTasks 
+                    studentPoints={studentPoints} 
+                    setStudentPoints={setStudentPoints}
+                    studentLevel={studentLevel}
+                    setStudentLevel={setStudentLevel}
+                    currentUser={currentUser}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="history" className="m-0">
+                  <StudentPointsHistory currentUser={currentUser} />
+                </TabsContent>
+              </ScrollArea>
             </Tabs>
           </CardHeader>
-          
-          <ScrollArea className="h-[calc(100vh-20rem)]">
-            <TabsContent value="goals" className="m-0">
-              <StudentGoals 
-                studentPoints={studentPoints} 
-                setStudentPoints={setStudentPoints} 
-                studentLevel={studentLevel}
-                setStudentLevel={setStudentLevel}
-                currentUser={currentUser}
-              />
-            </TabsContent>
-            
-            <TabsContent value="tasks" className="m-0">
-              <StudentTasks 
-                studentPoints={studentPoints} 
-                setStudentPoints={setStudentPoints}
-                studentLevel={studentLevel}
-                setStudentLevel={setStudentLevel}
-                currentUser={currentUser}
-              />
-            </TabsContent>
-            
-            <TabsContent value="history" className="m-0">
-              <StudentPointsHistory currentUser={currentUser} />
-            </TabsContent>
-          </ScrollArea>
         </Card>
         
         {/* Hidden QR code dialog trigger */}
