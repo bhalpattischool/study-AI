@@ -19,6 +19,8 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { toast } from 'sonner';
+import { getDatabase, ref, get } from 'firebase/database';
+import { database } from '@/lib/firebase';
 
 interface ProfileData {
   id: string;
@@ -53,12 +55,68 @@ const StudentProfile = () => {
     }
   }, [userId]);
   
-  const loadProfileData = (id: string) => {
+  const loadProfileData = async (id: string) => {
     setLoading(true);
     
-    // In a real app, this would be an API call to get profile data
-    // For now, we'll retrieve from localStorage
-    
+    try {
+      // Try to get profile data from Firebase
+      const userRef = ref(database, `users/${id}`);
+      const userSnapshot = await get(userRef);
+      
+      // Get points history
+      const historyRef = ref(database, `users/${id}/pointsHistory`);
+      const historySnapshot = await get(historyRef);
+      
+      if (userSnapshot.exists()) {
+        const userData = userSnapshot.val();
+        
+        // Sort achievements from points history
+        let topAchievements: Achievement[] = [];
+        
+        if (historySnapshot.exists()) {
+          const history = Object.values(historySnapshot.val()) as Achievement[];
+          
+          // Sort achievements by points (highest first)
+          topAchievements = history
+            .filter((item: any) => ['achievement', 'quiz'].includes(item.type))
+            .sort((a: any, b: any) => b.points - a.points)
+            .slice(0, 5); // Get top 5
+        }
+        
+        // Create profile data object
+        const profileInfo: ProfileData = {
+          id,
+          name: userData.displayName || `छात्र_${id.substring(0, 5)}`,
+          level: userData.level || 1,
+          points: userData.points || 0,
+          category: userData.userCategory || 'student',
+          education: userData.educationLevel || 'high-school',
+          joinedOn: userData.createdAt || new Date().toISOString(),
+          photoURL: userData.photoURL
+        };
+        
+        // Calculate level progress
+        const pointsForNextLevel = profileInfo.level * 100;
+        const pointsSinceLastLevel = profileInfo.points - ((profileInfo.level - 1) * 100);
+        const progress = Math.min(Math.floor((pointsSinceLastLevel / pointsForNextLevel) * 100), 100);
+        
+        setProfileData(profileInfo);
+        setAchievements(topAchievements);
+        setLevelProgress(progress);
+      } else {
+        // Fallback to localStorage for backward compatibility
+        fallbackToLocalStorage(id);
+      }
+    } catch (error) {
+      console.error('Error loading profile from Firebase:', error);
+      // Fallback to localStorage
+      fallbackToLocalStorage(id);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const fallbackToLocalStorage = (id: string) => {
     try {
       const points = localStorage.getItem(`${id}_points`);
       const level = localStorage.getItem(`${id}_level`);
@@ -91,14 +149,9 @@ const StudentProfile = () => {
         setProfileData(profileInfo);
         setAchievements(topAchievements);
         setLevelProgress(progress);
-        setLoading(false);
-      } else {
-        // Couldn't find profile data
-        setLoading(false);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
-      setLoading(false);
+      console.error('Error fallback to localStorage:', error);
     }
   };
   

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Download, Share2, Link2, User, Award, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
+import { getUserPointsHistory } from '@/lib/firebase';
 
 interface StudentProfileQRProps {
   currentUser: any;
@@ -26,41 +27,66 @@ const StudentProfileQR: React.FC<StudentProfileQRProps> = ({
 }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [profileUrl, setProfileUrl] = useState<string>('');
+  const [profileData, setProfileData] = useState<any>(null);
   
   useEffect(() => {
     if (currentUser) {
-      generateQRCode();
+      loadProfileData();
+    }
+  }, [currentUser, studentPoints, studentLevel]);
+  
+  const loadProfileData = async () => {
+    if (!currentUser) return;
+    
+    try {
+      // Create profile data object with complete student information
+      const achievements = await getTopAchievements();
+      
+      // Get education level and category
+      const category = localStorage.getItem(`userCategory`) || 'student';
+      const education = localStorage.getItem(`educationLevel`) || 'high-school';
+      
+      // Create profile data object
+      const profileInfo = {
+        id: currentUser.uid,
+        name: currentUser.displayName || 'Student',
+        level: studentLevel,
+        points: studentPoints,
+        category: category,
+        education: education,
+        joinedOn: currentUser.metadata?.creationTime || new Date().toISOString(),
+        photoURL: currentUser.photoURL,
+        achievements: achievements
+      };
+      
+      setProfileData(profileInfo);
       
       // Generate profile URL
       const baseUrl = window.location.origin;
       const profileLink = `${baseUrl}/student-profile/${currentUser.uid}`;
       setProfileUrl(profileLink);
+      
+      // Generate QR code with embedded profile data
+      generateQRCode(profileInfo, profileLink);
+    } catch (error) {
+      console.error('Error generating profile data:', error);
+      toast.error('प्रोफाइल डेटा जनरेट करने में समस्या आई');
     }
-  }, [currentUser, studentPoints, studentLevel]);
+  };
   
-  const generateQRCode = async () => {
-    if (!currentUser) return;
-    
-    // Create profile data object
-    const profileData = {
-      id: currentUser.uid,
-      name: currentUser.displayName || 'Student',
-      level: studentLevel,
-      points: studentPoints,
-      category: localStorage.getItem(`userCategory`) || 'student',
-      education: localStorage.getItem(`educationLevel`) || 'high-school',
-      joinedOn: currentUser.metadata?.creationTime || new Date().toISOString(),
-      photoURL: currentUser.photoURL,
-      achievements: getTopAchievements()
-    };
-    
-    // Generate profile URL to include in QR
-    const baseUrl = window.location.origin;
-    const profileLink = `${baseUrl}/student-profile/${currentUser.uid}`;
-    
+  const generateQRCode = async (profileData: any, profileLink: string) => {
     try {
+      // Create a combined data object with profile data and link
+      const qrData = {
+        profileLink: profileLink,
+        profileInfo: profileData
+      };
+      
+      // Convert the data object to a JSON string
+      const qrDataString = JSON.stringify(qrData);
+      
       // Generate QR code using the qrcode library
-      const qrDataUrl = await QRCode.toDataURL(profileLink, {
+      const qrDataUrl = await QRCode.toDataURL(qrDataString, {
         width: 300,
         margin: 2,
         color: {
@@ -68,6 +94,7 @@ const StudentProfileQR: React.FC<StudentProfileQRProps> = ({
           light: '#FFFFFF', // White background
         }
       });
+      
       setQrCodeUrl(qrDataUrl);
     } catch (error) {
       console.error('Error generating QR code:', error);
@@ -75,19 +102,33 @@ const StudentProfileQR: React.FC<StudentProfileQRProps> = ({
     }
   };
   
-  const getTopAchievements = () => {
+  const getTopAchievements = async () => {
     if (!currentUser) return [];
     
-    // Get points history
-    const history = JSON.parse(localStorage.getItem(`${currentUser.uid}_points_history`) || '[]');
-    
-    // Filter achievements and sort by points
-    const achievements = history
-      .filter((item: any) => ['achievement', 'quiz'].includes(item.type))
-      .sort((a: any, b: any) => b.points - a.points)
-      .slice(0, 3); // Get top 3
+    try {
+      // Try to get history from Firebase
+      const firebaseHistory = await getUserPointsHistory(currentUser.uid);
       
-    return achievements;
+      if (firebaseHistory && firebaseHistory.length > 0) {
+        // Filter achievements and sort by points
+        return firebaseHistory
+          .filter((item: any) => ['achievement', 'quiz'].includes(item.type))
+          .sort((a: any, b: any) => b.points - a.points)
+          .slice(0, 3); // Get top 3
+      }
+      
+      // Fallback to localStorage
+      const history = JSON.parse(localStorage.getItem(`${currentUser.uid}_points_history`) || '[]');
+      
+      // Filter achievements and sort by points
+      return history
+        .filter((item: any) => ['achievement', 'quiz'].includes(item.type))
+        .sort((a: any, b: any) => b.points - a.points)
+        .slice(0, 3); // Get top 3
+    } catch (error) {
+      console.error('Error getting achievements:', error);
+      return [];
+    }
   };
   
   const downloadQRCode = () => {
@@ -165,11 +206,16 @@ const StudentProfileQR: React.FC<StudentProfileQRProps> = ({
           </div>
           
           {qrCodeUrl ? (
-            <img 
-              src={qrCodeUrl} 
-              alt="Profile QR Code" 
-              className="w-60 h-60 border p-2 rounded-lg bg-white"
-            />
+            <div className="relative">
+              <img 
+                src={qrCodeUrl} 
+                alt="Profile QR Code" 
+                className="w-60 h-60 border p-2 rounded-lg bg-white"
+              />
+              <div className="absolute bottom-2 right-2 bg-white rounded-full p-1 shadow-md">
+                <User className="h-4 w-4 text-purple-700" />
+              </div>
+            </div>
           ) : (
             <div className="w-60 h-60 border p-2 rounded-lg bg-gray-100 flex items-center justify-center">
               <div className="animate-spin w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full"></div>

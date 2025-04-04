@@ -2,6 +2,7 @@
 /**
  * Utility functions for the student points system
  */
+import { addPointsToUserDb, getUserPoints, getUserLevel, getUserPointsHistory } from '@/lib/firebase';
 
 export interface PointRecord {
   id: number;
@@ -13,54 +14,100 @@ export interface PointRecord {
 
 /**
  * Add points to a user and update their level
+ * This function now uses both localStorage (for backward compatibility) and Firebase
  */
-export function addPointsToUser(
+export async function addPointsToUser(
   userId: string,
   points: number,
   type: PointRecord['type'],
   description: string
-): void {
+): Promise<void> {
   if (!userId) return;
   
-  // Get current points
-  const currentPoints = parseInt(localStorage.getItem(`${userId}_points`) || '0');
-  const newTotalPoints = currentPoints + points;
-  
-  // Update points
-  localStorage.setItem(`${userId}_points`, newTotalPoints.toString());
-  
-  // Calculate and update level (1 level per 100 points)
-  const newLevel = Math.floor(newTotalPoints / 100) + 1;
-  const currentLevel = parseInt(localStorage.getItem(`${userId}_level`) || '1');
-  
-  if (newLevel > currentLevel) {
-    localStorage.setItem(`${userId}_level`, newLevel.toString());
+  try {
+    // Add points to Firebase DB
+    await addPointsToUserDb(userId, points, description, type);
     
-    // Add level up record
+    // For backward compatibility, also update localStorage
+    // Get current points
+    const currentPoints = parseInt(localStorage.getItem(`${userId}_points`) || '0');
+    const newTotalPoints = currentPoints + points;
+    
+    // Update points
+    localStorage.setItem(`${userId}_points`, newTotalPoints.toString());
+    
+    // Calculate and update level (1 level per 100 points)
+    const newLevel = Math.floor(newTotalPoints / 100) + 1;
+    const currentLevel = parseInt(localStorage.getItem(`${userId}_level`) || '1');
+    
+    if (newLevel > currentLevel) {
+      localStorage.setItem(`${userId}_level`, newLevel.toString());
+      
+      // Add level up record
+      addPointRecord(userId, {
+        id: Date.now() + 1, // Ensure unique ID
+        type: 'achievement',
+        points: 10, // Bonus for leveling up
+        description: `लेवल ${newLevel} पर पहुंचने का बोनस`,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Also add 10 more points for leveling up
+      localStorage.setItem(`${userId}_points`, (newTotalPoints + 10).toString());
+    }
+    
+    // Add points record to localStorage
     addPointRecord(userId, {
-      id: Date.now() + 1, // Ensure unique ID
-      type: 'achievement',
-      points: 10, // Bonus for leveling up
-      description: `लेवल ${newLevel} पर पहुंचने का बोनस`,
+      id: Date.now(),
+      type,
+      points,
+      description,
       timestamp: new Date().toISOString()
     });
+  } catch (error) {
+    console.error("Error in addPointsToUser:", error);
     
-    // Also add 10 more points for leveling up
-    localStorage.setItem(`${userId}_points`, (newTotalPoints + 10).toString());
+    // If Firebase fails, still update localStorage as fallback
+    // Get current points
+    const currentPoints = parseInt(localStorage.getItem(`${userId}_points`) || '0');
+    const newTotalPoints = currentPoints + points;
+    
+    // Update points
+    localStorage.setItem(`${userId}_points`, newTotalPoints.toString());
+    
+    // Calculate and update level (1 level per 100 points)
+    const newLevel = Math.floor(newTotalPoints / 100) + 1;
+    const currentLevel = parseInt(localStorage.getItem(`${userId}_level`) || '1');
+    
+    if (newLevel > currentLevel) {
+      localStorage.setItem(`${userId}_level`, newLevel.toString());
+      
+      // Add level up record
+      addPointRecord(userId, {
+        id: Date.now() + 1, // Ensure unique ID
+        type: 'achievement',
+        points: 10, // Bonus for leveling up
+        description: `लेवल ${newLevel} पर पहुंचने का बोनस`,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Also add 10 more points for leveling up
+      localStorage.setItem(`${userId}_points`, (newTotalPoints + 10).toString());
+    }
+    
+    // Add points record
+    addPointRecord(userId, {
+      id: Date.now(),
+      type,
+      points,
+      description,
+      timestamp: new Date().toISOString()
+    });
   }
-  
-  // Add points record
-  addPointRecord(userId, {
-    id: Date.now(),
-    type,
-    points,
-    description,
-    timestamp: new Date().toISOString()
-  });
 }
 
 /**
- * Add a point record to the user's history
+ * Add a point record to the user's history (localStorage only)
  */
 export function addPointRecord(userId: string, record: PointRecord): void {
   if (!userId) return;
@@ -77,7 +124,7 @@ export function addPointRecord(userId: string, record: PointRecord): void {
 /**
  * Award daily login bonus
  */
-export function awardDailyLoginBonus(userId: string): boolean {
+export async function awardDailyLoginBonus(userId: string): Promise<boolean> {
   if (!userId) return false;
   
   const lastLoginKey = `${userId}_last_login`;
@@ -122,7 +169,7 @@ export function awardDailyLoginBonus(userId: string): boolean {
     }
     
     // Add login points
-    addPointsToUser(
+    await addPointsToUser(
       userId, 
       bonusPoints, 
       'login', 
@@ -138,11 +185,11 @@ export function awardDailyLoginBonus(userId: string): boolean {
 /**
  * Add quiz completion points
  */
-export function addQuizCompletionPoints(
+export async function addQuizCompletionPoints(
   userId: string, 
   correctAnswers: number, 
   totalQuestions: number
-): void {
+): Promise<void> {
   if (!userId) return;
   
   // Calculate percentage
@@ -159,13 +206,13 @@ export function addQuizCompletionPoints(
     message = 'क्विज में उत्कृष्ट प्रदर्शन';
   }
   
-  addPointsToUser(userId, points, 'quiz', message);
+  await addPointsToUser(userId, points, 'quiz', message);
 }
 
 /**
  * Add chapter completion points
  */
-export function addChapterCompletionPoints(userId: string, chapterName: string): void {
+export async function addChapterCompletionPoints(userId: string, chapterName: string): Promise<void> {
   if (!userId) return;
   
   const key = `${userId}_chapter_${chapterName.replace(/\s+/g, '_')}`;
@@ -173,6 +220,6 @@ export function addChapterCompletionPoints(userId: string, chapterName: string):
   // Check if already awarded
   if (!localStorage.getItem(key)) {
     localStorage.setItem(key, 'completed');
-    addPointsToUser(userId, 10, 'activity', `${chapterName} अध्याय पूरा किया`);
+    await addPointsToUser(userId, 10, 'activity', `${chapterName} अध्याय पूरा किया`);
   }
 }

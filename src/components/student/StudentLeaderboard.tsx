@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, Trophy, Medal, Star, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { observeLeaderboardData } from '@/lib/firebase';
 
 interface Student {
   id: string;
@@ -28,100 +29,54 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
   
   useEffect(() => {
     if (currentUser) {
-      loadLeaderboardData();
+      // Subscribe to real-time leaderboard updates
+      const unsubscribe = observeLeaderboardData((leaderboardData) => {
+        // Mark current user
+        const studentsWithCurrentUser = leaderboardData.map(student => ({
+          ...student,
+          isCurrentUser: student.id === currentUser.uid
+        }));
+        
+        setStudents(studentsWithCurrentUser);
+        
+        // Find current user rank
+        const currentUserRecord = studentsWithCurrentUser.find(s => s.isCurrentUser);
+        if (currentUserRecord) {
+          setCurrentUserRank(currentUserRecord.rank);
+          
+          // Check if user is in top 10 for bonus
+          if (currentUserRecord.rank <= 10 && leaderboardData.length > 5) {
+            // Check if bonus was already given
+            const bonusKey = `${currentUser.uid}_top10_bonus`;
+            if (!localStorage.getItem(bonusKey)) {
+              // Mark bonus as given to avoid duplicates
+              localStorage.setItem(bonusKey, 'true');
+              
+              // Add 20 points bonus through the regular flow
+              import('@/utils/pointsSystem').then(({ addPointsToUser }) => {
+                addPointsToUser(
+                  currentUser.uid,
+                  20,
+                  'achievement',
+                  'टॉप 10 लीडरबोर्ड बोनस'
+                );
+                toast.success('आप टॉप 10 में हैं! +20 पॉइंट्स मिले');
+              });
+            }
+          }
+        }
+        
+        setLoading(false);
+      });
+      
+      // Cleanup subscription
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      };
     }
   }, [currentUser]);
-  
-  const loadLeaderboardData = () => {
-    setLoading(true);
-    
-    // In a real app, this would be a database query
-    // For now, we'll simulate loading data from localStorage
-    
-    // Get all keys from localStorage that contain "_points"
-    const allKeys = Object.keys(localStorage);
-    const userPointsKeys = allKeys.filter(key => key.includes('_points') && !key.includes('_points_history'));
-    
-    // Collect student data
-    const studentsData: Student[] = [];
-    
-    userPointsKeys.forEach(key => {
-      const userId = key.split('_')[0];
-      const points = parseInt(localStorage.getItem(key) || '0');
-      const level = parseInt(localStorage.getItem(`${userId}_level`) || '1');
-      
-      // Try to get the user's name from other localStorage entries if available
-      // In a real app, this would come from the database
-      let name = localStorage.getItem(`${userId}_displayName`) || `Student_${userId.substring(0, 5)}`;
-      let photoURL = localStorage.getItem(`${userId}_photoURL`) || undefined;
-      
-      // Flag if this is the current user
-      const isCurrentUser = userId === currentUser.uid;
-      
-      if (isCurrentUser && currentUser.displayName) {
-        name = currentUser.displayName;
-        photoURL = currentUser.photoURL;
-        
-        // Store current user's display name and photo for future use
-        localStorage.setItem(`${userId}_displayName`, currentUser.displayName);
-        if (currentUser.photoURL) {
-          localStorage.setItem(`${userId}_photoURL`, currentUser.photoURL);
-        }
-      }
-      
-      studentsData.push({
-        id: userId,
-        name,
-        points,
-        level,
-        rank: 0, // Will be calculated after sorting
-        photoURL,
-        isCurrentUser
-      });
-    });
-    
-    // Sort by points (descending)
-    studentsData.sort((a, b) => b.points - a.points);
-    
-    // Assign ranks
-    studentsData.forEach((student, index) => {
-      student.rank = index + 1;
-      if (student.isCurrentUser) {
-        setCurrentUserRank(index + 1);
-      }
-    });
-    
-    setStudents(studentsData);
-    setLoading(false);
-    
-    // If user is in top 10, give them a bonus
-    const currentUserRecord = studentsData.find(s => s.isCurrentUser);
-    if (currentUserRecord && currentUserRecord.rank <= 10 && studentsData.length > 5) {
-      // Check if bonus was already given
-      const bonusKey = `${currentUser.uid}_top10_bonus`;
-      if (!localStorage.getItem(bonusKey)) {
-        // Add 20 points bonus
-        const currentPoints = parseInt(localStorage.getItem(`${currentUser.uid}_points`) || '0');
-        localStorage.setItem(`${currentUser.uid}_points`, (currentPoints + 20).toString());
-        
-        // Log this bonus in history
-        const pointsHistory = JSON.parse(localStorage.getItem(`${currentUser.uid}_points_history`) || '[]');
-        pointsHistory.push({
-          id: Date.now(),
-          type: 'achievement',
-          points: 20,
-          description: 'टॉप 10 लीडरबोर्ड बोनस',
-          timestamp: new Date().toISOString()
-        });
-        localStorage.setItem(`${currentUser.uid}_points_history`, JSON.stringify(pointsHistory));
-        
-        // Mark bonus as given
-        localStorage.setItem(bonusKey, 'true');
-        
-        toast.success('आप टॉप 10 में हैं! +20 पॉइंट्स मिले');
-      }
-    }
-  };
   
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
