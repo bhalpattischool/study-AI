@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +25,6 @@ const StudentLearningProgress: React.FC<StudentLearningProgressProps> = ({ curre
   const [weeklyActivity, setWeeklyActivity] = useState<{ day: string; points: number }[]>([]);
   const [achievements, setAchievements] = useState<number>(0);
   
-  // Dummy colors for subjects
   const subjectColors = [
     '#8b5cf6', // Purple
     '#3b82f6', // Blue
@@ -41,14 +39,12 @@ const StudentLearningProgress: React.FC<StudentLearningProgressProps> = ({ curre
       const loadProgressData = async () => {
         setLoading(true);
         try {
-          // Load saved subject progress from localStorage
           const savedProgress = localStorage.getItem(`${currentUser.uid}_subject_progress`);
           
           let subjectProgressData;
           if (savedProgress) {
             subjectProgressData = JSON.parse(savedProgress);
           } else {
-            // Create dummy data if no saved data
             subjectProgressData = [
               { name: 'गणित', progress: 45, color: subjectColors[0] },
               { name: 'विज्ञान', progress: 70, color: subjectColors[1] },
@@ -57,7 +53,6 @@ const StudentLearningProgress: React.FC<StudentLearningProgressProps> = ({ curre
               { name: 'सामाजिक विज्ञान', progress: 60, color: subjectColors[4] }
             ];
             
-            // Save initial dummy data
             localStorage.setItem(
               `${currentUser.uid}_subject_progress`, 
               JSON.stringify(subjectProgressData)
@@ -66,14 +61,12 @@ const StudentLearningProgress: React.FC<StudentLearningProgressProps> = ({ curre
           
           setSubjectProgress(subjectProgressData);
           
-          // Load weekly activity data
           const savedActivity = localStorage.getItem(`${currentUser.uid}_weekly_activity`);
           
           let weeklyActivityData;
           if (savedActivity) {
             weeklyActivityData = JSON.parse(savedActivity);
           } else {
-            // Create dummy data for weekly activity
             weeklyActivityData = [
               { day: 'सोम', points: 25 },
               { day: 'मंगल', points: 40 },
@@ -84,7 +77,6 @@ const StudentLearningProgress: React.FC<StudentLearningProgressProps> = ({ curre
               { day: 'रवि', points: 35 }
             ];
             
-            // Save initial dummy data
             localStorage.setItem(
               `${currentUser.uid}_weekly_activity`, 
               JSON.stringify(weeklyActivityData)
@@ -93,7 +85,6 @@ const StudentLearningProgress: React.FC<StudentLearningProgressProps> = ({ curre
           
           setWeeklyActivity(weeklyActivityData);
           
-          // Count achievements
           const pointsHistory = JSON.parse(
             localStorage.getItem(`${currentUser.uid}_points_history`) || '[]'
           );
@@ -114,7 +105,6 @@ const StudentLearningProgress: React.FC<StudentLearningProgressProps> = ({ curre
     }
   }, [currentUser]);
   
-  // Calculate overall progress
   const calculateOverallProgress = () => {
     if (subjectProgress.length === 0) return 0;
     const totalProgress = subjectProgress.reduce((sum, subject) => sum + subject.progress, 0);
@@ -218,8 +208,7 @@ const StudentLearningProgress: React.FC<StudentLearningProgressProps> = ({ curre
                     </div>
                     <Progress 
                       value={subject.progress} 
-                      className="h-2" 
-                      indicatorClassName={`bg-[${subject.color}]`}
+                      className={`h-2 bg-${subject.color.replace('#', '')}/20`}
                     />
                   </div>
                 ))}

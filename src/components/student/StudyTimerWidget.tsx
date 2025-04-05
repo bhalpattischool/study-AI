@@ -1,10 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Button,
-  Progress
-} from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Clock, PlayCircle, PauseCircle, RotateCcw, Award, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { addPointsToUser } from '@/utils/pointsSystem';
