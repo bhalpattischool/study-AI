@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -199,7 +198,7 @@ const StudyGoalTracker: React.FC<StudyGoalTrackerProps> = ({ currentUser }) => {
                     )}
                     <span className="font-medium">{goal.title}</span>
                   </div>
-                  <Badge variant={goal.completed ? "success" : "outline"}>
+                  <Badge variant={goal.completed ? "secondary" : "outline"}>
                     {goal.current}/{goal.target} मिनट
                   </Badge>
                 </div>

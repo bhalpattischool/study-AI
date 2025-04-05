@@ -103,66 +103,80 @@ const StudentActivities = () => {
                 <TabsTrigger value="goals">लक्ष्य</TabsTrigger>
                 <TabsTrigger value="leaderboard">लीडरबोर्ड</TabsTrigger>
               </TabsList>
+            
+              <TabsContent value="timer" className="m-0 space-y-4 p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <StudyTimerWidget currentUser={currentUser} />
+                  <StudentDailyStreak currentUser={currentUser} />
+                </div>
+                <StudyGoalTracker currentUser={currentUser} />
+              </TabsContent>
+              
+              <TabsContent value="progress" className="m-0">
+                <div className="grid grid-cols-1 gap-4 p-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">अध्ययन प्रगति</CardTitle>
+                    </CardHeader>
+                    <StudentLearningProgress currentUser={currentUser} />
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">पॉइंट्स इतिहास</CardTitle>
+                    </CardHeader>
+                    <StudentPointsHistory currentUser={currentUser} />
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="goals" className="m-0">
+                <div className="grid grid-cols-1 gap-4 p-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">अध्ययन लक्ष्य</CardTitle>
+                    </CardHeader>
+                    <StudentGoals 
+                      currentUser={currentUser} 
+                      studentPoints={studentPoints}
+                      setStudentPoints={setStudentPoints}
+                      studentLevel={studentLevel}
+                      setStudentLevel={setStudentLevel}
+                    />
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">अध्ययन कार्य</CardTitle>
+                    </CardHeader>
+                    <StudentTasks 
+                      currentUser={currentUser} 
+                      studentPoints={studentPoints}
+                      setStudentPoints={setStudentPoints}
+                      studentLevel={studentLevel}
+                      setStudentLevel={setStudentLevel}
+                    />
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="leaderboard" className="m-0">
+                <div className="p-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">लीडरबोर्ड</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <StudentLeaderboard currentUser={currentUser} />
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
             </Tabs>
           </CardHeader>
           
           <ScrollArea className={isMobile ? 'h-[calc(100vh-9rem)]' : 'h-[calc(100vh-8rem)]'}>
-            <TabsContent value="timer" className="m-0 space-y-4 p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StudyTimerWidget currentUser={currentUser} />
-                <StudentDailyStreak currentUser={currentUser} />
-              </div>
-              <StudyGoalTracker currentUser={currentUser} />
-            </TabsContent>
-            
-            <TabsContent value="progress" className="m-0">
-              <div className="grid grid-cols-1 gap-4 p-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">अध्ययन प्रगति</CardTitle>
-                  </CardHeader>
-                  <StudentLearningProgress currentUser={currentUser} />
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">पॉइंट्स इतिहास</CardTitle>
-                  </CardHeader>
-                  <StudentPointsHistory currentUser={currentUser} />
-                </Card>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="goals" className="m-0">
-              <div className="grid grid-cols-1 gap-4 p-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">अध्ययन लक्ष्य</CardTitle>
-                  </CardHeader>
-                  <StudentGoals currentUser={currentUser} />
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">अध्ययन कार्य</CardTitle>
-                  </CardHeader>
-                  <StudentTasks currentUser={currentUser} />
-                </Card>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="leaderboard" className="m-0">
-              <div className="p-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">लीडरबोर्ड</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <StudentLeaderboard currentUser={currentUser} />
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
+            {/* ScrollArea content is now empty as we moved the TabsContent components up */}
           </ScrollArea>
         </Card>
         
