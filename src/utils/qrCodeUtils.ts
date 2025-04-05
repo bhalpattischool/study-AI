@@ -25,7 +25,8 @@ export const generateProfileQRCode = async (
       color: {
         dark: '#5a287d', // Purple color for dots
         light: '#FFFFFF', // White background
-      }
+      },
+      errorCorrectionLevel: 'H' // Higher error correction for more reliability when scanning
     });
     
     return qrDataUrl;

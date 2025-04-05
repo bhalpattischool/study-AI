@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Smartphone } from 'lucide-react';
+import { ArrowLeft, QrCode } from 'lucide-react';
 import StudyTimerWidget from '@/components/student/StudyTimerWidget';
 import StudentDailyStreak from '@/components/student/StudentDailyStreak';
 import StudentLearningProgress from '@/components/student/StudentLearningProgress';
@@ -88,7 +88,7 @@ const StudentActivities = () => {
               className="flex items-center gap-2 border-purple-200 dark:border-purple-800"
               onClick={handleOpenQRDialog}
             >
-              <Smartphone className="h-4 w-4" />
+              <QrCode className="h-4 w-4" />
               मेरा QR कोड
             </Button>
           </div>
@@ -103,7 +103,7 @@ const StudentActivities = () => {
                 <TabsTrigger value="goals">लक्ष्य</TabsTrigger>
                 <TabsTrigger value="leaderboard">लीडरबोर्ड</TabsTrigger>
               </TabsList>
-            
+              
               <TabsContent value="timer" className="m-0 space-y-4 p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <StudyTimerWidget currentUser={currentUser} />

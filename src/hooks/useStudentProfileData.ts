@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { getUserPointsHistory } from '@/lib/firebase';
+import { getUserPointsHistory, getLeaderboardData } from '@/lib/firebase';
 import { generateProfileQRCode } from '@/utils/qrCodeUtils';
 
 interface ProfileData {
@@ -12,6 +12,8 @@ interface ProfileData {
   category: string;
   education: string;
   joinedOn: string;
+  streak?: number;
+  rank?: number;
   photoURL?: string;
   achievements: any[];
 }
@@ -39,6 +41,8 @@ export const useStudentProfileData = ({
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [profileUrl, setProfileUrl] = useState<string>('');
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [userRank, setUserRank] = useState<number | undefined>(undefined);
+  const [userStreak, setUserStreak] = useState<number>(0);
   
   useEffect(() => {
     if (currentUser) {
@@ -50,6 +54,21 @@ export const useStudentProfileData = ({
     if (!currentUser) return;
     
     try {
+      // Get user streak from localStorage
+      const streak = localStorage.getItem(`${currentUser.uid}_streak`) || '0';
+      setUserStreak(parseInt(streak));
+      
+      // Get user rank from leaderboard
+      try {
+        const leaderboardData = await getLeaderboardData();
+        const userOnLeaderboard = leaderboardData.find((user: any) => user.id === currentUser.uid);
+        if (userOnLeaderboard) {
+          setUserRank(userOnLeaderboard.rank);
+        }
+      } catch (error) {
+        console.error("Error fetching leaderboard data:", error);
+      }
+      
       // Create profile data object with complete student information
       const achievements = await getTopAchievements();
       
@@ -67,6 +86,8 @@ export const useStudentProfileData = ({
         education: education,
         joinedOn: currentUser.metadata?.creationTime || new Date().toISOString(),
         photoURL: currentUser.photoURL,
+        streak: parseInt(streak),
+        rank: userRank,
         achievements: achievements
       };
       
@@ -100,7 +121,7 @@ export const useStudentProfileData = ({
       if (firebaseHistory && firebaseHistory.length > 0) {
         // Filter achievements and sort by points
         return firebaseHistory
-          .filter((item: any) => ['achievement', 'quiz'].includes(item.type))
+          .filter((item: any) => ['achievement', 'quiz', 'streak'].includes(item.type))
           .sort((a: any, b: any) => b.points - a.points)
           .slice(0, 3); // Get top 3
       }
@@ -110,7 +131,7 @@ export const useStudentProfileData = ({
       
       // Filter achievements and sort by points
       return history
-        .filter((item: any) => ['achievement', 'quiz'].includes(item.type))
+        .filter((item: any) => ['achievement', 'quiz', 'streak'].includes(item.type))
         .sort((a: any, b: any) => b.points - a.points)
         .slice(0, 3); // Get top 3
     } catch (error) {
