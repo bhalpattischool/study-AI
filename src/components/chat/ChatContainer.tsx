@@ -73,8 +73,8 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
         <div ref={messagesEndRef} />
       </div>
       
-      {/* Ad Banner - placed above the chat footer */}
-      <AdBanner className="w-full mb-2 mt-1 bg-gray-50 dark:bg-gray-800 py-2 text-center text-xs text-gray-400" />
+      {/* Ad Banner - enhanced with better styling and positioning */}
+      <AdBanner className="w-full mb-2 mt-1 bg-white/80 dark:bg-gray-800/80 py-2 text-center rounded-lg mx-auto max-w-5xl" />
       
       <ChatFooter 
         onSend={handleSend} 

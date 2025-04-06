@@ -10,8 +10,17 @@ import {
   Clock, 
   Lightbulb, 
   GraduationCap, 
-  BookOpenCheck
+  BookOpenCheck,
+  Sparkles,
+  Zap,
+  CheckCircle2,
+  BarChart4,
+  Brain,
+  Target,
+  ListTodo,
+  History
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface StudyFeatureProps {
   onFeatureSelect: (feature: string) => void;
@@ -90,36 +99,116 @@ const StudyFeatures: React.FC<StudyFeatureProps> = ({ onFeatureSelect }) => {
       icon: <BookOpenCheck className="h-5 w-5" />,
       prompt: "Give me memorization techniques for studying ",
       color: "from-fuchsia-50 to-purple-50 dark:from-fuchsia-900/30 dark:to-purple-900/30"
-    }
+    },
+    // Added new features
+    {
+      id: 'flashcards',
+      name: 'Flashcards Creator',
+      description: 'Create digital flashcards',
+      icon: <Zap className="h-5 w-5" />,
+      prompt: "Create a set of digital flashcards for studying ",
+      color: "from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30"
+    },
+    {
+      id: 'exam-prep',
+      name: 'Exam Preparation',
+      description: 'Complete exam prep guide',
+      icon: <CheckCircle2 className="h-5 w-5" />,
+      prompt: "Prepare me for my upcoming exam on ",
+      color: "from-pink-50 to-rose-50 dark:from-pink-900/30 dark:to-rose-900/30"
+    },
+    {
+      id: 'progress-tracker',
+      name: 'Progress Tracker',
+      description: 'Track your learning journey',
+      icon: <BarChart4 className="h-5 w-5" />,
+      prompt: "Help me track my learning progress for ",
+      color: "from-blue-50 to-sky-50 dark:from-blue-900/30 dark:to-sky-900/30"
+    },
+    {
+      id: 'brain-exercises',
+      name: 'Brain Exercises',
+      description: 'Mental workouts to improve focus',
+      icon: <Brain className="h-5 w-5" />,
+      prompt: "Give me brain exercises to improve my focus for studying ",
+      color: "from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30"
+    },
+    {
+      id: 'goal-setting',
+      name: 'Study Goals',
+      description: 'Set SMART study goals',
+      icon: <Target className="h-5 w-5" />,
+      prompt: "Help me set SMART study goals for ",
+      color: "from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30"
+    },
+    {
+      id: 'todo-list',
+      name: 'Study To-Do List',
+      description: 'Generate prioritized task lists',
+      icon: <ListTodo className="h-5 w-5" />,
+      prompt: "Create a prioritized study to-do list for ",
+      color: "from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30"
+    },
+    {
+      id: 'learning-history',
+      name: 'Learning Journal',
+      description: 'Document your learning journey',
+      icon: <History className="h-5 w-5" />,
+      prompt: "Help me create a learning journal for ",
+      color: "from-sky-50 to-cyan-50 dark:from-sky-900/30 dark:to-cyan-900/30"
+    },
   ];
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1 }
+  };
 
   return (
     <div className="px-4 py-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow">
       <h2 className="text-xl font-bold mb-4 text-purple-800 dark:text-purple-300 flex items-center gap-2">
         <BookOpenCheck className="h-5 w-5" />
-        Study Features
+        <span>Study Features</span>
+        <Sparkles className="h-4 w-4 text-amber-500 ml-1" />
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      
+      <motion.div 
+        className="grid grid-cols-2 md:grid-cols-4 gap-3"
+        variants={container}
+        initial="hidden"
+        animate="show"
+      >
         {features.map((feature) => (
-          <Button
-            key={feature.id}
-            variant="outline"
-            className={`h-auto flex flex-col items-center justify-start p-4 border-purple-100 dark:border-purple-900 
-            hover:border-purple-300 dark:hover:border-purple-700 transition-all bg-gradient-to-r ${feature.color} 
-            hover:shadow-md group`}
-            onClick={() => onFeatureSelect(feature.prompt)}
-          >
-            <div className="w-10 h-10 rounded-full bg-white/80 dark:bg-gray-800/80 flex items-center justify-center mb-2 
-            text-purple-600 dark:text-purple-300 group-hover:scale-110 transition-transform">
-              {feature.icon}
-            </div>
-            <span className="font-medium text-sm">{feature.name}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
-              {feature.description}
-            </span>
-          </Button>
+          <motion.div key={feature.id} variants={item}>
+            <Button
+              variant="outline"
+              className={`h-auto w-full flex flex-col items-center justify-start p-4 border-purple-100 dark:border-purple-900 
+              hover:border-purple-300 dark:hover:border-purple-700 transition-all bg-gradient-to-r ${feature.color} 
+              hover:shadow-md group`}
+              onClick={() => onFeatureSelect(feature.prompt)}
+            >
+              <div className="w-10 h-10 rounded-full bg-white/80 dark:bg-gray-800/80 flex items-center justify-center mb-2 
+              text-purple-600 dark:text-purple-300 group-hover:scale-110 transition-transform">
+                {feature.icon}
+              </div>
+              <span className="font-medium text-sm">{feature.name}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                {feature.description}
+              </span>
+            </Button>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };
