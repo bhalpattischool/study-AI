@@ -5,6 +5,7 @@ import MessageList from './MessageList';
 import EmptyChatState from './EmptyChatState';
 import ChatFooter from '../ChatFooter';
 import MessageLimitAlert from '../MessageLimitAlert';
+import AdBanner from '../ads/AdBanner';
 
 interface ChatContainerProps {
   chatId: string;
@@ -71,6 +72,9 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
         )}
         <div ref={messagesEndRef} />
       </div>
+      
+      {/* Ad Banner - placed above the chat footer */}
+      <AdBanner className="w-full mb-2 mt-1 bg-gray-50 dark:bg-gray-800 py-2 text-center text-xs text-gray-400" />
       
       <ChatFooter 
         onSend={handleSend} 
