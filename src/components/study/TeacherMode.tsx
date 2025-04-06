@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent } from '@/components/ui/card';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, School, BookOpen, Target } from 'lucide-react';
 import { Form } from '@/components/ui/form';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
@@ -67,11 +67,11 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
       onSendMessage(question + voiceInstruction);
       questionField.value = '';
       
-      // Show teacher acknowledgment toast
+      // Show teacher acknowledgment toast with animation
       toast.success(language === 'hi' 
         ? 'शिक्षक आपका प्रश्न देख रहे हैं...' 
         : 'Teacher is looking at your question...', 
-        { duration: 2000 }
+        { duration: 3000 }
       );
     } else {
       toast.error(language === 'hi' ? 'कृपया एक प्रश्न दर्ज करें' : 'Please enter a question');
@@ -116,7 +116,6 @@ const TeacherMode: React.FC<TeacherModeProps> = ({ onSendMessage }) => {
     let prompt = '';
     
     if (language === 'hi') {
-      // Fixed the syntax error by removing the danda character (।) and properly closing the template string
       prompt = `एक वास्तविक कक्षा शिक्षक के रूप में कार्य करें ${data.teachingStyle === 'teacher' ? 'जो बहुत उत्साही, प्रभावशाली और प्रेरणादायक हैं' : 'मानक शिक्षण मोड में'}
 विषय: ${selectedSubject}
 अध्याय: ${data.chapter}
@@ -141,16 +140,22 @@ ${data.teachingStyle === 'teacher' ? `Address me directly as "${data.studentName
     onSendMessage(prompt);
     setIsProcessing(false);
     
-    // Show teacher confirmation
-    toast.success(language === 'hi' 
-      ? 'शिक्षक आपका पाठ तैयार कर रहे हैं...' 
-      : 'Teacher is preparing your lesson...', 
+    // Show enhanced teacher confirmation
+    toast.success(
+      <div className="flex items-center">
+        <School className="h-5 w-5 mr-2 text-green-600 animate-pulse" />
+        <span>{language === 'hi' ? 'शिक्षक आपका पाठ तैयार कर रहे हैं...' : 'Teacher is preparing your lesson...'}</span>
+      </div>, 
       { duration: 3000 }
     );
   });
 
   return (
-    <Card className="border border-purple-100 dark:border-purple-800">
+    <Card className="border border-purple-100 dark:border-purple-800 relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-transparent dark:from-purple-800 dark:to-transparent opacity-50 rounded-bl-full"></div>
+      <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-indigo-100 to-transparent dark:from-indigo-800 dark:to-transparent opacity-50 rounded-tr-full"></div>
+      
       <CardContent className="pt-6">
         <div className="mb-4">
           <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-medium mb-2">
@@ -162,6 +167,16 @@ ${data.teachingStyle === 'teacher' ? `Address me directly as "${data.studentName
               ? 'एक असली शिक्षक से जैसे आप कक्षा में हों वैसे ही पढ़ाई करें'
               : t('teacherModeDescription')}
           </p>
+          
+          {/* Classroom-like ambience indicators */}
+          <div className="flex items-center mt-2 gap-1">
+            <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></div>
+            <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse delay-300"></div>
+            <div className="h-2 w-2 rounded-full bg-red-400 animate-pulse delay-700"></div>
+            <span className="text-xs text-gray-400 ml-1">
+              {language === 'hi' ? 'कक्षा सत्र चालू' : 'Class session active'}
+            </span>
+          </div>
         </div>
 
         <Form {...form}>
@@ -194,6 +209,30 @@ ${data.teachingStyle === 'teacher' ? `Address me directly as "${data.studentName
           toggleListening={() => toggleListening('student-question')} 
           sendStudentQuestion={sendStudentQuestion} 
         />
+        
+        {/* Quick teaching tips */}
+        <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border border-blue-100 dark:border-blue-800">
+          <h5 className="text-xs font-medium text-blue-700 dark:text-blue-300 flex items-center">
+            <BookOpen className="h-3 w-3 mr-1" />
+            {language === 'hi' ? 'शिक्षण टिप्स' : 'Teaching Tips'}
+          </h5>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+            {language === 'hi' 
+              ? 'अधिकतम सीखने के लिए, पाठ के बाद प्रश्न पूछें और शिक्षक से विषय को विभिन्न तरीकों से समझाने के लिए कहें।' 
+              : 'For maximum learning, ask questions after the lesson and request the teacher to explain concepts in different ways.'}
+          </p>
+        </div>
+        
+        {/* Learning goals indicator */}
+        <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center">
+            <Target className="h-3 w-3 mr-1" />
+            <span>{language === 'hi' ? 'सीखने के लक्ष्य' : 'Learning Goals'}</span>
+          </div>
+          <div className="bg-gray-100 dark:bg-gray-700 h-1.5 w-24 rounded-full overflow-hidden">
+            <div className="bg-green-500 h-full w-3/4 rounded-full"></div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

@@ -59,6 +59,15 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
         <MessageLimitAlert onClose={() => setShowLimitAlert(false)} />
       )}
       
+      {isResponding && (
+        <div className="bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 p-2 mb-2 flex items-center animate-pulse">
+          <div className="mr-2 h-3 w-3 bg-green-500 rounded-full animate-ping"></div>
+          <p className="text-sm text-green-700 dark:text-green-300">
+            शिक्षक जवाब दे रहे हैं...
+          </p>
+        </div>
+      )}
+      
       <div className="flex-1 overflow-y-auto overflow-x-hidden w-full">
         {messages.length === 0 ? (
           <EmptyChatState onSendMessage={handleSend} />
