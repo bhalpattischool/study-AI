@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Clock, PlayCircle, PauseCircle, RotateCcw, Award, Check, Flag } from 'l
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
-import { addPointsToUser } from '@/utils/pointsSystem';
+import { addPointsToUser } from '@/utils/points';
 import { toast } from 'sonner';
 
 interface StudyTimerProps {
