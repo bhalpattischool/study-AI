@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { LockKeyhole, LogIn } from 'lucide-react';
+import { LockKeyhole, LogIn, UserPlus } from 'lucide-react';
 
 interface MessageLimitAlertProps {
   onClose: () => void;
@@ -19,10 +19,10 @@ const MessageLimitAlert: React.FC<MessageLimitAlertProps> = ({ onClose }) => {
         
         <div className="flex-1">
           <AlertTitle className="text-purple-800 dark:text-purple-300">
-            Message Limit Reached
+            मैसेज लिमिट पूरी हो गई
           </AlertTitle>
           <AlertDescription className="text-purple-700/80 dark:text-purple-400/80 mt-1">
-            You've reached the free message limit. Sign in or create an account to continue chatting with Study AI and unlock all features.
+            Study AI के साथ चैट जारी रखने के लिए कृपया लॉगिन करें या नया अकाउंट बनाएं। लॉगिन करने के बाद आप बिना किसी लिमिट के चैट कर सकते हैं।
           </AlertDescription>
         </div>
         
@@ -32,7 +32,7 @@ const MessageLimitAlert: React.FC<MessageLimitAlertProps> = ({ onClose }) => {
             className="flex-1 sm:flex-auto"
             onClick={onClose}
           >
-            Later
+            बाद में
           </Button>
           <Button 
             className="flex-1 sm:flex-auto"
@@ -40,7 +40,17 @@ const MessageLimitAlert: React.FC<MessageLimitAlertProps> = ({ onClose }) => {
           >
             <Link to="/login">
               <LogIn className="h-4 w-4 mr-2" />
-              Sign In
+              लॉगिन करें
+            </Link>
+          </Button>
+          <Button
+            variant="secondary"
+            className="flex-1 sm:flex-auto"
+            asChild
+          >
+            <Link to="/signup">
+              <UserPlus className="h-4 w-4 mr-2" />
+              रजिस्टर करें
             </Link>
           </Button>
         </div>
@@ -50,3 +60,4 @@ const MessageLimitAlert: React.FC<MessageLimitAlertProps> = ({ onClose }) => {
 };
 
 export default MessageLimitAlert;
+

@@ -5,7 +5,8 @@ import { generateResponse } from '@/lib/gemini';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
 
-// Removed the FREE_MESSAGE_LIMIT constant to solve the issue
+// Adding constant for guest message limit
+const GUEST_MESSAGE_LIMIT = 2;
 
 export const useChat = (chatId: string, onChatUpdated?: () => void) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -24,7 +25,11 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       if (chat) {
         setMessages(chat.messages);
         
-        // Removed the limit check to fix the issue with authenticated users
+        // Check message limit for non-logged in users
+        if (!currentUser && chat.messages.filter(m => m.role === 'user').length >= GUEST_MESSAGE_LIMIT) {
+          setMessageLimitReached(true);
+          setShowLimitAlert(true);
+        }
       }
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -35,7 +40,12 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
   const sendMessage = async (input: string) => {
     if (!input.trim() || isLoading || isResponding) return;
     
-    // Removed the message limit check to allow authenticated users to send messages without limits
+    // Check if user has reached message limit
+    if (!currentUser && messages.filter(m => m.role === 'user').length >= GUEST_MESSAGE_LIMIT) {
+      setMessageLimitReached(true);
+      setShowLimitAlert(true);
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -51,9 +61,7 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       const currentChat = await chatDB.getChat(chatId);
       const chatHistory = currentChat?.messages || [];
       
-      console.log("Sending chat with history length:", chatHistory.length);
-
-      // Get AI response with complete conversation history
+      // Get AI response
       const response = await generateResponse(input.trim(), chatHistory);
       
       // Add bot message
@@ -62,7 +70,11 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       
       if (onChatUpdated) onChatUpdated();
       
-      // Removed the limit check after user message
+      // Check if this message hits the limit
+      if (!currentUser && messages.filter(m => m.role === 'user').length >= GUEST_MESSAGE_LIMIT - 1) {
+        setMessageLimitReached(true);
+        setShowLimitAlert(true);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -83,3 +95,4 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
     messageLimitReached
   };
 };
+
