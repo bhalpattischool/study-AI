@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,14 +30,15 @@ const DailyTaskGenerator: React.FC = () => {
   const [dailyHours, setDailyHours] = useState(2);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showPlanSetup, setShowPlanSetup] = useState(true);
+  const [tasksAccepted, setTasksAccepted] = useState(false);
   const { currentUser } = useAuth();
   const { toast } = useToast();
   
-  // Load tasks from localStorage on mount
   useEffect(() => {
     if (currentUser) {
       const savedTasks = localStorage.getItem(`${currentUser.uid}_study_tasks`);
       const savedPlan = localStorage.getItem(`${currentUser.uid}_study_plan`);
+      const savedTasksAccepted = localStorage.getItem(`${currentUser.uid}_tasks_accepted`);
       
       if (savedTasks) {
         try {
@@ -64,17 +64,19 @@ const DailyTaskGenerator: React.FC = () => {
           console.error('Error parsing saved plan:', error);
         }
       }
+      
+      if (savedTasksAccepted === 'true') {
+        setTasksAccepted(true);
+      }
     }
   }, [currentUser]);
   
-  // Save tasks to localStorage when they change
   useEffect(() => {
     if (currentUser && tasks.length > 0) {
       localStorage.setItem(`${currentUser.uid}_study_tasks`, JSON.stringify(tasks));
     }
   }, [tasks, currentUser]);
   
-  // Check for missed tasks daily
   useEffect(() => {
     const checkMissedTasks = () => {
       const today = new Date();
@@ -84,7 +86,6 @@ const DailyTaskGenerator: React.FC = () => {
         const taskDate = new Date(task.scheduled);
         taskDate.setHours(0, 0, 0, 0);
         
-        // Mark as missed if it was scheduled before today and isn't completed
         if (taskDate < today && !task.completed) {
           return { ...task, missed: true };
         }
@@ -99,8 +100,7 @@ const DailyTaskGenerator: React.FC = () => {
     
     checkMissedTasks();
     
-    // Check daily at midnight
-    const interval = setInterval(checkMissedTasks, 86400000); // 24 hours
+    const interval = setInterval(checkMissedTasks, 86400000);
     
     return () => clearInterval(interval);
   }, [tasks]);
@@ -115,7 +115,6 @@ const DailyTaskGenerator: React.FC = () => {
       return;
     }
     
-    // Save plan details
     const planDetails = {
       examName,
       examDate,
@@ -127,16 +126,13 @@ const DailyTaskGenerator: React.FC = () => {
       localStorage.setItem(`${currentUser.uid}_study_plan`, JSON.stringify(planDetails));
     }
     
-    // Calculate days left until exam
     const today = new Date();
     const examDay = new Date(examDate);
     const daysLeft = Math.max(1, Math.ceil((examDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
     
-    // Generate new tasks based on days left and subjects
     const newTasks: Task[] = [];
     let taskId = 1;
     
-    // Distribute days across subjects
     subjects.forEach(subject => {
       const daysForSubject = Math.max(1, Math.floor(daysLeft * (subject.chapters / subjects.reduce((sum, s) => sum + s.chapters, 0))));
       
@@ -148,7 +144,7 @@ const DailyTaskGenerator: React.FC = () => {
           id: `task-${taskId++}`,
           subject: subject.name,
           name: `अध्याय ${i + 1}`,
-          duration: Math.floor((dailyHours * 60) / subjects.length), // Convert hours to minutes
+          duration: Math.floor((dailyHours * 60) / subjects.length),
           completed: false,
           scheduled: taskDate,
           missed: false
@@ -156,7 +152,6 @@ const DailyTaskGenerator: React.FC = () => {
       }
     });
     
-    // Sort tasks by scheduled date
     newTasks.sort((a, b) => new Date(a.scheduled).getTime() - new Date(b.scheduled).getTime());
     
     setTasks(newTasks);
@@ -167,7 +162,6 @@ const DailyTaskGenerator: React.FC = () => {
       description: `${daysLeft} दिनों के लिए ${newTasks.length} कार्य जनरेट किए गए हैं`
     });
     
-    // Award points for creating a study plan
     if (currentUser) {
       addPointsToUser(
         currentUser.uid,
@@ -185,13 +179,10 @@ const DailyTaskGenerator: React.FC = () => {
       )
     );
     
-    // Check if completing this creates a streak
     if (currentUser) {
-      // Logic for streaks
-      const completedTasksCount = tasks.filter(t => t.completed).length + 1; // +1 for current task
+      const completedTasksCount = tasks.filter(t => t.completed).length + 1;
       
       if (completedTasksCount % 3 === 0) {
-        // Award bonus points for completing 3 tasks
         addPointsToUser(
           currentUser.uid,
           7,
@@ -238,10 +229,9 @@ const DailyTaskGenerator: React.FC = () => {
       const taskDate = new Date(task.scheduled);
       taskDate.setHours(0, 0, 0, 0);
       return taskDate > today && !task.completed;
-    }).slice(0, 3); // Show next 3 upcoming tasks
+    }).slice(0, 3);
   };
   
-  // Format date for display
   const formatDate = (date: Date): string => {
     return new Date(date).toLocaleDateString('hi-IN', { 
       day: 'numeric', 
@@ -251,9 +241,29 @@ const DailyTaskGenerator: React.FC = () => {
   
   const resetPlan = () => {
     setShowPlanSetup(true);
+    setTasksAccepted(false);
     if (currentUser) {
       localStorage.removeItem(`${currentUser.uid}_study_tasks`);
-      // Keep the plan details for editing
+      localStorage.removeItem(`${currentUser.uid}_tasks_accepted`);
+    }
+  };
+  
+  const acceptTasks = () => {
+    if (currentUser) {
+      localStorage.setItem(`${currentUser.uid}_tasks_accepted`, 'true');
+      setTasksAccepted(true);
+      
+      addPointsToUser(
+        currentUser.uid,
+        3,
+        'activity',
+        'अध्ययन योजना स्वीकार की'
+      );
+      
+      toast({
+        title: "अध्ययन योजना सक्रिय की गई!",
+        description: "आपकी प्रगति अब ट्रैक की जाएगी और अनुस्मारक भेजे जाएंगे"
+      });
     }
   };
   
@@ -374,7 +384,36 @@ const DailyTaskGenerator: React.FC = () => {
             </Button>
           </div>
           
-          {getTodaysTasks().length > 0 ? (
+          {!tasksAccepted && (
+            <Card className="border-2 border-dashed border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20">
+              <CardContent className="pt-6 pb-4">
+                <div className="text-center space-y-4">
+                  <div className="mx-auto w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-800/40 flex items-center justify-center">
+                    <CalendarDays className="h-8 w-8 text-purple-600 dark:text-purple-300" />
+                  </div>
+                  <h3 className="font-medium text-lg text-purple-800 dark:text-purple-300">
+                    आपकी ��ध्ययन योजना तैयार है!
+                  </h3>
+                  <p className="text-sm text-purple-600/80 dark:text-purple-400">
+                    क्या आप इस अध्ययन योजना के साथ आगे बढ़ना चाहते हैं? आपको दैनिक अनुस्मारक और प्रगति ट्रैकिंग मिलेगी।
+                  </p>
+                  <div className="flex justify-center gap-3 pt-2">
+                    <Button variant="outline" onClick={resetPlan}>
+                      योजना बदलें
+                    </Button>
+                    <Button 
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                      onClick={acceptTasks}
+                    >
+                      स्वीकार करें
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {getTodaysTasks().length > 0 && tasksAccepted ? (
             <div className="space-y-4">
               <h3 className="font-medium flex items-center gap-2 text-purple-700 dark:text-purple-300">
                 <Clock className="h-4 w-4" />
@@ -392,7 +431,7 @@ const DailyTaskGenerator: React.FC = () => {
                 />
               ))}
             </div>
-          ) : (
+          ) : tasksAccepted ? (
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center justify-center py-6 text-center">
@@ -402,9 +441,9 @@ const DailyTaskGenerator: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
           
-          {getMissedTasks().length > 0 && (
+          {getMissedTasks().length > 0 && tasksAccepted && (
             <div className="space-y-4">
               <h3 className="font-medium flex items-center gap-2 text-orange-600 dark:text-orange-400">
                 <AlertTriangle className="h-4 w-4" />
@@ -443,7 +482,7 @@ const DailyTaskGenerator: React.FC = () => {
             </div>
           )}
           
-          {getUpcomingTasks().length > 0 && (
+          {getUpcomingTasks().length > 0 && tasksAccepted && (
             <div className="space-y-4">
               <h3 className="font-medium flex items-center gap-2 text-blue-600 dark:text-blue-400">
                 <Calendar className="h-4 w-4" />

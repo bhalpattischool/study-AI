@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { chatDB } from '@/lib/db';
@@ -11,6 +10,7 @@ import { Sparkles, LogIn, UserCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import ChatHistory from '@/components/ChatHistory';
+import StudyReminderButton from '@/components/study/StudyReminderButton';
 
 const Index = () => {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -26,27 +26,24 @@ const Index = () => {
     }
   }, [authLoading]);
 
-  // Handle chat ID from navigation state
   useEffect(() => {
     const handleNavigationState = async () => {
       if (location.state?.activeChatId) {
         const chatId = location.state.activeChatId;
         try {
-          // Verify the chat exists before setting it
           const chat = await chatDB.getChat(chatId);
           if (chat) {
             setCurrentChatId(chatId);
-            // Show a welcome toast when coming from teacher chats
             if (location.state.source === 'teacher-chats') {
               toast.success('Teacher chat loaded successfully');
             }
           } else {
             console.error('Chat not found:', chatId);
-            initializeChat(); // Fallback to default chat
+            initializeChat();
           }
         } catch (error) {
           console.error('Error loading chat from navigation:', error);
-          initializeChat(); // Fallback to default chat
+          initializeChat();
         }
       }
     };
@@ -161,6 +158,9 @@ const Index = () => {
         
         {currentChatId && (
           <div className="flex-1 overflow-hidden w-full">
+            <div className="px-4 pt-4">
+              <StudyReminderButton />
+            </div>
             <Chat 
               chatId={currentChatId} 
               onChatUpdated={() => {}} 
