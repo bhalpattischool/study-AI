@@ -95,4 +95,3 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
     messageLimitReached
   };
 };
-
