@@ -28,9 +28,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
   
   useEffect(() => {
     if (currentUser) {
-      // Subscribe to real-time leaderboard updates
       const unsubscribe = observeLeaderboardData((leaderboardData) => {
-        // Mark current user
         const studentsWithCurrentUser = leaderboardData.map(student => ({
           ...student,
           isCurrentUser: student.id === currentUser.uid
@@ -38,20 +36,15 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
         
         setStudents(studentsWithCurrentUser);
         
-        // Find current user rank
         const currentUserRecord = studentsWithCurrentUser.find(s => s.isCurrentUser);
         if (currentUserRecord) {
           setCurrentUserRank(currentUserRecord.rank);
           
-          // Check if user is in top 10 for bonus
           if (currentUserRecord.rank <= 10 && leaderboardData.length > 5) {
-            // Check if bonus was already given
             const bonusKey = `${currentUser.uid}_top10_bonus`;
             if (!localStorage.getItem(bonusKey)) {
-              // Mark bonus as given to avoid duplicates
               localStorage.setItem(bonusKey, 'true');
               
-              // Add 20 points bonus through the regular flow
               import('@/utils/points').then(({ addPointsToUser }) => {
                 addPointsToUser(
                   currentUser.uid,
@@ -68,7 +61,6 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
         setLoading(false);
       });
       
-      // Cleanup subscription
       return () => {
         if (typeof unsubscribe === 'function') {
           unsubscribe();
@@ -94,7 +86,6 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
         });
         toast.success('लीडरबोर्ड शेयर किया गया');
       } else {
-        // Fallback for browsers that don't support Web Share API
         navigator.clipboard.writeText(window.location.href);
         toast.success('लिंक कॉपी किया गया');
       }
@@ -105,7 +96,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
   };
   
   return (
-    <CardContent className="p-4">
+    <CardContent className="p-2 sm:p-4">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -118,8 +109,8 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
             onClick={shareLeaderboard}
             className="flex items-center gap-1"
           >
-            <Share2 className="h-4 w-4" />
-            शेयर
+            <Share2 className="h-4 w-4 hidden sm:block" />
+            <span className="sm:ml-1">शेयर</span>
           </Button>
         </div>
         
@@ -136,14 +127,14 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
             <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full"></div>
           </div>
         ) : students.length > 0 ? (
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12 text-center">रैंक</TableHead>
-                  <TableHead>छात्र</TableHead>
-                  <TableHead className="text-right">पॉइंट्स</TableHead>
-                  <TableHead className="text-right w-20">लेवल</TableHead>
+                  <TableHead className="w-12 text-center p-2 sm:p-4">रैंक</TableHead>
+                  <TableHead className="p-2 sm:p-4">छात्र</TableHead>
+                  <TableHead className="text-right p-2 sm:p-4">पॉइंट्स</TableHead>
+                  <TableHead className="text-right w-20 p-2 sm:p-4">लेवल</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -152,14 +143,14 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                     key={student.id}
                     className={student.isCurrentUser ? "bg-purple-50 dark:bg-purple-900/20" : ""}
                   >
-                    <TableCell className="text-center">
+                    <TableCell className="text-center p-2 sm:p-4">
                       <div className="flex justify-center">
                         {getRankIcon(student.rank)}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center">
-                        <div className="w-7 h-7 rounded-full bg-purple-200 flex items-center justify-center mr-2 text-xs">
+                    <TableCell className="font-medium p-2 sm:p-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-purple-200 flex items-center justify-center text-xs shrink-0">
                           {student.photoURL ? (
                             <img 
                               src={student.photoURL} 
@@ -170,19 +161,23 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                             student.name.charAt(0)
                           )}
                         </div>
-                        <span className={student.isCurrentUser ? "font-bold" : ""}>
-                          {student.name}
-                          {student.isCurrentUser && <span className="text-xs ml-1">(आप)</span>}
-                        </span>
+                        <div className="min-w-0">
+                          <span className={`block truncate ${student.isCurrentUser ? "font-bold" : ""}`}>
+                            {student.name}
+                          </span>
+                          {student.isCurrentUser && (
+                            <span className="text-xs text-purple-600 dark:text-purple-400">(आप)</span>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end">
-                        <Star className="h-3.5 w-3.5 text-yellow-500 mr-1" />
+                    <TableCell className="text-right p-2 sm:p-4">
+                      <div className="flex items-center justify-end gap-1">
+                        <Star className="h-3.5 w-3.5 text-yellow-500" />
                         {student.points}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right p-2 sm:p-4">
                       <Badge variant="outline" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                         {student.level}
                       </Badge>

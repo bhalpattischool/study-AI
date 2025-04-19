@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +18,7 @@ import StudentActivitiesHelp from '@/components/student/StudentActivitiesHelp';
 import QRScanner from '@/components/student/QRScanner';
 import StudyGoalTracker from '@/components/student/StudyGoalTracker';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import DailyTaskGenerator from '@/components/study/DailyTaskGenerator';
 
 const StudentActivities = () => {
   const { currentUser, isLoading } = useAuth();
@@ -27,8 +27,14 @@ const StudentActivities = () => {
   const [studentLevel, setStudentLevel] = useState(1);
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 640px)");
+  const location = useLocation();
   
   useEffect(() => {
+    // Set active tab from navigation state
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+    }
+    
     if (!isLoading && !currentUser) {
       navigate('/login');
     }
@@ -36,7 +42,7 @@ const StudentActivities = () => {
     if (currentUser) {
       loadStudentData();
     }
-  }, [currentUser, isLoading, navigate]);
+  }, [currentUser, isLoading, navigate, location.state]);
   
   const loadStudentData = () => {
     if (!currentUser) return;
@@ -89,7 +95,7 @@ const StudentActivities = () => {
               onClick={handleOpenQRDialog}
             >
               <QrCode className="h-4 w-4" />
-              मेरा QR कोड
+              <span className="hidden sm:inline">मेरा QR कोड</span>
             </Button>
           </div>
         </div>
@@ -105,11 +111,7 @@ const StudentActivities = () => {
               </TabsList>
               
               <TabsContent value="timer" className="m-0 space-y-4 p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <StudyTimerWidget currentUser={currentUser} />
-                  <StudentDailyStreak currentUser={currentUser} />
-                </div>
-                <StudyGoalTracker currentUser={currentUser} />
+                <DailyTaskGenerator currentUser={currentUser} />
               </TabsContent>
               
               <TabsContent value="progress" className="m-0">
