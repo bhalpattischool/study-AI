@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Target, Plus, CheckCircle2, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { addPointsToUser } from '@/utils/pointsSystem';
+import { addPointsToUser } from '@/utils/points';
 
 interface Goal {
   id: string;

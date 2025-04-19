@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -53,7 +52,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
               localStorage.setItem(bonusKey, 'true');
               
               // Add 20 points bonus through the regular flow
-              import('@/utils/pointsSystem').then(({ addPointsToUser }) => {
+              import('@/utils/points').then(({ addPointsToUser }) => {
                 addPointsToUser(
                   currentUser.uid,
                   20,

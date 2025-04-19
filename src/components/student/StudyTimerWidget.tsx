@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Clock, PlayCircle, PauseCircle, RotateCcw, Award, Settings2, Bell, Radio } from 'lucide-react';
 import { toast } from 'sonner';
-import { addPointsToUser } from '@/utils/pointsSystem';
+import { addPointsToUser } from '@/utils/points';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import {
   DropdownMenu,

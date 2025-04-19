@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Clock, BookOpen, AlertTriangle, CheckCircle, CalendarDays } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { addPointsToUser } from '@/utils/pointsSystem';
+import { addPointsToUser } from '@/utils/points';
 import { useToast } from '@/hooks/use-toast';
 import StudyTimer from './StudyTimer';
 

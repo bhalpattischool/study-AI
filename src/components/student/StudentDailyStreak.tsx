@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Flame, Trophy, Star, Calendar, Award } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { toast } from 'sonner';
-import { addPointsToUser } from '@/utils/pointsSystem';
+import { addPointsToUser } from '@/utils/points';
 
 interface StudentDailyStreakProps {
   currentUser: any;
@@ -25,7 +24,6 @@ const StudentDailyStreak: React.FC<StudentDailyStreakProps> = ({ currentUser }) 
   }, [currentUser]);
   
   const loadStreakData = () => {
-    // Get streak data from localStorage
     const streakKey = `${currentUser.uid}_login_streak`;
     const longestStreakKey = `${currentUser.uid}_longest_streak`;
     const lastLoginKey = `${currentUser.uid}_last_login`;
@@ -38,11 +36,9 @@ const StudentDailyStreak: React.FC<StudentDailyStreakProps> = ({ currentUser }) 
     setLongestStreak(longestStreakValue);
     setLastLoginDate(lastLogin);
     
-    // Check if already checked in today
     const today = new Date().toDateString();
     setTodayCheckedIn(lastLogin === today);
     
-    // Calculate weekly progress (out of 7 days)
     setWeeklyProgress(Math.min(currentStreakValue, 7) * (100/7));
   };
   
@@ -59,43 +55,35 @@ const StudentDailyStreak: React.FC<StudentDailyStreakProps> = ({ currentUser }) 
     yesterday.setDate(yesterday.getDate() - 1);
     
     let newStreak = 1;
-    let bonusPoints = 5; // Base login bonus
+    let bonusPoints = 5;
     let streakMessage = '';
     
-    // If yesterday was the last login, it's a streak
     if (lastLogin && new Date(lastLogin).toDateString() === yesterday.toDateString()) {
       const currentStreakValue = parseInt(localStorage.getItem(streakKey) || '0');
       newStreak = currentStreakValue + 1;
       
-      // Extra points for streaks
       if (newStreak % 7 === 0) {
-        // Weekly streak bonus
         bonusPoints += 15;
         streakMessage = ` (${newStreak} दिन की स्ट्रीक बोनस!)`;
       } else if (newStreak % 3 === 0) {
-        // 3-day streak bonus
         bonusPoints += 10;
         streakMessage = ` (${newStreak} दिन की स्ट्रीक)`;
       } else {
         streakMessage = ` (${newStreak} दिन की स्ट्रीक)`;
       }
     } else {
-      // Reset streak
       newStreak = 1;
     }
     
-    // Update streak info
     localStorage.setItem(lastLoginKey, today);
     localStorage.setItem(streakKey, newStreak.toString());
     
-    // Update longest streak if needed
     const currentLongestStreak = parseInt(localStorage.getItem(longestStreakKey) || '0');
     if (newStreak > currentLongestStreak) {
       localStorage.setItem(longestStreakKey, newStreak.toString());
       setLongestStreak(newStreak);
     }
     
-    // Add login points
     await addPointsToUser(
       currentUser.uid, 
       bonusPoints, 
@@ -103,7 +91,6 @@ const StudentDailyStreak: React.FC<StudentDailyStreakProps> = ({ currentUser }) 
       `दैनिक चेक-इन${streakMessage}`
     );
     
-    // Update UI
     setCurrentStreak(newStreak);
     setTodayCheckedIn(true);
     setWeeklyProgress(Math.min(newStreak, 7) * (100/7));
