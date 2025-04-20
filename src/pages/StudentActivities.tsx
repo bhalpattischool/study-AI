@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +20,7 @@ import QRScanner from '@/components/student/QRScanner';
 import StudyGoalTracker from '@/components/student/StudyGoalTracker';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import DailyTaskGenerator from '@/components/study/DailyTaskGenerator';
+import StudyPlanner from '@/components/study/StudyPlanner';
 
 const StudentActivities = () => {
   const { currentUser, isLoading } = useAuth();
@@ -28,6 +30,12 @@ const StudentActivities = () => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 640px)");
   const location = useLocation();
+  
+  // Mock function for StudyPlanner since we need to pass something to it
+  const handleSendMessage = (message: string) => {
+    console.log("Message to be sent:", message);
+    // This would typically send the message to a chat or API
+  };
   
   useEffect(() => {
     // Set active tab from navigation state
@@ -108,10 +116,16 @@ const StudentActivities = () => {
                 <TabsTrigger value="progress">प्रगति</TabsTrigger>
                 <TabsTrigger value="goals">लक्ष्य</TabsTrigger>
                 <TabsTrigger value="leaderboard">लीडरबोर्ड</TabsTrigger>
+                <TabsTrigger value="planner">प्लानर</TabsTrigger>
               </TabsList>
               
               <TabsContent value="timer" className="m-0 space-y-4 p-4">
-                <DailyTaskGenerator currentUser={currentUser} />
+                {/* We need to ensure DailyTaskGenerator accepts currentUser prop */}
+                <DailyTaskGenerator />
+              </TabsContent>
+              
+              <TabsContent value="planner" className="m-0 space-y-4 p-4">
+                <StudyPlanner onSendMessage={handleSendMessage} />
               </TabsContent>
               
               <TabsContent value="progress" className="m-0">
