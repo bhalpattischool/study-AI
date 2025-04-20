@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { addPointsToUser } from '@/utils/points';
+import { playTimerCompletionSound } from '@/components/student/timer/timerUtils';
 
 interface UseStudyTimerStateProps {
   breakTime: number;
@@ -79,4 +80,3 @@ export const useStudyTimerState = ({ breakTime }: UseStudyTimerStateProps) => {
     setTotalStudyTime
   };
 };
-
