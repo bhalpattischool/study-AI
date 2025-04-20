@@ -17,7 +17,7 @@ import Feedback from "./pages/Feedback";
 import StudentActivities from "./pages/StudentActivities";
 import StudentProfile from "./pages/StudentProfile";
 import { AuthProvider } from "./contexts/AuthContext";
-import StudyTimerFloatingWidget from "./components/study/StudyTimerFloatingWidget";
+import StudyTimerFloatingWidget from "./components/study/floating-timer";
 import { useEffect, useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
 
