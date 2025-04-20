@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Clock, PlayCircle, PauseCircle, RotateCcw, Award, Check, Flag } from 'lucide-react';
+import { Clock, Play, Pause, TimerOff, Award, Check, Flag } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,6 +31,46 @@ const StudyTimer: React.FC<StudyTimerProps> = ({
   const [initialDuration] = useState(taskDuration * 60);
   const { toast } = useToast();
   const { currentUser } = useAuth();
+  
+  // Load saved timer state on mount
+  useEffect(() => {
+    if (currentUser && taskId) {
+      const timerState = localStorage.getItem(`${currentUser.uid}_timer_${taskId}`);
+      if (timerState) {
+        try {
+          const { timeRemaining, isRunning, complete } = JSON.parse(timerState);
+          setTimeLeft(timeRemaining);
+          setIsActive(isRunning);
+          setTaskComplete(complete);
+          
+          if (isRunning) {
+            // Store active session globally
+            localStorage.setItem(`${currentUser.uid}_active_study_session`, 'true');
+          }
+        } catch (error) {
+          console.error('Error loading timer state:', error);
+        }
+      }
+    }
+  }, [currentUser, taskId]);
+  
+  // Save timer state whenever it changes
+  useEffect(() => {
+    if (currentUser && taskId) {
+      const timerState = {
+        timeRemaining: timeLeft,
+        isRunning: isActive,
+        complete: taskComplete,
+        taskName,
+        taskSubject,
+        taskDuration,
+      };
+      localStorage.setItem(`${currentUser.uid}_timer_${taskId}`, JSON.stringify(timerState));
+      
+      // Update global active session flag
+      localStorage.setItem(`${currentUser.uid}_active_study_session`, isActive ? 'true' : 'false');
+    }
+  }, [timeLeft, isActive, taskComplete, currentUser, taskId, taskName, taskSubject, taskDuration]);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -155,7 +196,7 @@ const StudyTimer: React.FC<StudyTimerProps> = ({
                   onClick={toggleTimer}
                   className="flex-1 flex items-center justify-center gap-1 border-purple-300 dark:border-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/30"
                 >
-                  {isActive ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
+                  {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   {isActive ? "पॉज़" : "शुरू करें"}
                 </Button>
                 
@@ -165,7 +206,7 @@ const StudyTimer: React.FC<StudyTimerProps> = ({
                   onClick={resetTimer}
                   className="flex-1 flex items-center justify-center gap-1 border-purple-300 dark:border-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/30"
                 >
-                  <RotateCcw className="h-4 w-4" />
+                  <TimerOff className="h-4 w-4" />
                   रिसेट
                 </Button>
                 

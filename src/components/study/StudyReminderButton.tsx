@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Bell, BookOpen, TimerOff, Calendar, CheckSquare, XCircle } from 'lucide-react';
+import { Bell, BookOpen, TimerOff, Calendar, Check, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from "react-router-dom";
@@ -125,7 +125,7 @@ const StudyReminderButton: React.FC = () => {
             <Button 
               size="sm" 
               className="bg-white text-purple-700 hover:bg-purple-100"
-              onClick={() => navigate("/student-activities")}
+              onClick={() => navigate("/student-activities", { state: { tab: "timer" } })}
             >
               शुरू करें
             </Button>
@@ -140,10 +140,10 @@ const StudyReminderButton: React.FC = () => {
       <Button 
         variant="link" 
         className="text-white/80 hover:text-white w-full text-sm px-0 mt-2"
-        onClick={() => navigate("/student-activities")}
+        onClick={() => navigate("/student-activities", { state: { tab: "timer" } })}
       >
         सभी कार्य देखें
-        <CheckSquare className="ml-1 h-4 w-4" />
+        <Check className="ml-1 h-4 w-4" />
       </Button>
     </motion.div>
   );
