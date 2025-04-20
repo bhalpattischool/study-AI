@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, RefreshCw, Check, X } from 'lucide-react';
+import { Calendar, RefreshCw, Check, X, Clock, GraduationCap, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { generateResponse } from '@/lib/gemini';
+import { generateStudyPlan } from '@/lib/gemini';
 import { useNavigate } from 'react-router-dom';
 
 interface StudyPlannerProps {
@@ -18,10 +18,14 @@ interface StudyPlannerProps {
 interface StudyTask {
   name: string;
   subject: string;
+  chapter?: string;
+  topic?: string;
   scheduled: string; // ISO date string
   duration: number; // minutes
   completed: boolean;
   id: string;
+  priority?: string;
+  objective?: string;
 }
 
 const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
@@ -57,30 +61,15 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
 
     setIsLoading(true);
     try {
-      const subjectList = subjects.split(',').map(s => s.trim()).join(', ');
+      // Use the enhanced generate study plan function
+      const plan = await generateStudyPlan(
+        examName,
+        examDate,
+        subjects,
+        dailyHours,
+        language
+      );
       
-      let prompt = '';
-      
-      if (language === 'en') {
-        prompt = `Create a detailed study plan for my ${examName} exam on ${examDate}. I need to study these subjects: ${subjectList}. I can dedicate ${dailyHours} hours daily for studying. Please include:
-  1. Daily schedule with specific topics
-  2. Weekly milestones
-  3. Recommended study techniques for each subject
-  4. When to schedule revision sessions
-  5. Short breaks and self-care recommendations`;
-      } else {
-        prompt = `मेरी ${examName} परीक्षा के लिए ${examDate} को एक विस्तृत अध्ययन योजना बनाएं। मुझे इन विषयों का अध्ययन करने की आवश्यकता है: ${subjectList}। मैं अध्ययन के लिए दैनिक ${dailyHours} घंटे समर्पित कर सकता हूँ। कृपया शामिल करें:
-  1. विशिष्ट विषयों के साथ दैनिक कार्यक्रम
-  2. साप्ताहिक लक्ष्य
-  3. प्रत्येक विषय के लिए अनुशंसित अध्ययन तकनीकें
-  4. पुनरीक्षण सत्रों को कब निर्धारित करना है
-  5. छोटे ब्रेक और स्व-देखभाल की सिफारिशें
-
-  साथ ही, कृपया पहले सप्ताह के लिए दिन-प्रतिदिन कार्यों की एक सूची भी प्रदान करें, जिसमें प्रत्येक कार्य के लिए विषय, अध्ययन समय (मिनटों में), और अध्ययन सामग्री शामिल हो।`;
-      }
-      
-      // Use Gemini API to generate the study plan
-      const plan = await generateResponse(prompt);
       console.log("Generated plan:", plan);
       
       // Save plan to state and show dialog
@@ -89,7 +78,7 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
       
       // Also send to chat if that functionality is available
       if (onSendMessage) {
-        onSendMessage(prompt);
+        onSendMessage(`${language === 'en' ? 'Generated study plan for' : 'अध्ययन योजना जनरेट की गई'}: ${examName}`);
       }
     } catch (error) {
       console.error("Error generating study plan:", error);
@@ -99,80 +88,131 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
     }
   };
 
+  const parseTasksFromPlan = (plan: string): StudyTask[] => {
+    const lines = plan.split('\n');
+    const tasks: StudyTask[] = [];
+    
+    let currentDay = new Date();
+    let currentSubject = '';
+    let currentChapter = '';
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Check for day markers
+      if (line.match(/^day\s+\d+/i) || line.match(/^दिन\s+\d+/i)) {
+        // New day found
+        const dayMatch = line.match(/\d+/);
+        if (dayMatch) {
+          const dayOffset = parseInt(dayMatch[0]) - 1;
+          currentDay = new Date();
+          currentDay.setDate(currentDay.getDate() + dayOffset);
+        }
+        continue;
+      }
+      
+      // Check for subject markers
+      const subjectMatch = subjects.split(',').find(subject => 
+        line.toLowerCase().includes(subject.trim().toLowerCase())
+      );
+      
+      if (subjectMatch) {
+        currentSubject = subjectMatch.trim();
+      }
+      
+      // Look for chapter information
+      if (line.match(/chapter|अध्याय/i)) {
+        const chapterMatch = line.match(/chapter\s+\d+|अध्याय\s+\d+/i);
+        if (chapterMatch) {
+          currentChapter = chapterMatch[0];
+        }
+      }
+      
+      // Look for duration information
+      const durationMatch = line.match(/(\d+)\s*(?:min|minute|मिनट)/i);
+      
+      if (durationMatch && currentSubject) {
+        const duration = parseInt(durationMatch[1]);
+        
+        // Extract topic if available
+        let topic = '';
+        if (line.includes(':')) {
+          topic = line.split(':')[1].trim();
+        } else if (line.includes('-')) {
+          topic = line.split('-').slice(1).join('-').trim();
+        }
+        
+        // Extract priority if available
+        let priority = '';
+        if (line.toLowerCase().includes('high') || line.includes('उच्च')) {
+          priority = 'high';
+        } else if (line.toLowerCase().includes('medium') || line.includes('मध्यम')) {
+          priority = 'medium';
+        } else if (line.toLowerCase().includes('low') || line.includes('निम्न')) {
+          priority = 'low';
+        }
+        
+        // Extract learning objective if available
+        let objective = '';
+        if (line.toLowerCase().includes('objective') || line.includes('उद्देश्य')) {
+          const parts = line.split(/objective|उद्देश्य/i);
+          if (parts.length > 1) {
+            objective = parts[1].trim();
+          }
+        }
+        
+        tasks.push({
+          name: topic || currentChapter || currentSubject,
+          subject: currentSubject,
+          chapter: currentChapter || undefined,
+          topic: topic || undefined,
+          scheduled: currentDay.toISOString(),
+          duration: duration,
+          completed: false,
+          id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          priority: priority || undefined,
+          objective: objective || undefined
+        });
+      }
+    }
+    
+    // If we couldn't extract tasks, create some default ones
+    if (tasks.length === 0) {
+      const subjectList = subjects.split(',');
+      
+      subjectList.forEach((subject, index) => {
+        for (let day = 0; day < 7; day++) {
+          const taskDate = new Date();
+          taskDate.setDate(taskDate.getDate() + day);
+          taskDate.setHours(10 + index, 0, 0, 0); // Different time for each subject
+          
+          tasks.push({
+            name: `${language === 'en' ? 'Study' : 'अध्ययन'} ${subject.trim()}`,
+            subject: subject.trim(),
+            scheduled: taskDate.toISOString(),
+            duration: 45, // 45 minutes
+            completed: false,
+            id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          });
+        }
+      });
+    }
+    
+    return tasks;
+  };
+
   const acceptStudyPlan = () => {
     if (!currentUser) {
       toast.error(language === 'en' ? 'Please log in to save your study plan' : 'अपनी अध्ययन योजना सहेजने के लिए कृपया लॉग इन करें');
       return;
     }
     
-    // Parse the generated plan to extract tasks (simplified example)
-    // In a real implementation, you would need more sophisticated parsing
-    const parseTasksFromPlan = (plan: string): StudyTask[] => {
-      // This is a simplified example - in reality, you would need more sophisticated parsing
-      // based on the structure of your AI's response
-      const lines = plan.split('\n');
-      const tasks: StudyTask[] = [];
-      
-      // Start date is today
-      const startDate = new Date();
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        
-        // Very simple example of extracting task information - you would need to improve this
-        if (line.includes(':') && !line.includes('#') && !line.includes('daily') && !line.includes('Daily')) {
-          const subjectMatch = subjects.split(',').find(subject => line.includes(subject.trim()));
-          
-          if (subjectMatch) {
-            // Create a task for each day in the first week
-            for (let day = 0; day < 7; day++) {
-              const taskDate = new Date(startDate);
-              taskDate.setDate(startDate.getDate() + day);
-              
-              // Assign random duration between 30-60 minutes
-              const duration = Math.floor(Math.random() * 31) + 30;
-              
-              tasks.push({
-                name: line.split(':')[1]?.trim() || `Study ${subjectMatch}`,
-                subject: subjectMatch.trim(),
-                scheduled: taskDate.toISOString(),
-                duration: duration,
-                completed: false,
-                id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-              });
-            }
-          }
-        }
-      }
-      
-      // If we couldn't extract tasks, create some default ones
-      if (tasks.length === 0) {
-        const subjectList = subjects.split(',');
-        
-        subjectList.forEach((subject, index) => {
-          for (let day = 0; day < 7; day++) {
-            const taskDate = new Date(startDate);
-            taskDate.setDate(startDate.getDate() + day);
-            taskDate.setHours(10 + index, 0, 0, 0); // Different time for each subject
-            
-            tasks.push({
-              name: `Study ${subject.trim()}`,
-              subject: subject.trim(),
-              scheduled: taskDate.toISOString(),
-              duration: 45, // 45 minutes
-              completed: false,
-              id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-            });
-          }
-        });
-      }
-      
-      return tasks;
-    };
+    // Parse the plan into tasks
+    const tasks = parseTasksFromPlan(generatedPlan);
     
     // Save the plan and tasks to localStorage
     localStorage.setItem(`${currentUser.uid}_study_plan`, generatedPlan);
-    localStorage.setItem(`${currentUser.uid}_study_tasks`, JSON.stringify(parseTasksFromPlan(generatedPlan)));
+    localStorage.setItem(`${currentUser.uid}_study_tasks`, JSON.stringify(tasks));
     localStorage.setItem(`${currentUser.uid}_tasks_accepted`, 'true');
     
     setStudyPlanAccepted(true);
@@ -201,13 +241,13 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
 
   return (
     <>
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-purple-600" />
+      <Card className="w-full border border-purple-100 dark:border-purple-800 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <GraduationCap className="h-5 w-5 text-purple-600" />
             {t('studyPlanner')}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             {studyPlanAccepted 
               ? (language === 'en' ? 'You have an active study plan' : 'आपकी एक सक्रिय अध्ययन योजना है') 
               : t('plannerDescription')}
@@ -215,26 +255,29 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
         </CardHeader>
         
         {studyPlanAccepted ? (
-          <CardContent className="space-y-4">
-            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-md text-center">
-              <p className="mb-2 font-medium">
-                {language === 'en' ? 'Your study plan is active' : 'आपकी अध्ययन योजना सक्रिय है'}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+          <CardContent className="pb-4">
+            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-md text-center">
+              <div className="flex items-center justify-center mb-2">
+                <BookOpen className="h-4 w-4 text-purple-600 dark:text-purple-400 mr-1" />
+                <p className="text-sm font-medium">
+                  {language === 'en' ? 'Your study plan is active' : 'आपकी अध्ययन योजना सक्रिय है'}
+                </p>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">
                 {language === 'en' 
                   ? 'Your daily tasks are being shown on the home screen.' 
                   : 'आपके दैनिक कार्य होम स्क्रीन पर दिखाए जा रहे हैं।'}
               </p>
-              <Button variant="destructive" size="sm" onClick={cancelExistingPlan}>
+              <Button variant="destructive" size="sm" onClick={cancelExistingPlan} className="h-8 text-xs px-3">
                 {language === 'en' ? 'Cancel Plan' : 'योजना रद्द करें'}
               </Button>
             </div>
           </CardContent>
         ) : (
           <>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 pb-3">
               <div>
-                <label htmlFor="examName" className="block text-sm font-medium mb-1">
+                <label htmlFor="examName" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t('examName')}
                 </label>
                 <Input
@@ -242,11 +285,12 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
                   placeholder={t('examNamePlaceholder')}
                   value={examName}
                   onChange={(e) => setExamName(e.target.value)}
+                  className="border-purple-100 dark:border-purple-800 focus:ring-purple-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="examDate" className="block text-sm font-medium mb-1">
+                <label htmlFor="examDate" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t('examDate')}
                 </label>
                 <Input
@@ -254,11 +298,12 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
                   type="date"
                   value={examDate}
                   onChange={(e) => setExamDate(e.target.value)}
+                  className="border-purple-100 dark:border-purple-800 focus:ring-purple-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="subjects" className="block text-sm font-medium mb-1">
+                <label htmlFor="subjects" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t('subjects')}
                 </label>
                 <Input
@@ -266,16 +311,17 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
                   placeholder={t('subjectsPlaceholder')}
                   value={subjects}
                   onChange={(e) => setSubjects(e.target.value)}
+                  className="border-purple-100 dark:border-purple-800 focus:ring-purple-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="dailyHours" className="block text-sm font-medium mb-1">
+                <label htmlFor="dailyHours" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t('hoursAvailable')}
                 </label>
                 <select
                   id="dailyHours"
-                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  className="w-full px-3 py-2 border rounded-md text-sm border-purple-100 dark:border-purple-800 focus:ring-purple-500"
                   value={dailyHours}
                   onChange={(e) => setDailyHours(e.target.value)}
                 >
@@ -288,11 +334,11 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
               </div>
             </CardContent>
             
-            <CardFooter>
+            <CardFooter className="pt-0 pb-4">
               <Button 
                 onClick={handleGeneratePlan} 
                 disabled={isLoading || !examName.trim() || !examDate || !subjects.trim()} 
-                className="w-full"
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
               >
                 {isLoading ? (
                   <>
@@ -311,7 +357,10 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
       <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{language === 'en' ? 'Your Study Plan' : 'आपकी अध्ययन योजना'}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-purple-600" />
+              {language === 'en' ? 'Your Study Plan' : 'आपकी अध्ययन योजना'}
+            </DialogTitle>
             <DialogDescription>
               {language === 'en' 
                 ? 'Review your personalized study plan. Would you like to accept and start following it?'
@@ -327,14 +376,14 @@ const StudyPlanner: React.FC<StudyPlannerProps> = ({ onSendMessage }) => {
             <Button 
               variant="outline" 
               onClick={declineStudyPlan}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400"
             >
               <X className="h-4 w-4" />
               {language === 'en' ? 'Decline' : 'अस्वीकार करें'}
             </Button>
             <Button 
               onClick={acceptStudyPlan}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
               <Check className="h-4 w-4" />
               {language === 'en' ? 'Accept Plan' : 'योजना स्वीकार करें'}
