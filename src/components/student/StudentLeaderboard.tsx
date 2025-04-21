@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Trophy, Medal, Star, Share2 } from 'lucide-react';
+import { Users, Trophy, Medal, Star, Share2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { observeLeaderboardData } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
+import { observeLeaderboardData, startChat } from '@/lib/firebase';
 
 interface Student {
   id: string;
@@ -25,6 +27,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     if (currentUser) {
@@ -95,6 +98,26 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
     }
   };
   
+  const handleMessageStudent = async (studentId: string) => {
+    if (!currentUser) {
+      toast.error('आपको मैसेज भेजने के लिए लॉगिन करना होगा');
+      return;
+    }
+    
+    if (studentId === currentUser.uid) {
+      toast.error('आप अपने आप को मैसेज नहीं भेज सकते');
+      return;
+    }
+    
+    try {
+      const chatId = await startChat(currentUser.uid, studentId);
+      navigate('/chat', { state: { activeChatId: chatId, recipientId: studentId, isGroup: false } });
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      toast.error('चैट शुरू करने में त्रुटि');
+    }
+  };
+  
   return (
     <CardContent className="p-2 sm:p-4">
       <div className="space-y-4">
@@ -135,6 +158,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                   <TableHead className="p-2 sm:p-4">छात्र</TableHead>
                   <TableHead className="text-right p-2 sm:p-4">पॉइंट्स</TableHead>
                   <TableHead className="text-right w-20 p-2 sm:p-4">लेवल</TableHead>
+                  <TableHead className="w-20 p-2 sm:p-4"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -181,6 +205,19 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                       <Badge variant="outline" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                         {student.level}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="p-2 sm:p-4">
+                      {!student.isCurrentUser && currentUser && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="w-full flex items-center justify-center gap-1"
+                          onClick={() => handleMessageStudent(student.id)}
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          <span className="hidden sm:inline">Message</span>
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
