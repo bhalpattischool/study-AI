@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -13,15 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import GroupChatModal from '@/components/chat/GroupChatModal';
 import ChatInterface from '@/components/chat/ChatInterface';
 import { getUserChats, getUserGroups } from '@/lib/firebase';
-
-interface Chat {
-  id: string;
-  type: 'user' | 'group';
-  name: string;
-  lastMessage?: string;
-  timestamp?: number;
-  partnerId?: string;
-}
+import { Chat } from '@/types/chat';
 
 const ChatSystem = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -44,8 +37,17 @@ const ChatSystem = () => {
         // Get group chats
         const groupChats = await getUserGroups(currentUser.uid);
         
-        // Combine both types of chats
-        const allChats = [...userChats, ...groupChats];
+        // Combine both types of chats and ensure they match the Chat type
+        const allChats: Chat[] = [
+          ...userChats.map(chat => ({
+            ...chat,
+            type: "user" as const
+          })),
+          ...groupChats.map(chat => ({
+            ...chat,
+            type: "group" as const
+          }))
+        ];
         
         // Sort by timestamp (newest first)
         allChats.sort((a, b) => {
@@ -71,8 +73,11 @@ const ChatSystem = () => {
     getUserGroups(currentUser?.uid || '').then(groups => {
       const newGroup = groups.find(g => g.id === groupId);
       if (newGroup) {
-        setChats(prev => [newGroup, ...prev]);
-        setSelectedChat(newGroup);
+        setChats(prev => [
+          { ...newGroup, type: "group" as const },
+          ...prev
+        ]);
+        setSelectedChat({ ...newGroup, type: "group" as const });
       }
     });
   };
@@ -86,12 +91,23 @@ const ChatSystem = () => {
         getUserChats(currentUser.uid),
         getUserGroups(currentUser.uid)
       ]).then(([userChats, groupChats]) => {
-        const allChats = [...userChats, ...groupChats];
+        const allChats: Chat[] = [
+          ...userChats.map(chat => ({
+            ...chat,
+            type: "user" as const
+          })),
+          ...groupChats.map(chat => ({
+            ...chat,
+            type: "group" as const
+          }))
+        ];
+        
         allChats.sort((a, b) => {
           const timeA = a.timestamp || 0;
           const timeB = b.timestamp || 0;
           return timeB - timeA;
         });
+        
         setChats(allChats);
         setIsLoading(false);
       }).catch(error => {
