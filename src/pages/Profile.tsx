@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from '@/components/ui/progress';
+import ClosableAdBanner from '@/components/ads/ClosableAdBanner';
 
 const Profile = () => {
   const { currentUser, isLoading } = useAuth();
@@ -29,19 +29,16 @@ const Profile = () => {
       navigate('/login');
     }
     
-    // Get user data from localStorage
     if (currentUser) {
       setUserCategory(localStorage.getItem('userCategory') || '');
       setEducationLevel(localStorage.getItem('educationLevel') || '');
       
-      // Get student points and level
       const storedPoints = localStorage.getItem(`${currentUser.uid}_points`);
       const storedLevel = localStorage.getItem(`${currentUser.uid}_level`);
       
       setStudentPoints(storedPoints ? parseInt(storedPoints) : 0);
       setStudentLevel(storedLevel ? parseInt(storedLevel) : 1);
       
-      // Calculate level progress
       const pointsForNextLevel = studentLevel * 100;
       const pointsSinceLastLevel = studentPoints - ((studentLevel - 1) * 100);
       const progress = Math.min(Math.floor((pointsSinceLastLevel / pointsForNextLevel) * 100), 100);
@@ -60,6 +57,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-gray-900 dark:to-purple-950 p-2 sm:p-4">
       <div className="max-w-md mx-auto pt-8">
+        <ClosableAdBanner className="mb-4 w-full max-w-md mx-auto" />
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
@@ -88,7 +86,6 @@ const Profile = () => {
                 <div className="p-4 sm:p-6">
                   <ProfileHeader currentUser={currentUser} />
                   
-                  {/* Student Points & Level Card */}
                   <div className="mb-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-medium flex items-center">

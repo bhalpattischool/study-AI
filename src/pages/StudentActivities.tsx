@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +20,7 @@ import StudyGoalTracker from '@/components/student/StudyGoalTracker';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import DailyTaskGenerator from '@/components/study/DailyTaskGenerator';
 import StudyPlanner from '@/components/study/StudyPlanner';
+import ClosableAdBanner from '@/components/ads/ClosableAdBanner';
 
 const StudentActivities = () => {
   const { currentUser, isLoading } = useAuth();
@@ -31,14 +31,11 @@ const StudentActivities = () => {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const location = useLocation();
   
-  // Mock function for StudyPlanner since we need to pass something to it
   const handleSendMessage = (message: string) => {
     console.log("Message to be sent:", message);
-    // This would typically send the message to a chat or API
   };
   
   useEffect(() => {
-    // Set active tab from navigation state
     if (location.state?.tab) {
       setActiveTab(location.state.tab);
     }
@@ -55,7 +52,6 @@ const StudentActivities = () => {
   const loadStudentData = () => {
     if (!currentUser) return;
     
-    // Get points from localStorage (fallback) or try to get from Firebase
     const points = localStorage.getItem(`${currentUser.uid}_points`);
     const level = localStorage.getItem(`${currentUser.uid}_level`);
     
@@ -81,6 +77,7 @@ const StudentActivities = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-gray-900 dark:to-purple-950 p-2 sm:p-4">
       <div className="max-w-4xl mx-auto relative">
+        <ClosableAdBanner className="mb-4 w-full max-w-3xl mx-auto" />
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Button 
@@ -120,7 +117,6 @@ const StudentActivities = () => {
               </TabsList>
               
               <TabsContent value="timer" className="m-0 space-y-4 p-4">
-                {/* We need to ensure DailyTaskGenerator accepts currentUser prop */}
                 <DailyTaskGenerator />
               </TabsContent>
               
@@ -192,7 +188,7 @@ const StudentActivities = () => {
           </CardHeader>
           
           <ScrollArea className={isMobile ? 'h-[calc(100vh-9rem)]' : 'h-[calc(100vh-8rem)]'}>
-            {/* ScrollArea content is now empty as we moved the TabsContent components up */}
+            <div className="h-0"></div>
           </ScrollArea>
         </Card>
         
