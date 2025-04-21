@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import * as React from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -14,16 +14,16 @@ interface ThemeContextType {
   toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ 
   children, 
   defaultTheme = 'system', 
   storageKey = 'theme' 
 }: ThemeProviderProps) => {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [theme, setTheme] = React.useState<Theme>(defaultTheme);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Check if user previously selected a theme
     const savedTheme = localStorage.getItem(storageKey) as Theme | null;
     
@@ -35,7 +35,7 @@ export const ThemeProvider = ({
     }
   }, [storageKey]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Update document class when theme changes
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -59,7 +59,7 @@ export const ThemeProvider = ({
 };
 
 export const useTheme = () => {
-  const context = useContext(ThemeContext);
+  const context = React.useContext(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }

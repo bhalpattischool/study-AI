@@ -11,8 +11,6 @@ window.adsbygoogle = window.adsbygoogle || [];
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeWrapper>
-      <App />
-    </ThemeWrapper>
+    <App />
   </React.StrictMode>,
 )
