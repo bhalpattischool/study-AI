@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import SuggestionButton from './SuggestionButton';
 import { MessageSquare, Code, FileText, BookOpen, Bell, Calculator, Brain, GraduationCap, Clock } from 'lucide-react';
@@ -120,10 +121,10 @@ const EmptyChatUI: React.FC<EmptyChatUIProps> = ({
         <Button 
           variant="outline" 
           className="flex flex-col items-center gap-2 p-4 h-auto border-purple-100 dark:border-purple-900 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/30"
-          onClick={() => navigate('/chat-history')}
+          onClick={() => navigate('/student-activities')}
         >
-          <MessageSquare className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-          <span className="text-sm">Chat History</span>
+          <Brain className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+          <span className="text-sm">Student Activities</span>
         </Button>
         
         <Button 

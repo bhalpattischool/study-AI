@@ -35,6 +35,7 @@ function App() {
               <Route path="/saved" element={<SavedMessages />} />
               <Route path="/teacher" element={<TeacherChats />} />
               <Route path="/student/:studentId" element={<StudentProfile />} />
+              <Route path="/student-activities" element={<StudentActivities />} />
               <Route path="/activities" element={<StudentActivities />} />
               <Route path="/feedback" element={<Feedback />} />
               <Route path="/chat" element={<ChatSystem />} />
