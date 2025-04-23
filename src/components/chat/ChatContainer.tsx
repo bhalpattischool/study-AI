@@ -81,9 +81,6 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
         <div ref={messagesEndRef} />
       </div>
       
-      {/* ऐड हटाया गया */}
-      {/* <ClosableAdBanner className="w-full mb-2 mt-1 bg-white/80 dark:bg-gray-800/80 py-2 text-center rounded-lg mx-auto max-w-5xl" /> */}
-      
       <ChatFooter 
         onSend={handleSend} 
         isLoading={isLoading} 

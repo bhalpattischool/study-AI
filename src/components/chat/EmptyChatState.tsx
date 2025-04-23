@@ -15,7 +15,6 @@ const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSendMessage }) => {
 
   return (
     <div className="pb-48 px-4 pt-4 overflow-x-hidden">
-      {/* Ad Banner हटाया */}
       <EmptyChatUI 
         onCreateImage={() => onSendMessage("Help me understand quantum physics concepts")}
         onSurpriseMe={() => onSendMessage("Explain machine learning in simple terms")}

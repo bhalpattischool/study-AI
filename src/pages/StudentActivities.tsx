@@ -20,7 +20,6 @@ import StudyGoalTracker from '@/components/student/StudyGoalTracker';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import DailyTaskGenerator from '@/components/study/DailyTaskGenerator';
 import StudyPlanner from '@/components/study/StudyPlanner';
-import ClosableAdBanner from '@/components/ads/ClosableAdBanner';
 
 const StudentActivities = () => {
   const { currentUser, isLoading } = useAuth();
@@ -77,7 +76,6 @@ const StudentActivities = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-gray-900 dark:to-purple-950 p-2 sm:p-4">
       <div className="max-w-4xl mx-auto relative">
-        <ClosableAdBanner className="mb-4 w-full max-w-3xl mx-auto" />
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Button 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +12,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from '@/components/ui/progress';
-import ClosableAdBanner from '@/components/ads/ClosableAdBanner';
 
 const Profile = () => {
   const { currentUser, isLoading } = useAuth();

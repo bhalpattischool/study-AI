@@ -25,7 +25,6 @@ const AdvancedStudyTools: React.FC<AdvancedStudyToolsProps> = ({ onSendMessage }
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-      {/* ClosableAdBanner हटाया */}
       <AdvancedToolsHeader 
         title={t('advancedStudyTools')} 
         description={t('personalizedTools')} 
