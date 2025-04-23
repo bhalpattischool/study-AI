@@ -2,17 +2,10 @@
 import React, { useRef, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface Message {
-  id: string;
-  sender: string;
-  senderName: string;
-  text: string;
-  timestamp: number;
-}
+import { SupaChatMessage, getPublicImageUrl } from '@/lib/supabase-group-chat';
 
 interface ChatMessageListProps {
-  messages: Message[];
+  messages: SupaChatMessage[];
   isGroup?: boolean;
 }
 
@@ -20,14 +13,13 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, isGroup = f
   const { currentUser } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const formatTimestamp = (timestamp: number) => {
+  const formatTimestamp = (timestampStr: string) => {
     try {
-      return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+      return formatDistanceToNow(new Date(timestampStr), { addSuffix: true });
     } catch (e) {
       console.error("Error formatting date:", e);
       return "recently";
@@ -43,28 +35,34 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, isGroup = f
       ) : (
         <>
           {messages.map((message) => {
-            const isCurrentUser = currentUser?.uid === message.sender;
-            
+            const isCurrentUser = currentUser?.uid === message.sender_id;
             return (
-              <div 
+              <div
                 key={message.id}
                 className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
               >
-                <div 
+                <div
                   className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                    isCurrentUser 
-                      ? 'bg-purple-600 text-white rounded-tr-none' 
+                    isCurrentUser
+                      ? 'bg-purple-600 text-white rounded-tr-none'
                       : 'bg-gray-100 text-gray-800 rounded-tl-none dark:bg-gray-700 dark:text-gray-200'
                   }`}
                 >
                   {isGroup && !isCurrentUser && (
                     <div className="text-xs font-medium mb-1">
-                      {message.senderName}
+                      {message.sender_id?.slice(0, 6)}
                     </div>
                   )}
-                  <p className="whitespace-pre-wrap break-words">{message.text}</p>
+                  {message.message_type === 'image' && message.image_path && (
+                    <img
+                      src={getPublicImageUrl(message.image_path) || ""}
+                      alt="chat-img"
+                      className="mb-2 rounded max-h-40 object-contain"
+                    />
+                  )}
+                  {message.message_type === 'text' && <p className="whitespace-pre-wrap break-words">{message.text_content}</p>}
                   <div className={`text-xs mt-1 ${isCurrentUser ? 'text-purple-100' : 'text-gray-500 dark:text-gray-400'}`}>
-                    {formatTimestamp(message.timestamp)}
+                    {formatTimestamp(message.created_at)}
                   </div>
                 </div>
               </div>

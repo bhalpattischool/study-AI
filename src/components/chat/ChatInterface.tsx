@@ -1,18 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Info, ArrowLeft, Users, UserPlus, Trash2 } from 'lucide-react';
+import { Info, ArrowLeft, Users, UserPlus, Trash2, Image as ImageIcon } from 'lucide-react';
 import { toast } from "sonner";
 import ChatMessageList from './ChatMessageList';
 import ChatInput from './ChatInput';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  sendMessage,
-  listenForMessages,
   getGroupDetails,
-  getUserName,
-  updateGroupMembership,
-} from '@/lib/firebase';
+  listenForGroupMessages,
+  SupaChatMessage,
+} from '@/lib/supabase-group-chat';
 import GroupMembersModal from './GroupMembersModal';
 
 interface ChatInterfaceProps {
@@ -22,17 +20,16 @@ interface ChatInterfaceProps {
   onBack: () => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
-  recipientId, 
-  chatId, 
-  isGroup, 
-  onBack 
+const ChatInterface: React.FC<ChatInterfaceProps> = ({
+  recipientId,
+  chatId,
+  isGroup,
+  onBack
 }) => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<SupaChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [displayName, setDisplayName] = useState('');
   const { currentUser } = useAuth();
-  // ग्रुप मेंबर मैनेजमेंट
   const [groupDetails, setGroupDetails] = useState<any>(null);
   const [membersModal, setMembersModal] = useState(false);
 
@@ -45,8 +42,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           setDisplayName(groupDetailsResp?.name || 'Group Chat');
           setGroupDetails(groupDetailsResp);
         } else {
-          const name = await getUserName(recipientId);
-          setDisplayName(name || 'Chat');
+          setDisplayName('Chat');
           setGroupDetails(null);
         }
       } catch (error) {
@@ -58,45 +54,45 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     fetchChatData();
 
     // Set up real-time listener for messages
-    const unsubscribe = listenForMessages(chatId, isGroup, (chatMessages) => {
-      setMessages(chatMessages);
-      setIsLoading(false);
-    });
+    let unsubscribe = () => {};
+    if (isGroup) {
+      unsubscribe = listenForGroupMessages(chatId, (groupMessages) => {
+        setMessages(groupMessages);
+        setIsLoading(false);
+      });
+    }
 
     return () => {
       if (typeof unsubscribe === 'function') {
         unsubscribe();
       }
     };
-  }, [chatId, recipientId, isGroup]);
+  }, [chatId, isGroup]);
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, file?: File) => {
     if (!currentUser) {
       toast.error('You must be logged in to send messages');
       return;
     }
     try {
-      await sendMessage(chatId, currentUser.uid, text, isGroup);
+      if (file) {
+        await (await import('@/lib/supabase-group-chat')).sendImageMessage(chatId, currentUser.uid, file);
+      } else {
+        await (await import('@/lib/supabase-group-chat')).sendTextMessage(chatId, currentUser.uid, text);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
     }
   };
 
-  const handleDeleteMessage = async (msgId: string) => {
-    // डिलीट मैसेज Log 
-    toast.info('Message delete functionality should be implemented here!');
-  };
-
-  // Group member add modal
   const handleShowMembersModal = () => {
     setMembersModal(true);
   };
 
-  // Show members avatars in group header
   const memberAvatars = isGroup && groupDetails?.members
-    ? Object.keys(groupDetails.members).slice(0, 3).map((uid, idx) => (
-        <div key={uid} className="w-7 h-7 rounded-full bg-primary inline-flex items-center justify-center text-xs font-semibold border-2 border-white -ml-2 z-10">
+    ? groupDetails.members.slice(0, 3).map((member: any, idx: number) => (
+        <div key={member.user_id || idx} className="w-7 h-7 rounded-full bg-primary inline-flex items-center justify-center text-xs font-semibold border-2 border-white -ml-2 z-10">
           <Users className="h-4 w-4 text-white" />
         </div>
       ))
@@ -113,7 +109,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <h2 className="font-semibold text-lg">{displayName}</h2>
           {memberAvatars}
         </div>
-        {isGroup && groupDetails && groupDetails.admins?.[currentUser?.uid] && (
+        {isGroup && groupDetails && groupDetails.members.some((m: any) => m.user_id === currentUser?.uid && m.is_admin) && (
           <Button
             variant="outline"
             size="sm"
@@ -138,14 +134,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       )}
       
       <ChatInput onSendMessage={handleSendMessage} />
-      {/* Add Group Members Modal */}
       {isGroup && groupDetails && (
         <GroupMembersModal
           isOpen={membersModal}
           onClose={() => setMembersModal(false)}
           groupId={chatId}
           currentMembers={groupDetails.members}
-          admins={groupDetails.admins}
+          admins={groupDetails.members.filter((m: any) => m.is_admin)}
         />
       )}
     </div>
