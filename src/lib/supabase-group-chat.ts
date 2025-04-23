@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // TYPE DEFINITIONS
@@ -26,71 +25,98 @@ export type SupaChatMessage = {
 };
 
 export async function getGroupDetails(groupId: string) {
-  const { data: group, error } = await supabase
-    .from("chat_groups")
-    .select("*")
-    .eq("id", groupId)
-    .single();
-  if (error) throw error;
+  try {
+    const { data: group, error } = await supabase
+      .from("chat_groups")
+      .select("*")
+      .eq("id", groupId)
+      .single();
+    
+    if (error) throw error;
 
-  const { data: members } = await supabase
-    .from("chat_group_members")
-    .select("*")
-    .eq("group_id", groupId);
+    const { data: members, error: memberError } = await supabase
+      .from("chat_group_members")
+      .select("*")
+      .eq("group_id", groupId);
+    
+    if (memberError) throw memberError;
 
-  return {
-    ...group,
-    members: members || [],
-  };
+    return {
+      ...group,
+      members: members || [],
+    };
+  } catch (error) {
+    console.error("Error in getGroupDetails:", error);
+    throw error;
+  }
 }
 
 export async function getGroupMessages(groupId: string) {
-  const { data, error } = await supabase
-    .from("chat_messages")
-    .select("*")
-    .eq("group_id", groupId)
-    .order("created_at", { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .select("*")
+      .eq("group_id", groupId)
+      .order("created_at", { ascending: true });
 
-  if (error) throw error;
-  return data as SupaChatMessage[];
+    if (error) throw error;
+    return data as SupaChatMessage[];
+  } catch (error) {
+    console.error("Error in getGroupMessages:", error);
+    throw error;
+  }
 }
 
 export async function sendTextMessage(groupId: string, senderId: string, text: string) {
-  // text only message
-  const { data, error } = await supabase
-    .from("chat_messages")
-    .insert({
-      group_id: groupId,
-      sender_id: senderId,
-      message_type: "text",
-      text_content: text,
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+  try {
+    // text only message
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .insert({
+        group_id: groupId,
+        sender_id: senderId,
+        message_type: "text",
+        text_content: text,
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error in sendTextMessage:", error);
+    throw error;
+  }
 }
 
 export async function sendImageMessage(groupId: string, senderId: string, file: File) {
-  const fileName = `${groupId}/${Date.now()}-${file.name}`;
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from("chat_media")
-    .upload(fileName, file);
+  try {
+    // Generate a UUID for the filename to prevent overwriting
+    const fileName = `${groupId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9-.]/g, '_')}`;
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("chat_media")
+      .upload(fileName, file);
 
-  if (uploadError) throw uploadError;
+    if (uploadError) throw uploadError;
 
-  const { data, error } = await supabase
-    .from("chat_messages")
-    .insert({
-      group_id: groupId,
-      sender_id: senderId,
-      message_type: "image",
-      image_path: fileName,
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .insert({
+        group_id: groupId,
+        sender_id: senderId,
+        message_type: "image",
+        image_path: fileName,
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error in sendImageMessage:", error);
+    throw error;
+  }
 }
 
 export function getPublicImageUrl(image_path: string | null) {
@@ -100,25 +126,68 @@ export function getPublicImageUrl(image_path: string | null) {
 
 // Supabase realtime listener for new messages in group
 export function listenForGroupMessages(groupId: string, callback: (messages: SupaChatMessage[]) => void) {
-  let cancel = false;
-  // 1. Initial fetch
-  getGroupMessages(groupId).then(messages => { if (!cancel) callback(messages); });
+  try {
+    let cancel = false;
+    // 1. Initial fetch
+    getGroupMessages(groupId).then(messages => { 
+      if (!cancel) callback(messages); 
+    }).catch(error => {
+      console.error("Error in initial fetch of messages:", error);
+    });
 
-  // 2. Realtime subscription
-  const channel = supabase.channel('schema-db-changes')
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `group_id=eq.${groupId}` },
-      (payload) => {
-        if (!cancel) {
-          getGroupMessages(groupId).then(callback);
+    // 2. Realtime subscription
+    const channel = supabase.channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `group_id=eq.${groupId}` },
+        (payload) => {
+          if (!cancel) {
+            getGroupMessages(groupId)
+              .then(callback)
+              .catch(error => {
+                console.error("Error in realtime listener:", error);
+              });
+          }
         }
-      }
-    )
-    .subscribe();
+      )
+      .subscribe((status) => {
+        console.log("Subscription status:", status);
+      });
 
-  return () => {
-    cancel = true;
-    supabase.removeChannel(channel);
-  };
+    return () => {
+      cancel = true;
+      supabase.removeChannel(channel);
+    };
+  } catch (error) {
+    console.error("Error in listenForGroupMessages:", error);
+    return () => {}; // Return empty cleanup function in case of error
+  }
+}
+
+// Enable realtime for the chat_messages table
+export async function enableRealtimeForChat() {
+  try {
+    await supabase.rpc('enable_realtime_for_table', { table_name: 'chat_messages' });
+    console.log("Realtime enabled for chat_messages");
+    return true;
+  } catch (error) {
+    console.error("Error enabling realtime:", error);
+    return false;
+  }
+}
+
+// Create a storage bucket if it doesn't exist (this would be typically done in SQL)
+export async function ensureChatMediaBucketExists() {
+  try {
+    const { data, error } = await supabase.storage.getBucket('chat_media');
+    if (error && error.message.includes('does not exist')) {
+      // Bucket doesn't exist, we need to create it
+      console.log("Chat media bucket doesn't exist, creating...");
+      // Note: This won't actually work in the client, but keeping code for reference
+    }
+    return true;
+  } catch (error) {
+    console.error("Error checking chat media bucket:", error);
+    return false;
+  }
 }

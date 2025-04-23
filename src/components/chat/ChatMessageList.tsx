@@ -36,6 +36,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, isGroup = f
         <>
           {messages.map((message) => {
             const isCurrentUser = currentUser?.uid === message.sender_id;
+            
             return (
               <div
                 key={message.id}
@@ -53,14 +54,26 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, isGroup = f
                       {message.sender_id?.slice(0, 6)}
                     </div>
                   )}
+                  
                   {message.message_type === 'image' && message.image_path && (
-                    <img
-                      src={getPublicImageUrl(message.image_path) || ""}
-                      alt="chat-img"
-                      className="mb-2 rounded max-h-40 object-contain"
-                    />
+                    <div className="mb-2">
+                      <img
+                        src={getPublicImageUrl(message.image_path) || ""}
+                        alt="chat-img"
+                        className="rounded max-h-40 object-contain"
+                        onError={(e) => {
+                          console.error("Image load error:", e);
+                          (e.target as HTMLImageElement).src = "/placeholder.svg";
+                          (e.target as HTMLImageElement).alt = "Failed to load image";
+                        }}
+                      />
+                    </div>
                   )}
-                  {message.message_type === 'text' && <p className="whitespace-pre-wrap break-words">{message.text_content}</p>}
+                  
+                  {message.message_type === 'text' && message.text_content && (
+                    <p className="whitespace-pre-wrap break-words">{message.text_content}</p>
+                  )}
+                  
                   <div className={`text-xs mt-1 ${isCurrentUser ? 'text-purple-100' : 'text-gray-500 dark:text-gray-400'}`}>
                     {formatTimestamp(message.created_at)}
                   </div>
