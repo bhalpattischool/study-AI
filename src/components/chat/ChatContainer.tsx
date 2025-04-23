@@ -1,11 +1,10 @@
+
 import React, { useRef, useEffect } from 'react';
 import { useChat } from '@/hooks/useChat';
 import MessageList from './MessageList';
 import EmptyChatState from './EmptyChatState';
 import ChatFooter from '../ChatFooter';
 import MessageLimitAlert from '../MessageLimitAlert';
-import AdBanner from '../ads/AdBanner';
-import ClosableAdBanner from '../ads/ClosableAdBanner';
 
 interface ChatContainerProps {
   chatId: string;
@@ -82,8 +81,8 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
         <div ref={messagesEndRef} />
       </div>
       
-      {/* नीचे ऐड: क्लोजेबल */}
-      <ClosableAdBanner className="w-full mb-2 mt-1 bg-white/80 dark:bg-gray-800/80 py-2 text-center rounded-lg mx-auto max-w-5xl" />
+      {/* ऐड हटाया गया */}
+      {/* <ClosableAdBanner className="w-full mb-2 mt-1 bg-white/80 dark:bg-gray-800/80 py-2 text-center rounded-lg mx-auto max-w-5xl" /> */}
       
       <ChatFooter 
         onSend={handleSend} 

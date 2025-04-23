@@ -1,10 +1,10 @@
+
 import React, { useState } from 'react';
 import EmptyChatUI from '../EmptyChatUI';
 import StudyFeatures from '../StudyFeatures';
 import AdvancedStudyTools from '../study/AdvancedStudyTools';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sparkles, Lightbulb } from 'lucide-react';
-import ClosableAdBanner from '@/components/ads/ClosableAdBanner';
 
 interface EmptyChatStateProps {
   onSendMessage: (message: string) => void;
@@ -15,7 +15,7 @@ const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSendMessage }) => {
 
   return (
     <div className="pb-48 px-4 pt-4 overflow-x-hidden">
-      <ClosableAdBanner className="mb-3 w-full max-w-2xl mx-auto" />
+      {/* Ad Banner हटाया */}
       <EmptyChatUI 
         onCreateImage={() => onSendMessage("Help me understand quantum physics concepts")}
         onSurpriseMe={() => onSendMessage("Explain machine learning in simple terms")}

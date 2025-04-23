@@ -1,10 +1,10 @@
+
 import React, { useState } from 'react';
 import { Tabs } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import AdvancedToolsHeader from './advanced-tools/AdvancedToolsHeader';
 import ToolsTabNavigation from './advanced-tools/ToolsTabNavigation';
 import ToolsTabContent from './advanced-tools/ToolsTabContent';
-import ClosableAdBanner from '@/components/ads/ClosableAdBanner';
 
 interface AdvancedStudyToolsProps {
   onSendMessage: (message: string) => void;
@@ -25,7 +25,7 @@ const AdvancedStudyTools: React.FC<AdvancedStudyToolsProps> = ({ onSendMessage }
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-      <ClosableAdBanner className="mb-2 w-full max-w-3xl mx-auto" />
+      {/* ClosableAdBanner हटाया */}
       <AdvancedToolsHeader 
         title={t('advancedStudyTools')} 
         description={t('personalizedTools')} 

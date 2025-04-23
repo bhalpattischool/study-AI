@@ -15,12 +15,21 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { getLeaderboardData, createChatGroup } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
+import { Palette } from "lucide-react";
 
 interface GroupChatModalProps {
   isOpen: boolean;
   onClose: () => void;
   onGroupCreated: (groupId: string) => void;
 }
+
+const colorOptions = [
+  "bg-gradient-to-r from-pink-400 to-purple-500",
+  "bg-gradient-to-r from-yellow-400 to-orange-500",
+  "bg-gradient-to-r from-green-400 to-blue-500",
+  "bg-gradient-to-r from-purple-600 to-indigo-500",
+  "bg-gradient-to-r from-red-400 to-yellow-400",
+];
 
 const GroupChatModal: React.FC<GroupChatModalProps> = ({ 
   isOpen, 
@@ -32,6 +41,7 @@ const GroupChatModal: React.FC<GroupChatModalProps> = ({
   const [selectedUsers, setSelectedUsers] = useState<{[key: string]: boolean}>({});
   const [isLoading, setIsLoading] = useState(false);
   const { currentUser } = useAuth();
+  const [groupColor, setGroupColor] = useState(colorOptions[0]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -84,7 +94,9 @@ const GroupChatModal: React.FC<GroupChatModalProps> = ({
         ...selectedUserIds.reduce((acc, id) => ({ ...acc, [id]: true }), {})
       };
 
+      // You can use groupColor for visual styling, to be saved or passed as needed
       const groupId = await createChatGroup(groupName, members);
+
       toast.success("Group created successfully!");
       onGroupCreated(groupId);
       onClose();
@@ -98,11 +110,16 @@ const GroupChatModal: React.FC<GroupChatModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md animate-fade-in">
         <DialogHeader>
-          <DialogTitle>Create a New Group</DialogTitle>
+          <DialogTitle>
+            <span className="flex items-center">
+              <Palette className="mr-2 text-purple-500" />
+              Create a New Group
+            </span>
+          </DialogTitle>
           <DialogDescription>
-            Add members from the leaderboard to your new chat group.
+            Add members from the leaderboard to your new chat group. Choose a group color too!
           </DialogDescription>
         </DialogHeader>
         
@@ -115,6 +132,20 @@ const GroupChatModal: React.FC<GroupChatModalProps> = ({
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
             />
+          </div>
+          <div className="flex items-center gap-3">
+            <Label>Group Color</Label>
+            <div className="flex gap-2">
+              {colorOptions.map((color, idx) => (
+                <button
+                  key={color}
+                  type="button"
+                  aria-label={`Select color ${idx + 1}`}
+                  className={`w-8 h-8 rounded-full border-2 ${groupColor === color ? 'border-purple-600 scale-110' : 'border-gray-200'} ${color} transition`}
+                  onClick={() => setGroupColor(color)}
+                />
+              ))}
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -132,7 +163,7 @@ const GroupChatModal: React.FC<GroupChatModalProps> = ({
                       htmlFor={`user-${user.id}`}
                       className="flex items-center space-x-2 cursor-pointer"
                     >
-                      <div className="w-6 h-6 rounded-full bg-purple-200 flex items-center justify-center text-xs shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-purple-200 flex items-center justify-center text-xs shrink-0 overflow-hidden">
                         {user.photoURL ? (
                           <img 
                             src={user.photoURL} 

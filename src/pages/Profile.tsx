@@ -57,7 +57,6 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-gray-900 dark:to-purple-950 p-2 sm:p-4">
       <div className="max-w-md mx-auto pt-8">
-        <ClosableAdBanner className="mb-4 w-full max-w-md mx-auto" />
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
