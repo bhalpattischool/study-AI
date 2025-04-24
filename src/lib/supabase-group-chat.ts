@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // TYPE DEFINITIONS
@@ -173,10 +172,10 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
 
 export async function enableRealtimeForChat() {
   try {
-    // Using unknown type and spreading the parameters to avoid TypeScript errors
+    // Fix TypeScript error by using any type
     await supabase.rpc('enable_realtime_for_table', {
       table_name: 'chat_messages'
-    } as unknown as Record<string, unknown>);
+    } as any);
     
     console.log("Realtime enabled for chat_messages");
     return true;
