@@ -172,6 +172,7 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
 
 export async function enableRealtimeForChat() {
   try {
+    // Fix: Using the correct parameter format - passing an object with table_name property
     await supabase.rpc('enable_realtime_for_table', { table_name: 'chat_messages' });
     console.log("Realtime enabled for chat_messages");
     return true;
