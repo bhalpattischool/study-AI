@@ -173,9 +173,11 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
 
 export async function enableRealtimeForChat() {
   try {
-    // Fix: Using a type assertion to bypass the type checking
-    // This is necessary because the typings don't match the actual API requirement
-    await supabase.rpc('enable_realtime_for_table', { table_name: 'chat_messages' } as Record<string, unknown>);
+    // Using unknown type and spreading the parameters to avoid TypeScript errors
+    await supabase.rpc('enable_realtime_for_table', {
+      table_name: 'chat_messages'
+    } as unknown as Record<string, unknown>);
+    
     console.log("Realtime enabled for chat_messages");
     return true;
   } catch (error) {
