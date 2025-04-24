@@ -136,9 +136,7 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
     });
 
     // 2. Realtime subscription
-    const channel = supabase.channel(`group:${groupId}`, {
-      topic: 'chat_messages'
-    });
+    const channel = supabase.channel(`group:${groupId}`);
     
     channel
       .on(
