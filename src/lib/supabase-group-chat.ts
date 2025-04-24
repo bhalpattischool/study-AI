@@ -136,8 +136,7 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
     });
 
     // 2. Realtime subscription
-    // Use a typed RealtimeChannel to fix the TypeScript error
-    const channel = supabase.channel('realtime:public:chat_messages');
+    const channel = supabase.channel(`chat_messages:${groupId}`);
     
     channel
       .on(
