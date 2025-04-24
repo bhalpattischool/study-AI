@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Info, ArrowLeft, Users, UserPlus, Trash2 } from 'lucide-react';
 import { toast } from "sonner";
 import ChatMessageList from './ChatMessageList';
-import ChatInput from './ChatInput';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   getGroupDetails,
@@ -14,6 +12,7 @@ import {
   ensureChatMediaBucketExists
 } from '@/lib/supabase-group-chat';
 import GroupMembersModal from './GroupMembersModal';
+import GroupMessageInput from './GroupMessageInput';
 
 interface ChatInterfaceProps {
   recipientId: string;
@@ -181,7 +180,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <ChatMessageList messages={messages} isGroup={isGroup} />
       )}
       
-      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+      <GroupMessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+      
       {isGroup && groupDetails && (
         <GroupMembersModal
           isOpen={membersModal}
