@@ -124,7 +124,6 @@ export function getPublicImageUrl(image_path: string | null) {
   return supabase.storage.from("chat_media").getPublicUrl(image_path).data?.publicUrl;
 }
 
-// Supabase realtime listener for new messages in group
 export function listenForGroupMessages(groupId: string, callback: (messages: SupaChatMessage[]) => void) {
   try {
     let cancel = false;
@@ -171,7 +170,6 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
   }
 }
 
-// Enable realtime for the chat_messages table
 export async function enableRealtimeForChat() {
   try {
     await supabase.rpc('enable_realtime_for_table', { table_name: 'chat_messages' });
@@ -183,7 +181,6 @@ export async function enableRealtimeForChat() {
   }
 }
 
-// Create a storage bucket if it doesn't exist (this would be typically done in SQL)
 export async function ensureChatMediaBucketExists() {
   try {
     const { data, error } = await supabase.storage.getBucket('chat_media');
