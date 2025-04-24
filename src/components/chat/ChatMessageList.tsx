@@ -1,89 +1,97 @@
 
-import React, { useRef, useEffect } from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { SupaChatMessage, getPublicImageUrl } from '@/lib/supabase-group-chat';
+import { format } from 'date-fns';
 
 interface ChatMessageListProps {
-  messages: SupaChatMessage[];
-  isGroup?: boolean;
+  messages: any[];
+  isGroup: boolean;
 }
 
-const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, isGroup = false }) => {
-  const { currentUser } = useAuth();
+const ChatMessageList = ({ messages, isGroup }: ChatMessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const { currentUser } = useAuth();
+  
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    scrollToBottom();
   }, [messages]);
-
-  const formatTimestamp = (timestampStr: string) => {
-    try {
-      return formatDistanceToNow(new Date(timestampStr), { addSuffix: true });
-    } catch (e) {
-      console.error("Error formatting date:", e);
-      return "recently";
+  
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  const formatMessageTimestamp = (timestamp: number) => {
+    if (!timestamp) return '';
+    return format(new Date(timestamp), 'HH:mm');
+  };
+  
+  const isImageMessage = (text: string) => {
+    return text.startsWith('[image:') && text.endsWith(']');
+  };
+  
+  const extractImageUrl = (text: string) => {
+    if (isImageMessage(text)) {
+      return text.substring(7, text.length - 1);
     }
+    return '';
   };
 
   return (
-    <div className="flex flex-col space-y-3 p-4 overflow-y-auto flex-1">
+    <div className="flex-1 overflow-y-auto p-3 space-y-3">
       {messages.length === 0 ? (
-        <div className="text-center text-gray-500 my-10">
-          <p>No messages yet. Say hello!</p>
+        <div className="flex h-full items-center justify-center text-gray-500">
+          <p>No messages yet. Send a message to start the conversation.</p>
         </div>
       ) : (
-        <>
-          {messages.map((message) => {
-            const isCurrentUser = currentUser?.uid === message.sender_id;
-            
-            return (
-              <div
-                key={message.id}
-                className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+        messages.map((msg) => {
+          const isCurrentUser = msg.sender === currentUser?.uid;
+          const isImage = isImageMessage(msg.text);
+          const imageUrl = isImage ? extractImageUrl(msg.text) : '';
+          
+          return (
+            <div 
+              key={msg.id} 
+              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+            >
+              <div 
+                className={`max-w-[75%] rounded-lg p-3 ${
+                  isCurrentUser 
+                    ? 'bg-purple-500 text-white rounded-br-none' 
+                    : 'bg-gray-200 dark:bg-gray-700 rounded-bl-none'
+                }`}
               >
-                <div
-                  className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                    isCurrentUser
-                      ? 'bg-purple-600 text-white rounded-tr-none'
-                      : 'bg-gray-100 text-gray-800 rounded-tl-none dark:bg-gray-700 dark:text-gray-200'
-                  }`}
-                >
-                  {isGroup && !isCurrentUser && (
-                    <div className="text-xs font-medium mb-1">
-                      {message.sender_id?.slice(0, 6)}
-                    </div>
-                  )}
-                  
-                  {message.message_type === 'image' && message.image_path && (
-                    <div className="mb-2">
-                      <img
-                        src={getPublicImageUrl(message.image_path) || ""}
-                        alt="chat-img"
-                        className="rounded max-h-40 object-contain"
-                        onError={(e) => {
-                          console.error("Image load error:", e);
-                          (e.target as HTMLImageElement).src = "/placeholder.svg";
-                          (e.target as HTMLImageElement).alt = "Failed to load image";
-                        }}
-                      />
-                    </div>
-                  )}
-                  
-                  {message.message_type === 'text' && message.text_content && (
-                    <p className="whitespace-pre-wrap break-words">{message.text_content}</p>
-                  )}
-                  
-                  <div className={`text-xs mt-1 ${isCurrentUser ? 'text-purple-100' : 'text-gray-500 dark:text-gray-400'}`}>
-                    {formatTimestamp(message.created_at)}
+                {isGroup && !isCurrentUser && (
+                  <div className="text-xs font-medium mb-1">
+                    {msg.senderName}
                   </div>
+                )}
+                
+                {isImage ? (
+                  <a href={imageUrl} target="_blank" rel="noopener noreferrer">
+                    <img 
+                      src={imageUrl} 
+                      alt="Shared image" 
+                      className="max-h-60 rounded"
+                      onLoad={scrollToBottom}
+                    />
+                  </a>
+                ) : (
+                  <div className="whitespace-pre-wrap">{msg.text}</div>
+                )}
+                
+                <div 
+                  className={`text-xs ${
+                    isCurrentUser ? 'text-purple-100' : 'text-gray-500 dark:text-gray-400'
+                  } text-right mt-1`}
+                >
+                  {formatMessageTimestamp(msg.timestamp)}
                 </div>
               </div>
-            );
-          })}
-          <div ref={messagesEndRef} />
-        </>
+            </div>
+          );
+        })
       )}
+      <div ref={messagesEndRef} />
     </div>
   );
 };

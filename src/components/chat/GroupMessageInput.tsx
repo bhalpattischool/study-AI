@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SendHorizontal, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface GroupMessageInputProps {
   onSendMessage: (text: string, file?: File) => void;

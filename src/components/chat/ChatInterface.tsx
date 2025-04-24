@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Info, ArrowLeft, Users, UserPlus, Trash2 } from 'lucide-react';
@@ -5,12 +6,11 @@ import { toast } from "sonner";
 import ChatMessageList from './ChatMessageList';
 import { useAuth } from '@/contexts/AuthContext';
 import {
+  getUserName,
   getGroupDetails,
-  listenForGroupMessages,
-  SupaChatMessage,
-  enableRealtimeForChat,
-  ensureChatMediaBucketExists
-} from '@/lib/supabase-group-chat';
+  listenForMessages,
+  sendMessage
+} from '@/lib/firebase';
 import GroupMembersModal from './GroupMembersModal';
 import GroupMessageInput from './GroupMessageInput';
 
@@ -27,7 +27,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   isGroup,
   onBack
 }) => {
-  const [messages, setMessages] = useState<SupaChatMessage[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [displayName, setDisplayName] = useState('');
   const { currentUser } = useAuth();
@@ -36,10 +36,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Enable realtime for the chat_messages table and ensure bucket exists
-    enableRealtimeForChat().catch(console.error);
-    ensureChatMediaBucketExists().catch(console.error);
-    
     // Set up our main chat functionality
     const fetchChatData = async () => {
       setIsLoading(true);
@@ -53,7 +49,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           setDisplayName(groupDetailsResp?.name || 'Group Chat');
           setGroupDetails(groupDetailsResp);
         } else {
-          setDisplayName('Chat');
+          // For 1-on-1 chats, get the other user's name
+          const userName = await getUserName(recipientId);
+          setDisplayName(userName || 'Chat');
           setGroupDetails(null);
         }
       } catch (error) {
@@ -69,17 +67,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     // Set up real-time listener for messages
     let unsubscribe = () => {};
-    if (isGroup) {
-      try {
-        unsubscribe = listenForGroupMessages(chatId, (groupMessages) => {
-          console.log("Messages received:", groupMessages.length);
-          setMessages(groupMessages);
-          setIsLoading(false);
-        });
-      } catch (error) {
-        console.error("Error setting up message listener:", error);
-        toast.error("Failed to connect to message service");
-      }
+    try {
+      unsubscribe = listenForMessages(chatId, isGroup, (chatMessages) => {
+        console.log("Messages received:", chatMessages.length);
+        setMessages(chatMessages);
+        setIsLoading(false);
+      });
+    } catch (error) {
+      console.error("Error setting up message listener:", error);
+      toast.error("Failed to connect to message service");
     }
 
     return () => {
@@ -87,7 +83,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         unsubscribe();
       }
     };
-  }, [chatId, isGroup]);
+  }, [chatId, isGroup, recipientId]);
 
   const handleSendMessage = async (text: string, file?: File) => {
     if (!currentUser) {
@@ -98,11 +94,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     try {
       if (file) {
         console.log("Sending image message...");
-        await (await import('@/lib/supabase-group-chat')).sendImageMessage(chatId, currentUser.uid, file);
+        const storage = await import('firebase/storage').then(mod => mod.getStorage());
+        const storageRef = await import('firebase/storage').then(mod => mod.ref)(storage, `chat_images/${chatId}/${Date.now()}_${file.name}`);
+        
+        await import('firebase/storage').then(mod => mod.uploadBytes)(storageRef, file).then(async (snapshot) => {
+          const downloadURL = await import('firebase/storage').then(mod => mod.getDownloadURL)(snapshot.ref);
+          await sendMessage(chatId, currentUser.uid, `[image:${downloadURL}]`, isGroup);
+        });
+        
         toast.success("Image sent");
       } else {
         console.log("Sending text message...");
-        await (await import('@/lib/supabase-group-chat')).sendTextMessage(chatId, currentUser.uid, text);
+        await sendMessage(chatId, currentUser.uid, text, isGroup);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -115,8 +118,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const memberAvatars = isGroup && groupDetails?.members
-    ? groupDetails.members.slice(0, 3).map((member: any, idx: number) => (
-        <div key={member.user_id || idx} className="w-7 h-7 rounded-full bg-primary inline-flex items-center justify-center text-xs font-semibold border-2 border-white -ml-2 z-10">
+    ? Object.keys(groupDetails.members).slice(0, 3).map((memberId: string, idx: number) => (
+        <div key={memberId || idx} className="w-7 h-7 rounded-full bg-primary inline-flex items-center justify-center text-xs font-semibold border-2 border-white -ml-2 z-10">
           <Users className="h-4 w-4 text-white" />
         </div>
       ))
@@ -156,7 +159,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <h2 className="font-semibold text-lg">{displayName}</h2>
           {memberAvatars}
         </div>
-        {isGroup && groupDetails && groupDetails.members && groupDetails.members.some((m: any) => m.user_id === currentUser?.uid && m.is_admin) && (
+        {isGroup && groupDetails && groupDetails.admins && groupDetails.admins[currentUser?.uid] && (
           <Button
             variant="outline"
             size="sm"
@@ -187,8 +190,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           isOpen={membersModal}
           onClose={() => setMembersModal(false)}
           groupId={chatId}
-          currentMembers={groupDetails.members || []}
-          admins={groupDetails.members ? groupDetails.members.filter((m: any) => m.is_admin) : []}
+          currentMembers={groupDetails.members || {}}
+          admins={groupDetails.admins || {}}
         />
       )}
     </div>
