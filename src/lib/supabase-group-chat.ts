@@ -2,7 +2,7 @@
 // This file serves as a compatibility layer for components still using the old import path
 // We should migrate all components to use the new imports in the future
 
-export { 
+export type { 
   SupaGroup, 
   SupaGroupMember, 
   SupaChatMessage 
