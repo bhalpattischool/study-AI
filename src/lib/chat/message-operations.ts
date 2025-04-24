@@ -1,87 +1,72 @@
 
-import { getChat } from "./chat-operations";
-import { saveChat } from "./chat-operations";
-import { Message } from "./types";
+import { supabase } from "@/integrations/supabase/client";
+import { SupaChatMessage } from "./types";
 
-export async function addMessage(
-  chatId: string, 
-  content: string, 
-  role: "user" | "bot"
-): Promise<Message> {
-  const chat = await getChat(chatId);
-  if (!chat) throw new Error("Chat not found");
+export async function getGroupMessages(groupId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .select("*")
+      .eq("group_id", groupId)
+      .order("created_at", { ascending: true });
 
-  const message: Message = {
-    id: crypto.randomUUID(),
-    content,
-    role,
-    timestamp: Date.now(),
-    chatId,
-    bookmarked: false,
-  };
-
-  chat.messages.push(message);
-  chat.timestamp = message.timestamp; // Update chat timestamp
-  
-  // Update chat title if it's first user message
-  if (chat.title === "New Chat" && role === "user" && chat.messages.filter(m => m.role === "user").length === 1) {
-    chat.title = content.slice(0, 30) + (content.length > 30 ? "..." : "");
+    if (error) {
+      console.error("Error fetching messages:", error);
+      return [];
+    }
+    return data as SupaChatMessage[];
+  } catch (error) {
+    console.error("Error in getGroupMessages:", error);
+    return [];
   }
-  
-  await saveChat(chat);
-  return message;
 }
 
-export async function editMessage(
-  chatId: string, 
-  messageId: string, 
-  content: string
-): Promise<void> {
-  const chat = await getChat(chatId);
-  if (!chat) throw new Error("Chat not found");
-
-  const messageIndex = chat.messages.findIndex(m => m.id === messageId);
-  if (messageIndex === -1) throw new Error("Message not found");
-
-  chat.messages[messageIndex].content = content;
-  await saveChat(chat);
-}
-
-export async function deleteMessage(
-  chatId: string, 
-  messageId: string
-): Promise<void> {
-  const chat = await getChat(chatId);
-  if (!chat) throw new Error("Chat not found");
-
-  const messageIndex = chat.messages.findIndex(m => m.id === messageId);
-  if (messageIndex === -1) throw new Error("Message not found");
-
-  // Remove the message and also remove the bot response if it was a user message
-  if (chat.messages[messageIndex].role === "user" && messageIndex + 1 < chat.messages.length && 
-      chat.messages[messageIndex + 1].role === "bot") {
-    chat.messages.splice(messageIndex, 2);
-  } else {
-    chat.messages.splice(messageIndex, 1);
+export async function sendTextMessage(groupId: string, senderId: string, text: string) {
+  try {
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .insert({
+        group_id: groupId,
+        sender_id: senderId,
+        message_type: "text",
+        text_content: text,
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error in sendTextMessage:", error);
+    throw error;
   }
-
-  await saveChat(chat);
 }
 
-export async function toggleMessageBookmark(
-  chatId: string, 
-  messageId: string
-): Promise<boolean> {
-  const chat = await getChat(chatId);
-  if (!chat) throw new Error("Chat not found");
+export async function sendImageMessage(groupId: string, senderId: string, file: File) {
+  try {
+    const fileName = `${groupId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9-.]/g, '_')}`;
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("chat_media")
+      .upload(fileName, file);
 
-  const messageIndex = chat.messages.findIndex(m => m.id === messageId);
-  if (messageIndex === -1) throw new Error("Message not found");
+    if (uploadError) throw uploadError;
 
-  // Toggle bookmark status
-  const isBookmarked = !chat.messages[messageIndex].bookmarked;
-  chat.messages[messageIndex].bookmarked = isBookmarked;
-  
-  await saveChat(chat);
-  return isBookmarked;
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .insert({
+        group_id: groupId,
+        sender_id: senderId,
+        message_type: "image",
+        image_path: fileName,
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error in sendImageMessage:", error);
+    throw error;
+  }
 }

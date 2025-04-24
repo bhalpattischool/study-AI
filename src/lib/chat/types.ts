@@ -1,16 +1,25 @@
 
-export interface Message {
+export type SupaGroup = {
   id: string;
-  content: string;
-  role: "user" | "bot";
-  timestamp: number;
-  chatId: string;
-  bookmarked?: boolean;
-}
+  name: string;
+  created_by: string;
+  created_at: string;
+};
 
-export interface Chat {
+export type SupaGroupMember = {
   id: string;
-  title: string;
-  timestamp: number;
-  messages: Message[];
-}
+  group_id: string;
+  user_id: string;
+  is_admin: boolean;
+  joined_at: string;
+};
+
+export type SupaChatMessage = {
+  id: string;
+  group_id: string;
+  sender_id: string;
+  message_type: "text" | "image";
+  text_content?: string | null;
+  image_path?: string | null;
+  created_at: string;
+};
