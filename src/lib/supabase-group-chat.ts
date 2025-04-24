@@ -136,12 +136,19 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
     });
 
     // 2. Realtime subscription
-    const channel = supabase.channel(`chat_messages:${groupId}`);
+    const channel = supabase.channel(`group:${groupId}`, {
+      topic: 'chat_messages'
+    });
     
     channel
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `group_id=eq.${groupId}` },
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'chat_messages', 
+          filter: `group_id=eq.${groupId}` 
+        },
         (payload) => {
           if (!cancel) {
             getGroupMessages(groupId)
