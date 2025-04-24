@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // TYPE DEFINITIONS
@@ -137,9 +136,10 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
     });
 
     // 2. Realtime subscription
-    // Fix the channel creation by using a properly typed channel name
-    const channelName = `group-${groupId}`;
-    const channel = supabase.channel(channelName)
+    // Use a typed RealtimeChannel to fix the TypeScript error
+    const channel = supabase.channel('realtime:public:chat_messages');
+    
+    channel
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `group_id=eq.${groupId}` },
