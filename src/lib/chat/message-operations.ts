@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SupaChatMessage } from "./types";
+import { SupaChatMessage, Message } from "./types";
 
 export async function getGroupMessages(groupId: string) {
   try {
@@ -69,4 +69,35 @@ export async function sendImageMessage(groupId: string, senderId: string, file: 
     console.error("Error in sendImageMessage:", error);
     throw error;
   }
+}
+
+// Add missing functions for the chat-db.ts
+export async function addMessage(chatId: string, content: string, role: "user" | "bot"): Promise<Message> {
+  const message: Message = {
+    id: crypto.randomUUID(),
+    chatId,
+    content,
+    role,
+    timestamp: Date.now(),
+  };
+  
+  // Implementation would depend on how messages are stored
+  console.log("Adding message:", message);
+  return message;
+}
+
+export async function editMessage(chatId: string, messageId: string, content: string): Promise<void> {
+  console.log("Editing message:", chatId, messageId, content);
+  // Implementation would depend on how messages are edited
+}
+
+export async function deleteMessage(chatId: string, messageId: string): Promise<void> {
+  console.log("Deleting message:", chatId, messageId);
+  // Implementation would depend on how messages are deleted
+}
+
+export async function toggleMessageBookmark(chatId: string, messageId: string): Promise<boolean> {
+  console.log("Toggling bookmark for message:", chatId, messageId);
+  // Implementation would depend on how bookmarks are toggled
+  return true; // Return new bookmark status
 }

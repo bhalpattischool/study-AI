@@ -1,3 +1,3 @@
 
-export { chatDB } from "./chat";
-export type { Chat, Message } from "./chat";
+export { chatDB } from "./chat/chat-db";
+export type { Chat, Message } from "./chat/types";

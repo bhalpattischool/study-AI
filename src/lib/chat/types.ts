@@ -23,3 +23,20 @@ export type SupaChatMessage = {
   image_path?: string | null;
   created_at: string;
 };
+
+// Add the missing Chat and Message types that were used in the old implementation
+export type Chat = {
+  id: string;
+  title: string;
+  timestamp: number;
+  messages: Message[];
+};
+
+export type Message = {
+  id: string;
+  chatId: string;
+  role: "user" | "bot";
+  content: string;
+  timestamp: number;
+  bookmarked?: boolean;
+};

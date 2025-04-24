@@ -9,10 +9,10 @@ import {
   deleteChat as deleteChatOperation
 } from "./chat-operations";
 import {
-  addMessage as addMessageOperation,
-  editMessage as editMessageOperation,
-  deleteMessage as deleteMessageOperation,
-  toggleMessageBookmark as toggleMessageBookmarkOperation
+  addMessage,
+  editMessage,
+  deleteMessage,
+  toggleMessageBookmark
 } from "./message-operations";
 
 export class ChatDB {
@@ -71,22 +71,22 @@ export class ChatDB {
 
   async addMessage(chatId: string, content: string, role: "user" | "bot"): Promise<Message> {
     await this.dbReady;
-    return addMessageOperation(chatId, content, role);
+    return addMessage(chatId, content, role);
   }
 
   async editMessage(chatId: string, messageId: string, content: string): Promise<void> {
     await this.dbReady;
-    return editMessageOperation(chatId, messageId, content);
+    return editMessage(chatId, messageId, content);
   }
 
   async deleteMessage(chatId: string, messageId: string): Promise<void> {
     await this.dbReady;
-    return deleteMessageOperation(chatId, messageId);
+    return deleteMessage(chatId, messageId);
   }
 
   async toggleMessageBookmark(chatId: string, messageId: string): Promise<boolean> {
     await this.dbReady;
-    return toggleMessageBookmarkOperation(chatId, messageId);
+    return toggleMessageBookmark(chatId, messageId);
   }
 }
 
