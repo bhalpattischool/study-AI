@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Button } from "@/components/ui/button";
 import { Info, ArrowLeft, Users, UserPlus } from 'lucide-react';
 
@@ -10,6 +10,7 @@ interface ChatHeaderProps {
   onManageMembers: () => void;
   isAdmin: boolean;
   memberAvatars: React.ReactNode;
+  children?: ReactNode;
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -18,7 +19,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onBack,
   onManageMembers,
   isAdmin,
-  memberAvatars
+  memberAvatars,
+  children
 }) => {
   return (
     <div className="flex items-center p-3 border-b bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-gray-900">
@@ -41,6 +43,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           Manage
         </Button>
       )}
+      {children}
       <Button variant="ghost" size="icon">
         <Info className="h-5 w-5" />
       </Button>

@@ -1,5 +1,5 @@
 
-import { ref, push, set, get, onValue, update } from "firebase/database";
+import { ref, push, set, get, onValue, update, remove } from "firebase/database";
 import { database, auth } from './config';
 
 // Generate a unique chat ID for two users
@@ -70,7 +70,9 @@ export const sendMessage = async (chatId: string, senderUid: string, text: strin
       sender: senderUid,
       senderName,
       text,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      expiresAt: Date.now() + (48 * 60 * 60 * 1000), // 48 hours in milliseconds
+      saved: false
     };
     
     // Path depends on whether it's a group or 1-on-1 chat
@@ -108,10 +110,16 @@ export const listenForMessages = (chatId: string, isGroup: boolean, callback: (m
         ...messagesData[key]
       }));
       
+      // Filter out expired messages that aren't saved
+      const currentTime = Date.now();
+      const filteredMessages = messagesList.filter(msg => 
+        msg.saved === true || !msg.expiresAt || currentTime < msg.expiresAt
+      );
+
       // Sort by timestamp
-      messagesList.sort((a, b) => a.timestamp - b.timestamp);
+      filteredMessages.sort((a, b) => a.timestamp - b.timestamp);
       
-      callback(messagesList);
+      callback(filteredMessages);
     } else {
       callback([]);
     }
@@ -279,3 +287,105 @@ export const startChat = async (currentUserId: string, otherUserId: string) => {
   }
 };
 
+// Delete a specific message
+export const deleteMessage = async (chatId: string, messageId: string, isGroup: boolean) => {
+  try {
+    const currentUserUid = auth.currentUser?.uid;
+    if (!currentUserUid) {
+      throw new Error("You must be logged in to delete messages");
+    }
+
+    // Path depends on whether it's a group or 1-on-1 chat
+    const path = isGroup ? `groups/${chatId}/messages/${messageId}` : `chats/${chatId}/messages/${messageId}`;
+    
+    // First check if the user has permission to delete this message
+    const messageSnapshot = await get(ref(database, path));
+    if (!messageSnapshot.exists()) {
+      throw new Error("Message not found");
+    }
+    
+    const messageData = messageSnapshot.val();
+    
+    // Check if user is the sender or a group admin
+    let canDelete = messageData.sender === currentUserUid;
+    
+    if (isGroup && !canDelete) {
+      // Check if user is a group admin
+      const groupSnapshot = await get(ref(database, `groups/${chatId}`));
+      if (groupSnapshot.exists() && groupSnapshot.val().admins && groupSnapshot.val().admins[currentUserUid]) {
+        canDelete = true;
+      }
+    }
+    
+    if (!canDelete) {
+      throw new Error("You don't have permission to delete this message");
+    }
+    
+    // Delete the message
+    await remove(ref(database, path));
+    return true;
+  } catch (error) {
+    console.error("Error deleting message:", error);
+    throw error;
+  }
+};
+
+// Toggle save status of a message
+export const toggleSaveMessage = async (chatId: string, messageId: string, isGroup: boolean) => {
+  try {
+    const currentUserUid = auth.currentUser?.uid;
+    if (!currentUserUid) {
+      throw new Error("You must be logged in to save messages");
+    }
+
+    // Path depends on whether it's a group or 1-on-1 chat
+    const path = isGroup ? `groups/${chatId}/messages/${messageId}` : `chats/${chatId}/messages/${messageId}`;
+    
+    // Get current message data
+    const messageSnapshot = await get(ref(database, path));
+    if (!messageSnapshot.exists()) {
+      throw new Error("Message not found");
+    }
+    
+    const messageData = messageSnapshot.val();
+    
+    // Toggle saved status
+    const newSavedStatus = !messageData.saved;
+    
+    // Update the message
+    await update(ref(database, path), { saved: newSavedStatus });
+    
+    return newSavedStatus;
+  } catch (error) {
+    console.error("Error toggling message save status:", error);
+    throw error;
+  }
+};
+
+// Delete a group chat (only for admins)
+export const deleteGroup = async (groupId: string) => {
+  try {
+    const currentUserUid = auth.currentUser?.uid;
+    if (!currentUserUid) {
+      throw new Error("You must be logged in to delete a group");
+    }
+    
+    // Check if the current user is an admin
+    const groupSnapshot = await get(ref(database, `groups/${groupId}`));
+    if (!groupSnapshot.exists()) {
+      throw new Error("Group not found");
+    }
+    
+    const groupData = groupSnapshot.val();
+    if (!groupData.admins || !groupData.admins[currentUserUid]) {
+      throw new Error("Only group admins can delete the group");
+    }
+    
+    // Delete the entire group
+    await remove(ref(database, `groups/${groupId}`));
+    return true;
+  } catch (error) {
+    console.error("Error deleting group:", error);
+    throw error;
+  }
+};

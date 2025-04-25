@@ -1,16 +1,21 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
+import MessageActions from './MessageActions';
 
 interface ChatMessageListProps {
   messages: any[];
   isGroup: boolean;
+  chatId: string;
+  onMessageUpdated: () => void;
 }
 
-const ChatMessageList = ({ messages, isGroup }: ChatMessageListProps) => {
+const ChatMessageList = ({ messages, isGroup, chatId, onMessageUpdated }: ChatMessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentUser } = useAuth();
+  const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
+  const messageTimerRef = useRef<number | null>(null);
   
   useEffect(() => {
     scrollToBottom();
@@ -36,6 +41,30 @@ const ChatMessageList = ({ messages, isGroup }: ChatMessageListProps) => {
     return '';
   };
 
+  const handleMessageClick = (messageId: string) => {
+    // Clear any existing timer
+    if (messageTimerRef.current) {
+      clearTimeout(messageTimerRef.current);
+    }
+
+    // Set this message as active
+    setActiveMessageId(messageId);
+
+    // Set a timeout to hide the actions after 3 seconds
+    messageTimerRef.current = window.setTimeout(() => {
+      setActiveMessageId(null);
+    }, 3000);
+  };
+
+  useEffect(() => {
+    // Clean up timer on unmount
+    return () => {
+      if (messageTimerRef.current) {
+        clearTimeout(messageTimerRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="flex-1 overflow-y-auto p-3 space-y-3">
       {messages.length === 0 ? (
@@ -47,6 +76,9 @@ const ChatMessageList = ({ messages, isGroup }: ChatMessageListProps) => {
           const isCurrentUser = msg.sender === currentUser?.uid;
           const isImage = isImageMessage(msg.text);
           const imageUrl = isImage ? extractImageUrl(msg.text) : '';
+          const isSaved = msg.saved === true;
+          const isExpiringSoon = msg.expiresAt && !isSaved && 
+            (msg.expiresAt - Date.now() < 4 * 60 * 60 * 1000); // Less than 4 hours remaining
           
           return (
             <div 
@@ -54,11 +86,13 @@ const ChatMessageList = ({ messages, isGroup }: ChatMessageListProps) => {
               className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
             >
               <div 
-                className={`max-w-[75%] rounded-lg p-3 ${
+                className={`relative max-w-[75%] rounded-lg p-3 ${
                   isCurrentUser 
                     ? 'bg-purple-500 text-white rounded-br-none' 
                     : 'bg-gray-200 dark:bg-gray-700 rounded-bl-none'
-                }`}
+                } ${isSaved ? 'border-l-4 border-amber-500' : ''}
+                  ${isExpiringSoon ? 'border-red-500 border animate-pulse' : ''}`}
+                onClick={() => handleMessageClick(msg.id)}
               >
                 {isGroup && !isCurrentUser && (
                   <div className="text-xs font-medium mb-1">
@@ -82,10 +116,25 @@ const ChatMessageList = ({ messages, isGroup }: ChatMessageListProps) => {
                 <div 
                   className={`text-xs ${
                     isCurrentUser ? 'text-purple-100' : 'text-gray-500 dark:text-gray-400'
-                  } text-right mt-1`}
+                  } text-right mt-1 flex justify-end items-center space-x-2`}
                 >
-                  {formatMessageTimestamp(msg.timestamp)}
+                  <span>{formatMessageTimestamp(msg.timestamp)}</span>
+                  {isExpiringSoon && !isSaved && (
+                    <span className="text-red-500 text-xs">
+                      {Math.ceil((msg.expiresAt - Date.now()) / (60 * 60 * 1000))}h left
+                    </span>
+                  )}
                 </div>
+
+                {activeMessageId === msg.id && (
+                  <MessageActions 
+                    messageId={msg.id}
+                    chatId={chatId}
+                    isGroup={isGroup}
+                    isSaved={isSaved}
+                    onActionComplete={onMessageUpdated}
+                  />
+                )}
               </div>
             </div>
           );

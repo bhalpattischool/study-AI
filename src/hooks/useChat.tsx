@@ -9,6 +9,7 @@ export const useChatData = (chatId: string, recipientId: string, isGroup: boolea
   const [displayName, setDisplayName] = useState('');
   const [groupDetails, setGroupDetails] = useState<any>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchChatData = async () => {
@@ -55,7 +56,11 @@ export const useChatData = (chatId: string, recipientId: string, isGroup: boolea
         unsubscribe();
       }
     };
-  }, [chatId, isGroup, recipientId]);
+  }, [chatId, isGroup, recipientId, refreshKey]);
+
+  const refreshMessages = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   return {
     messages,
@@ -63,7 +68,8 @@ export const useChatData = (chatId: string, recipientId: string, isGroup: boolea
     displayName,
     groupDetails,
     loadError,
-    setMessages
+    setMessages,
+    refreshMessages
   };
 };
 
