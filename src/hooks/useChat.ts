@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { chatDB, Message as MessageType } from '@/lib/db';
 import { generateResponse } from '@/lib/gemini';
@@ -7,6 +6,43 @@ import { useAuth } from '@/contexts/AuthContext';
 
 // Adding constant for guest message limit
 const GUEST_MESSAGE_LIMIT = 2;
+
+// Create a separate useChatData hook
+export const useChatData = (chatId: string, onChatUpdated?: () => void) => {
+  const [messages, setMessages] = useState<MessageType[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const chat = await chatDB.getChat(chatId);
+        if (chat) {
+          setMessages(chat.messages);
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        toast.error('Failed to load messages');
+      }
+    };
+
+    loadMessages();
+  }, [chatId]);
+
+  const refreshMessages = () => {
+    // Implement any additional logic for refreshing messages if needed
+    // For now, it's a placeholder
+  };
+
+  return {
+    messages,
+    isLoading,
+    displayName: '', // Add a placeholder for displayName
+    groupDetails: null, // Add a placeholder for groupDetails
+    loadError: null, // Add a placeholder for loadError
+    setMessages,
+    refreshMessages
+  };
+};
 
 export const useChat = (chatId: string, onChatUpdated?: () => void) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
