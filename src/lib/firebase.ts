@@ -1,7 +1,30 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from "firebase/auth";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getDatabase, ref as dbRef, set, get, onValue, update, push, query, orderByChild, serverTimestamp } from "firebase/database";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  sendPasswordResetEmail, 
+  updateProfile 
+} from "firebase/auth";
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+} from "firebase/storage";
+import { 
+  getDatabase, 
+  ref as dbRef, 
+  set, 
+  get, 
+  onValue, 
+  update, 
+  push, 
+  query, 
+  orderByChild, 
+  serverTimestamp 
+} from "firebase/database";
 import { toast } from "sonner";
 
 // Firebase configuration
@@ -21,6 +44,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const storage = getStorage(app);
 const database = getDatabase(app);
+
+// Export Firebase Storage related functions
+export { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+};
 
 // Authentication functions
 export const registerUser = async (email: string, password: string, name: string, userCategory: string, educationLevel: string) => {
