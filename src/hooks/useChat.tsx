@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getGroupDetails, getUserName, listenForMessages } from '@/lib/firebase';
+import { getGroupDetails, getUserName, listenForMessages, sendMessage } from '@/lib/firebase';
 import { toast } from "sonner";
 
 export const useChatData = (chatId: string, recipientId: string, isGroup: boolean) => {
@@ -66,3 +66,9 @@ export const useChatData = (chatId: string, recipientId: string, isGroup: boolea
     setMessages
   };
 };
+
+// Re-export the chat hook for backward compatibility
+export { useChat } from './useChat.ts';
+
+// Export the sendMessage function from firebase for convenience
+export { sendMessage } from '@/lib/firebase';

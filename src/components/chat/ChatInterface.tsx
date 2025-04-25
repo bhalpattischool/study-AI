@@ -3,13 +3,14 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { Users } from 'lucide-react';
-import { ref, uploadBytes, getDownloadURL, storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from '@/lib/firebase';
+import { storage } from '@/lib/firebase';
+import { useChatData, sendMessage } from '@/hooks/useChat';
 import ChatMessageList from './ChatMessageList';
 import GroupMembersModal from './GroupMembersModal';
 import GroupMessageInput from './GroupMessageInput';
 import ChatHeader from './ChatHeader';
 import ChatError from './ChatError';
-import { useChatData } from '@/hooks/useChat';
 
 interface ChatInterfaceProps {
   recipientId: string;
