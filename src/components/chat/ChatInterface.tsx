@@ -39,7 +39,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Set up our main chat functionality
     const fetchChatData = async () => {
       setIsLoading(true);
       setLoadError(null);
@@ -52,7 +51,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           setDisplayName(groupDetailsResp?.name || 'Group Chat');
           setGroupDetails(groupDetailsResp);
         } else {
-          // For 1-on-1 chats, get the other user's name
           const userName = await getUserName(recipientId);
           setDisplayName(userName || 'Chat');
           setGroupDetails(null);
@@ -68,7 +66,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     fetchChatData();
 
-    // Set up real-time listener for messages
     let unsubscribe = () => {};
     try {
       unsubscribe = listenForMessages(chatId, isGroup, (chatMessages) => {
@@ -97,7 +94,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     try {
       if (file) {
         console.log("Sending image message...");
-        const storage = getStorage();
         const storageRef = ref(storage, `chat_images/${chatId}/${Date.now()}_${file.name}`);
         
         await uploadBytes(storageRef, file).then(async (snapshot) => {
