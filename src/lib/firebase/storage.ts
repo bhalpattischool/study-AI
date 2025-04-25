@@ -1,5 +1,6 @@
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updateProfile } from "firebase/auth";
 import { storage, database } from './config';
 import { auth } from './config';
 import { ref as dbRef, update } from "firebase/database";
@@ -31,4 +32,3 @@ export const uploadProfileImage = async (userId: string, file: File) => {
 
 // Re-export storage functions for direct use
 export { ref, uploadBytes, getDownloadURL };
-

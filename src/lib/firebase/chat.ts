@@ -1,6 +1,6 @@
 
-import { ref, push, set, get, onValue } from "firebase/database";
-import { database } from './config';
+import { ref, push, set, get, onValue, update } from "firebase/database";
+import { database, auth } from './config';
 
 // Generate a unique chat ID for two users
 export const getChatId = (uid1: string, uid2: string) => {

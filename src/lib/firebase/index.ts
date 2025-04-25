@@ -6,3 +6,5 @@ export * from './points';
 export * from './leaderboard';
 export * from './chat';
 
+// Re-export firebase storage functions directly
+export { getStorage } from "firebase/storage";
