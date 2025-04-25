@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { Users, Trash2 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from '@/lib/firebase';
 import { storage } from '@/lib/firebase';
-import { useChatData } from '@/hooks/useChat';
+import { useChatData, useGroupChat } from '@/hooks/useChat';
 import { sendMessage, deleteGroup } from '@/lib/firebase';
 import ChatMessageList from './ChatMessageList';
 import GroupMembersModal from './GroupMembersModal';
@@ -41,15 +41,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [membersModal, setMembersModal] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
   
+  // Use the appropriate hook based on whether this is a group chat or not
+  const {
+    displayName,
+    loadError,
+  } = useChatData(chatId);
+  
+  // Use the new useGroupChat hook for group chats
   const {
     messages,
     isLoading,
-    displayName,
-    groupDetails,
-    loadError,
-    setMessages,
-    refreshMessages
-  } = useChatData(chatId);
+    groupDetails
+  } = useGroupChat(chatId, () => {
+    console.log("Chat updated! New messages available.");
+  });
 
   const handleSendMessage = async (text: string, file?: File) => {
     if (!currentUser) {
@@ -104,6 +109,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   const isAdmin = isGroup && groupDetails?.admins && groupDetails.admins[currentUser?.uid];
+
+  const refreshMessages = () => {
+    // This is now handled automatically by the real-time listener
+    console.log("Messages will refresh automatically via listener");
+  };
 
   return (
     <div className="flex flex-col h-full glass-morphism border border-purple-200 dark:border-purple-900">

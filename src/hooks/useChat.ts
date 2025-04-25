@@ -4,6 +4,7 @@ import { chatDB, Message as MessageType } from '@/lib/db';
 import { generateResponse } from '@/lib/gemini';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
+import { getGroupDetails, listenForMessages } from '@/lib/firebase';
 
 // Adding constant for guest message limit
 const GUEST_MESSAGE_LIMIT = 2;
@@ -56,6 +57,7 @@ export const useChatData = (chatId: string) => {
   };
 };
 
+// Export the useChat hook
 export const useChat = (chatId: string, onChatUpdated?: () => void) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
