@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
@@ -41,13 +40,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [membersModal, setMembersModal] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
   
-  // Use the appropriate hook based on whether this is a group chat or not
   const {
     displayName,
     loadError,
   } = useChatData(chatId);
   
-  // Use the new useGroupChat hook for group chats
   const {
     messages,
     isLoading,
@@ -111,7 +108,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const isAdmin = isGroup && groupDetails?.admins && groupDetails.admins[currentUser?.uid];
 
   const refreshMessages = () => {
-    // This is now handled automatically by the real-time listener
     console.log("Messages will refresh automatically via listener");
   };
 
