@@ -9,7 +9,11 @@ import {
   getUserName,
   getGroupDetails,
   listenForMessages,
-  sendMessage
+  sendMessage,
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
 } from '@/lib/firebase';
 import GroupMembersModal from './GroupMembersModal';
 import GroupMessageInput from './GroupMessageInput';
@@ -94,11 +98,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     try {
       if (file) {
         console.log("Sending image message...");
-        const storage = await import('firebase/storage').then(mod => mod.getStorage());
-        const storageRef = await import('firebase/storage').then(mod => mod.ref)(storage, `chat_images/${chatId}/${Date.now()}_${file.name}`);
+        const storage = getStorage();
+        const storageRef = ref(storage, `chat_images/${chatId}/${Date.now()}_${file.name}`);
         
-        await import('firebase/storage').then(mod => mod.uploadBytes)(storageRef, file).then(async (snapshot) => {
-          const downloadURL = await import('firebase/storage').then(mod => mod.getDownloadURL)(snapshot.ref);
+        await uploadBytes(storageRef, file).then(async (snapshot) => {
+          const downloadURL = await getDownloadURL(snapshot.ref);
           await sendMessage(chatId, currentUser.uid, `[image:${downloadURL}]`, isGroup);
         });
         
