@@ -49,7 +49,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     loadError,
     setMessages,
     refreshMessages
-  } = useChatData(chatId, recipientId, isGroup);
+  } = useChatData(chatId);
 
   const handleSendMessage = async (text: string, file?: File) => {
     if (!currentUser) {

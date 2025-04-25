@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { chatDB, Message as MessageType } from '@/lib/db';
 import { generateResponse } from '@/lib/gemini';
@@ -7,10 +8,13 @@ import { useAuth } from '@/contexts/AuthContext';
 // Adding constant for guest message limit
 const GUEST_MESSAGE_LIMIT = 2;
 
-// Create a separate useChatData hook
-export const useChatData = (chatId: string, onChatUpdated?: () => void) => {
+// Export the useChatData hook
+export const useChatData = (chatId: string) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [groupDetails, setGroupDetails] = useState<any>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -18,27 +22,35 @@ export const useChatData = (chatId: string, onChatUpdated?: () => void) => {
         const chat = await chatDB.getChat(chatId);
         if (chat) {
           setMessages(chat.messages);
+          setDisplayName(chat.title || 'Chat');
         }
       } catch (error) {
         console.error('Error loading messages:', error);
         toast.error('Failed to load messages');
+        setLoadError('Failed to load messages');
       }
     };
 
     loadMessages();
   }, [chatId]);
 
-  const refreshMessages = () => {
-    // Implement any additional logic for refreshing messages if needed
-    // For now, it's a placeholder
+  const refreshMessages = async () => {
+    try {
+      const chat = await chatDB.getChat(chatId);
+      if (chat) {
+        setMessages(chat.messages);
+      }
+    } catch (error) {
+      console.error('Error refreshing messages:', error);
+    }
   };
 
   return {
     messages,
     isLoading,
-    displayName: '', // Add a placeholder for displayName
-    groupDetails: null, // Add a placeholder for groupDetails
-    loadError: null, // Add a placeholder for loadError
+    displayName,
+    groupDetails,
+    loadError,
     setMessages,
     refreshMessages
   };
