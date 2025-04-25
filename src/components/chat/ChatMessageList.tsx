@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import MessageActions from './MessageActions';
@@ -11,15 +11,21 @@ interface ChatMessageListProps {
   onMessageUpdated: () => void;
 }
 
-const ChatMessageList = ({ messages, isGroup, chatId, onMessageUpdated }: ChatMessageListProps) => {
+// Using memo to prevent unnecessary re-renders
+const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: ChatMessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentUser } = useAuth();
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
   const messageTimerRef = useRef<number | null>(null);
+  const prevMessagesLengthRef = useRef<number>(0);
   
+  // Only scroll when new messages arrive
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > prevMessagesLengthRef.current) {
+      scrollToBottom();
+      prevMessagesLengthRef.current = messages.length;
+    }
+  }, [messages.length]);
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -65,6 +71,7 @@ const ChatMessageList = ({ messages, isGroup, chatId, onMessageUpdated }: ChatMe
     };
   }, []);
 
+  // Stable message rendering
   return (
     <div className="flex-1 overflow-y-auto p-3 space-y-3">
       {messages.length === 0 ? (
@@ -91,7 +98,7 @@ const ChatMessageList = ({ messages, isGroup, chatId, onMessageUpdated }: ChatMe
                     ? 'bg-purple-500 text-white rounded-br-none' 
                     : 'bg-gray-200 dark:bg-gray-700 rounded-bl-none'
                 } ${isSaved ? 'border-l-4 border-amber-500' : ''}
-                  ${isExpiringSoon ? 'border-red-500 border animate-pulse' : ''}`}
+                  ${isExpiringSoon ? 'border-red-500 border' : ''}`}
                 onClick={() => handleMessageClick(msg.id)}
               >
                 {isGroup && !isCurrentUser && (
@@ -106,7 +113,6 @@ const ChatMessageList = ({ messages, isGroup, chatId, onMessageUpdated }: ChatMe
                       src={imageUrl} 
                       alt="Shared image" 
                       className="max-h-60 rounded"
-                      onLoad={scrollToBottom}
                     />
                   </a>
                 ) : (
@@ -143,6 +149,6 @@ const ChatMessageList = ({ messages, isGroup, chatId, onMessageUpdated }: ChatMe
       <div ref={messagesEndRef} />
     </div>
   );
-};
+});
 
 export default ChatMessageList;

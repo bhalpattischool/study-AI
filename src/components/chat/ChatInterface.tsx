@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { Users, Trash2 } from 'lucide-react';
@@ -45,15 +46,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     loadError,
   } = useChatData(chatId);
   
+  // Use the stable useGroupChat hook
   const {
     messages,
     isLoading,
     groupDetails
   } = useGroupChat(chatId, () => {
-    console.log("Chat updated! New messages available.");
+    // Simplified callback that runs less often
+    console.log("Chat updated with new messages");
   });
 
-  const handleSendMessage = async (text: string, file?: File) => {
+  // Memoize the send message handler to prevent unnecessary re-renders
+  const handleSendMessage = useCallback(async (text: string, file?: File) => {
     if (!currentUser) {
       toast.error('You must be logged in to send messages');
       return;
@@ -78,9 +82,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
     }
-  };
+  }, [chatId, currentUser, isGroup]);
 
-  const handleDeleteGroup = async () => {
+  const handleDeleteGroup = useCallback(async () => {
     if (!currentUser || !isGroup) return;
 
     try {
@@ -91,7 +95,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       console.error('Error deleting group:', error);
       toast.error('Failed to delete group');
     }
-  };
+  }, [chatId, currentUser, isGroup, onBack]);
 
   const memberAvatars = isGroup && groupDetails?.members
     ? Object.keys(groupDetails.members).slice(0, 3).map((memberId: string, idx: number) => (
