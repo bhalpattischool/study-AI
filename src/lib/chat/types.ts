@@ -39,4 +39,5 @@ export type Message = {
   content: string;
   timestamp: number;
   bookmarked?: boolean;
+  editedAt?: number;  // Add the missing editedAt property
 };
