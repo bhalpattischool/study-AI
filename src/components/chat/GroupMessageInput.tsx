@@ -15,18 +15,27 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
   const [message, setMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if ((message.trim() || file) && !isLoading) {
-      onSendMessage(message.trim(), file ? file : undefined);
-      setMessage('');
-      setFile(null);
-      setPreviewUrl(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    if ((message.trim() || file) && !isLoading && !isSending) {
+      try {
+        setIsSending(true);
+        await onSendMessage(message.trim(), file ? file : undefined);
+        setMessage('');
+        setFile(null);
+        setPreviewUrl(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+        toast.error('संदेश भेजने में त्रुटि');
+      } finally {
+        setIsSending(false);
       }
     }
   };
@@ -100,7 +109,7 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
           onKeyDown={handleKeyDown}
           placeholder="संदेश लिखें या छवि चुनें..."
           className="min-h-[50px] max-h-[120px] flex-1 resize-none"
-          disabled={isLoading}
+          disabled={isLoading || isSending}
         />
         <input
           ref={fileInputRef}
@@ -114,7 +123,7 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
           size="icon"
           className="self-end h-10 w-10"
           onClick={() => fileInputRef.current?.click()}
-          disabled={isLoading}
+          disabled={isLoading || isSending}
           title="छवि संलग्न करें"
         >
           <ImageIcon className="h-5 w-5" />
@@ -123,9 +132,13 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
           type="submit"
           size="icon"
           className="self-end h-10 w-10"
-          disabled={(!message.trim() && !file) || isLoading}
+          disabled={(!message.trim() && !file) || isLoading || isSending}
         >
-          <SendHorizontal className="h-5 w-5" />
+          {isSending ? (
+            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <SendHorizontal className="h-5 w-5" />
+          )}
         </Button>
       </div>
     </form>

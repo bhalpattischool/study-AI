@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { Users, Trash2 } from 'lucide-react';
@@ -40,6 +40,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const { currentUser } = useAuth();
   const [membersModal, setMembersModal] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
+  const [localMessages, setLocalMessages] = useState<any[]>([]);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const {
     displayName,
@@ -56,14 +59,42 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     console.log("Chat updated with new messages");
   });
 
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      setLocalMessages(messages);
+    }
+  }, [messages]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  }, [localMessages]);
+
   // Memoize the send message handler to prevent unnecessary re-renders
   const handleSendMessage = useCallback(async (text: string, file?: File) => {
     if (!currentUser) {
-      toast.error('You must be logged in to send messages');
+      toast.error('आपको संदेश भेजने के लिए लॉग इन करना होगा');
       return;
     }
     
     try {
+      setIsSendingMessage(true);
+      
+      // Optimistically add a temporary message to local state
+      const tempId = `temp-${Date.now()}`;
+      const tempMessage = {
+        id: tempId,
+        text: file ? "[संदेश भेज रहे हैं...]" : text,
+        sender: currentUser.uid,
+        senderName: currentUser.displayName || 'User',
+        timestamp: Date.now(),
+        isTemp: true
+      };
+      
+      setLocalMessages(prev => [...prev, tempMessage]);
+
       if (file) {
         console.log("Sending image message...");
         const storageRef = ref(storage, `chat_images/${chatId}/${Date.now()}_${file.name}`);
@@ -73,14 +104,23 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           await sendMessage(chatId, currentUser.uid, `[image:${downloadURL}]`, isGroup);
         });
         
-        toast.success("Image sent");
+        toast.success("छवि भेजी गई");
       } else {
         console.log("Sending text message...");
         await sendMessage(chatId, currentUser.uid, text, isGroup);
       }
+      
+      // Replace temp message with actual one
+      setLocalMessages(prev => prev.filter(msg => msg.id !== tempId));
+      
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      toast.error('संदेश भेजने में त्रुटि');
+      
+      // Remove temp message on error
+      setLocalMessages(prev => prev.filter(msg => !msg.isTemp));
+    } finally {
+      setIsSendingMessage(false);
     }
   }, [chatId, currentUser, isGroup]);
 
@@ -138,20 +178,23 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         )}
       </ChatHeader>
       
-      {isLoading ? (
+      {isLoading && localMessages.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full"></div>
         </div>
       ) : (
-        <ChatMessageList 
-          messages={messages} 
-          isGroup={isGroup} 
-          chatId={chatId}
-          onMessageUpdated={refreshMessages}
-        />
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          <ChatMessageList 
+            messages={localMessages} 
+            isGroup={isGroup} 
+            chatId={chatId}
+            onMessageUpdated={refreshMessages}
+          />
+          <div ref={messagesEndRef} />
+        </div>
       )}
       
-      <GroupMessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+      <GroupMessageInput onSendMessage={handleSendMessage} isLoading={isSendingMessage} />
       
       {isGroup && groupDetails && (
         <GroupMembersModal

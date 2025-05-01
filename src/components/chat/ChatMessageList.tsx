@@ -13,23 +13,9 @@ interface ChatMessageListProps {
 
 // Using memo to prevent unnecessary re-renders
 const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: ChatMessageListProps) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentUser } = useAuth();
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
   const messageTimerRef = useRef<number | null>(null);
-  const prevMessagesLengthRef = useRef<number>(0);
-  
-  // Only scroll when new messages arrive
-  useEffect(() => {
-    if (messages.length > prevMessagesLengthRef.current) {
-      scrollToBottom();
-      prevMessagesLengthRef.current = messages.length;
-    }
-  }, [messages.length]);
-  
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
   
   const formatMessageTimestamp = (timestamp: number) => {
     if (!timestamp) return '';
@@ -37,7 +23,7 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
   };
   
   const isImageMessage = (text: string) => {
-    return text.startsWith('[image:') && text.endsWith(']');
+    return text?.startsWith('[image:') && text?.endsWith(']');
   };
   
   const extractImageUrl = (text: string) => {
@@ -71,12 +57,12 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
     };
   }, []);
 
-  // Stable message rendering
+  // Stable message rendering with memo to prevent re-renders
   return (
-    <div className="flex-1 overflow-y-auto p-3 space-y-3">
+    <>
       {messages.length === 0 ? (
         <div className="flex h-full items-center justify-center text-gray-500">
-          <p>No messages yet. Send a message to start the conversation.</p>
+          <p>अभी तक कोई संदेश नहीं। बातचीत शुरू करने के लिए एक संदेश भेजें।</p>
         </div>
       ) : (
         messages.map((msg) => {
@@ -86,6 +72,7 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
           const isSaved = msg.saved === true;
           const isExpiringSoon = msg.expiresAt && !isSaved && 
             (msg.expiresAt - Date.now() < 4 * 60 * 60 * 1000); // Less than 4 hours remaining
+          const isTemp = msg.isTemp === true;
           
           return (
             <div 
@@ -98,8 +85,9 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
                     ? 'bg-purple-500 text-white rounded-br-none' 
                     : 'bg-gray-200 dark:bg-gray-700 rounded-bl-none'
                 } ${isSaved ? 'border-l-4 border-amber-500' : ''}
-                  ${isExpiringSoon ? 'border-red-500 border' : ''}`}
-                onClick={() => handleMessageClick(msg.id)}
+                  ${isExpiringSoon ? 'border-red-500 border' : ''}
+                  ${isTemp ? 'opacity-70' : 'opacity-100'}`}
+                onClick={() => !isTemp && handleMessageClick(msg.id)}
               >
                 {isGroup && !isCurrentUser && (
                   <div className="text-xs font-medium mb-1">
@@ -107,12 +95,18 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
                   </div>
                 )}
                 
-                {isImage ? (
+                {isTemp ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="whitespace-pre-wrap">{msg.text}</div>
+                    <div className="animate-pulse w-3 h-3 bg-white rounded-full"></div>
+                  </div>
+                ) : isImage ? (
                   <a href={imageUrl} target="_blank" rel="noopener noreferrer">
                     <img 
                       src={imageUrl} 
                       alt="Shared image" 
                       className="max-h-60 rounded"
+                      loading="lazy"
                     />
                   </a>
                 ) : (
@@ -125,14 +119,14 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
                   } text-right mt-1 flex justify-end items-center space-x-2`}
                 >
                   <span>{formatMessageTimestamp(msg.timestamp)}</span>
-                  {isExpiringSoon && !isSaved && (
+                  {isExpiringSoon && !isSaved && !isTemp && (
                     <span className="text-red-500 text-xs">
                       {Math.ceil((msg.expiresAt - Date.now()) / (60 * 60 * 1000))}h left
                     </span>
                   )}
                 </div>
 
-                {activeMessageId === msg.id && (
+                {!isTemp && activeMessageId === msg.id && (
                   <MessageActions 
                     messageId={msg.id}
                     chatId={chatId}
@@ -146,8 +140,7 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
           );
         })
       )}
-      <div ref={messagesEndRef} />
-    </div>
+    </>
   );
 });
 
