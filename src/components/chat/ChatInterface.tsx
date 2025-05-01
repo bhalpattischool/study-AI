@@ -1,28 +1,19 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
-import { Users, Trash2 } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from '@/lib/firebase';
 import { storage } from '@/lib/firebase';
 import { useChatData, useGroupChat } from '@/hooks/useChat';
-import { sendMessage, deleteGroup } from '@/lib/firebase';
-import ChatMessageList from './ChatMessageList';
+import { sendMessage } from '@/lib/firebase';
 import GroupMembersModal from './GroupMembersModal';
 import GroupMessageInput from './GroupMessageInput';
 import ChatHeader from './ChatHeader';
 import ChatError from './ChatError';
-import { Button } from "@/components/ui/button";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import ChatMessageArea from './ChatMessageArea';
+import ChatHeaderActions from './ChatHeaderActions';
+import DeleteGroupDialog from './DeleteGroupDialog';
 
 interface ChatInterfaceProps {
   recipientId: string;
@@ -42,19 +33,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [localMessages, setLocalMessages] = useState<any[]>([]);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const {
-    displayName,
-    loadError,
-  } = useChatData(chatId);
+  const { displayName, loadError } = useChatData(chatId);
   
   // Use the stable useGroupChat hook
-  const {
-    messages,
-    isLoading,
-    groupDetails
-  } = useGroupChat(chatId, () => {
+  const { messages, isLoading, groupDetails } = useGroupChat(chatId, () => {
     // Simplified callback that runs less often
     console.log("Chat updated with new messages");
   });
@@ -64,13 +47,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setLocalMessages(messages);
     }
   }, [messages]);
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  }, [localMessages]);
 
   // Memoize the send message handler to prevent unnecessary re-renders
   const handleSendMessage = useCallback(async (text: string, file?: File) => {
@@ -124,18 +100,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   }, [chatId, currentUser, isGroup]);
 
-  const handleDeleteGroup = useCallback(async () => {
-    if (!currentUser || !isGroup) return;
+  const refreshMessages = useCallback(() => {
+    console.log("Messages will refresh automatically via listener");
+  }, []);
 
-    try {
-      await deleteGroup(chatId);
-      toast.success("Group deleted successfully");
-      onBack();
-    } catch (error) {
-      console.error('Error deleting group:', error);
-      toast.error('Failed to delete group');
-    }
-  }, [chatId, currentUser, isGroup, onBack]);
+  const isAdmin = isGroup && groupDetails?.admins && groupDetails.admins[currentUser?.uid];
 
   const memberAvatars = isGroup && groupDetails?.members
     ? Object.keys(groupDetails.members).slice(0, 3).map((memberId: string, idx: number) => (
@@ -149,12 +118,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     return <ChatError onBack={onBack} error={loadError} />;
   }
 
-  const isAdmin = isGroup && groupDetails?.admins && groupDetails.admins[currentUser?.uid];
-
-  const refreshMessages = () => {
-    console.log("Messages will refresh automatically via listener");
-  };
-
   return (
     <div className="flex flex-col h-full glass-morphism border border-purple-200 dark:border-purple-900 rounded-lg overflow-hidden">
       <ChatHeader
@@ -165,36 +128,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         isAdmin={isAdmin}
         memberAvatars={memberAvatars}
       >
-        {isAdmin && isGroup && (
-          <Button
-            variant="outline"
-            size="sm" 
-            className="ml-2 bg-red-50 border-red-200 text-red-500 hover:text-red-600 hover:bg-red-100"
-            onClick={() => setDeleteDialog(true)}
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
-          </Button>
-        )}
+        <ChatHeaderActions 
+          isAdmin={isAdmin}
+          isGroup={isGroup}
+          onDeleteClick={() => setDeleteDialog(true)}
+        />
       </ChatHeader>
       
-      {isLoading && localMessages.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center">
-          <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full"></div>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50 dark:bg-gray-900">
-          <ChatMessageList 
-            messages={localMessages} 
-            isGroup={isGroup} 
-            chatId={chatId}
-            onMessageUpdated={refreshMessages}
-          />
-          <div ref={messagesEndRef} />
-        </div>
-      )}
+      <ChatMessageArea
+        messages={localMessages}
+        isLoading={isLoading}
+        chatId={chatId}
+        isGroup={isGroup}
+        onRefreshMessages={refreshMessages}
+      />
       
-      <GroupMessageInput onSendMessage={handleSendMessage} isLoading={isSendingMessage} />
+      <GroupMessageInput 
+        onSendMessage={handleSendMessage} 
+        isLoading={isSendingMessage} 
+      />
       
       {isGroup && groupDetails && (
         <GroupMembersModal
@@ -206,26 +158,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         />
       )}
 
-      <AlertDialog open={deleteDialog} onOpenChange={setDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Group</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the group 
-              and remove all messages for all members.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteGroup}
-              className="bg-red-500 text-white hover:bg-red-600"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteGroupDialog
+        isOpen={deleteDialog}
+        setIsOpen={setDeleteDialog}
+        chatId={chatId}
+        onDeleteSuccess={onBack}
+        currentUserId={currentUser?.uid}
+      />
     </div>
   );
 };
