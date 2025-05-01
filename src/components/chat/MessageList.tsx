@@ -2,7 +2,6 @@
 import React from 'react';
 import { Message as MessageType } from '@/lib/db';
 import Message from '../Message';
-import LoadingIndicator from './LoadingIndicator';
 
 interface MessageListProps {
   messages: MessageType[];
@@ -27,7 +26,11 @@ const MessageList: React.FC<MessageListProps> = ({
           onDeleted={onMessageDeleted}
         />
       ))}
-      {isLoading && <LoadingIndicator />}
+      {isLoading && (
+        <div className="flex justify-center p-4">
+          <div className="h-6 w-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
     </div>
   );
 };
