@@ -28,6 +28,12 @@ export async function generateResponse(prompt: string, history: Message[] = []):
       },
       body: JSON.stringify({
         contents: messages,
+        generationConfig: {
+          temperature: 0.4,
+          topP: 0.95,
+          topK: 40,
+          maxOutputTokens: 8192,
+        }
       }),
     });
 
