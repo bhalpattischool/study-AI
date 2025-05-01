@@ -20,26 +20,31 @@ export const useChatData = (chatId: string) => {
   useEffect(() => {
     const loadMessages = async () => {
       try {
+        setIsLoading(true);
         const chat = await chatDB.getChat(chatId);
         if (chat) {
-          setMessages(chat.messages);
+          setMessages(chat.messages || []);
           setDisplayName(chat.title || 'Chat');
         }
       } catch (error) {
         console.error('Error loading messages:', error);
         toast.error('Failed to load messages');
         setLoadError('Failed to load messages');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    loadMessages();
+    if (chatId) {
+      loadMessages();
+    }
   }, [chatId]);
 
   const refreshMessages = async () => {
     try {
       const chat = await chatDB.getChat(chatId);
       if (chat) {
-        setMessages(chat.messages);
+        setMessages(chat.messages || []);
       }
     } catch (error) {
       console.error('Error refreshing messages:', error);
@@ -66,17 +71,30 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
   const { currentUser, messageLimitReached, setMessageLimitReached } = useAuth();
 
   useEffect(() => {
-    loadMessages();
+    if (chatId) {
+      loadMessages();
+    }
   }, [chatId]);
 
   const loadMessages = async () => {
     try {
+      setIsLoading(true);
       const chat = await chatDB.getChat(chatId);
       if (chat) {
-        setMessages(chat.messages);
+        setMessages(chat.messages || []);
+        
+        // Update chat title if it's still the default
+        if (chat.title === "New Chat" && chat.messages && chat.messages.length > 0) {
+          // Find the first user message to use as title
+          const firstUserMessage = chat.messages.find(m => m.role === 'user');
+          if (firstUserMessage) {
+            const newTitle = firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
+            await chatDB.updateChatTitle(chatId, newTitle);
+          }
+        }
         
         // Check message limit for non-logged in users
-        if (!currentUser && chat.messages.filter(m => m.role === 'user').length >= GUEST_MESSAGE_LIMIT) {
+        if (!currentUser && chat.messages && chat.messages.filter(m => m.role === 'user').length >= GUEST_MESSAGE_LIMIT) {
           setMessageLimitReached(true);
           setShowLimitAlert(true);
         }
@@ -84,6 +102,8 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
     } catch (error) {
       console.error('Error loading messages:', error);
       toast.error('Failed to load messages');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -101,9 +121,18 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       setIsLoading(true);
       setIsResponding(true);
       
-      // Add user message
+      // Add user message to local storage
       const userMessage = await chatDB.addMessage(chatId, input.trim(), 'user');
+      
+      // Update local state
       setMessages((prev) => [...prev, userMessage]);
+      
+      // Update chat title if it's the first message
+      const chat = await chatDB.getChat(chatId);
+      if (chat && chat.title === "New Chat") {
+        const newTitle = input.trim().slice(0, 30) + (input.trim().length > 30 ? '...' : '');
+        await chatDB.updateChatTitle(chatId, newTitle);
+      }
       
       if (onChatUpdated) onChatUpdated();
 
@@ -111,12 +140,12 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       const currentChat = await chatDB.getChat(chatId);
       const chatHistory = currentChat?.messages || [];
       
-      // Get AI response
-      const response = await generateResponse(input.trim(), chatHistory);
+      // Get AI response (pass chatId to store response automatically)
+      const response = await generateResponse(input.trim(), chatHistory, chatId);
       
-      // Add bot message
-      const botMessage = await chatDB.addMessage(chatId, response, 'bot');
-      setMessages((prev) => [...prev, botMessage]);
+      // Update local state with bot response (it's already stored in DB from generateResponse)
+      // Refresh messages from storage to ensure we have the latest data
+      await loadMessages();
       
       if (onChatUpdated) onChatUpdated();
       

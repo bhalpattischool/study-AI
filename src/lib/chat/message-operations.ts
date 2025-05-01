@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SupaChatMessage, Message } from "./types";
+import { getChat, saveChat } from "./chat-operations";
 
 export async function getGroupMessages(groupId: string) {
   try {
@@ -71,33 +72,109 @@ export async function sendImageMessage(groupId: string, senderId: string, file: 
   }
 }
 
-// Add missing functions for the chat-db.ts
+// Enhanced message operations for local storage
 export async function addMessage(chatId: string, content: string, role: "user" | "bot"): Promise<Message> {
-  const message: Message = {
-    id: crypto.randomUUID(),
-    chatId,
-    content,
-    role,
-    timestamp: Date.now(),
-  };
+  try {
+    // Create new message object
+    const message: Message = {
+      id: crypto.randomUUID(),
+      chatId,
+      content,
+      role,
+      timestamp: Date.now(),
+    };
   
-  // Implementation would depend on how messages are stored
-  console.log("Adding message:", message);
-  return message;
+    // Get current chat
+    const chat = await getChat(chatId);
+    if (!chat) {
+      throw new Error(`Chat with ID ${chatId} not found`);
+    }
+  
+    // Add message to chat
+    chat.messages = chat.messages || [];
+    chat.messages.push(message);
+    
+    // Update timestamp to mark as recently used
+    chat.timestamp = Date.now();
+    
+    // Save updated chat
+    await saveChat(chat);
+    
+    return message;
+  } catch (error) {
+    console.error("Error adding message:", error);
+    throw new Error(`Failed to add message: ${error}`);
+  }
 }
 
 export async function editMessage(chatId: string, messageId: string, content: string): Promise<void> {
-  console.log("Editing message:", chatId, messageId, content);
-  // Implementation would depend on how messages are edited
+  try {
+    // Get current chat
+    const chat = await getChat(chatId);
+    if (!chat || !chat.messages) {
+      throw new Error(`Chat with ID ${chatId} not found or has no messages`);
+    }
+    
+    // Find and update message
+    const messageIndex = chat.messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex === -1) {
+      throw new Error(`Message with ID ${messageId} not found in chat ${chatId}`);
+    }
+    
+    chat.messages[messageIndex].content = content;
+    chat.messages[messageIndex].editedAt = Date.now();
+    
+    // Save updated chat
+    await saveChat(chat);
+  } catch (error) {
+    console.error("Error editing message:", error);
+    throw new Error(`Failed to edit message: ${error}`);
+  }
 }
 
 export async function deleteMessage(chatId: string, messageId: string): Promise<void> {
-  console.log("Deleting message:", chatId, messageId);
-  // Implementation would depend on how messages are deleted
+  try {
+    // Get current chat
+    const chat = await getChat(chatId);
+    if (!chat || !chat.messages) {
+      throw new Error(`Chat with ID ${chatId} not found or has no messages`);
+    }
+    
+    // Remove message
+    chat.messages = chat.messages.filter(msg => msg.id !== messageId);
+    
+    // Save updated chat
+    await saveChat(chat);
+  } catch (error) {
+    console.error("Error deleting message:", error);
+    throw new Error(`Failed to delete message: ${error}`);
+  }
 }
 
 export async function toggleMessageBookmark(chatId: string, messageId: string): Promise<boolean> {
-  console.log("Toggling bookmark for message:", chatId, messageId);
-  // Implementation would depend on how bookmarks are toggled
-  return true; // Return new bookmark status
+  try {
+    // Get current chat
+    const chat = await getChat(chatId);
+    if (!chat || !chat.messages) {
+      throw new Error(`Chat with ID ${chatId} not found or has no messages`);
+    }
+    
+    // Find message
+    const messageIndex = chat.messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex === -1) {
+      throw new Error(`Message with ID ${messageId} not found in chat ${chatId}`);
+    }
+    
+    // Toggle bookmark status
+    chat.messages[messageIndex].bookmarked = !chat.messages[messageIndex].bookmarked;
+    const newBookmarkStatus = !!chat.messages[messageIndex].bookmarked;
+    
+    // Save updated chat
+    await saveChat(chat);
+    
+    return newBookmarkStatus;
+  } catch (error) {
+    console.error("Error toggling message bookmark:", error);
+    throw new Error(`Failed to toggle message bookmark: ${error}`);
+  }
 }

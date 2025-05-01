@@ -1,11 +1,12 @@
 
 import { toast } from "sonner";
 import { Message } from "./db";
+import { chatDB } from "./db";
 
 const API_KEY = "AIzaSyBqF6WcP29fRIidQADAu4nAl-htknDNLkQ";
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
-export async function generateResponse(prompt: string, history: Message[] = []): Promise<string> {
+export async function generateResponse(prompt: string, history: Message[] = [], chatId?: string): Promise<string> {
   try {
     // Format conversation history for the API
     const messages = history.map(msg => ({
@@ -48,8 +49,21 @@ export async function generateResponse(prompt: string, history: Message[] = []):
     if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
       throw new Error("Invalid response format from Gemini API");
     }
+    
+    const responseText = data.candidates[0].content.parts[0].text;
+    
+    // If chatId is provided, store the response in local storage via chatDB
+    if (chatId) {
+      try {
+        await chatDB.addMessage(chatId, responseText, "bot");
+        console.log("Response stored in local storage for chat:", chatId);
+      } catch (storageError) {
+        console.error("Error storing response in local storage:", storageError);
+        // Continue even if storage fails - don't block the response
+      }
+    }
 
-    return data.candidates[0].content.parts[0].text;
+    return responseText;
   } catch (error) {
     console.error("Error calling Gemini API:", error);
     toast.error("Failed to get response from AI");
