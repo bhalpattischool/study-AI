@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, memo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import MessageActions from './MessageActions';
+import { formatTime } from '@/utils/timerUtils';
 
 interface ChatMessageListProps {
   messages: any[];
@@ -16,6 +17,16 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
   const { currentUser } = useAuth();
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
   const messageTimerRef = useRef<number | null>(null);
+  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+  
+  // Update current time every minute to refresh expiration countdowns
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(timer);
+  }, []);
   
   const formatMessageTimestamp = (timestamp: number) => {
     if (!timestamp) return '';
@@ -48,16 +59,30 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
     }, 3000);
   };
 
-  // Calculate time remaining for message expiration
+  // Calculate precise time remaining for message expiration
   const getExpirationTime = (expiresAt: number) => {
     if (!expiresAt) return null;
     
-    const timeLeft = expiresAt - Date.now();
-    const hoursLeft = Math.ceil(timeLeft / (60 * 60 * 1000));
+    const timeLeft = expiresAt - currentTime;
     
-    if (hoursLeft < 1) return "< 1h left";
-    if (hoursLeft < 24) return `${hoursLeft}h left`;
-    return `${Math.floor(hoursLeft / 24)}d left`;
+    if (timeLeft <= 0) return "समाप्त होने वाला";
+    
+    // Less than 1 hour
+    if (timeLeft < 60 * 60 * 1000) {
+      const minutesLeft = Math.floor(timeLeft / (60 * 1000));
+      return `${minutesLeft} मिनट शेष`;
+    }
+    
+    // Less than 24 hours
+    if (timeLeft < 24 * 60 * 60 * 1000) {
+      const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
+      const minutesLeft = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+      return `${hoursLeft}घं ${minutesLeft}मि शेष`;
+    }
+    
+    // More than 24 hours
+    const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
+    return `${Math.floor(hoursLeft / 24)}दिन ${hoursLeft % 24}घं शेष`;
   };
 
   useEffect(() => {
@@ -83,7 +108,7 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
           const imageUrl = isImage ? extractImageUrl(msg.text) : '';
           const isSaved = msg.saved === true;
           const isExpiringSoon = msg.expiresAt && !isSaved && 
-            (msg.expiresAt - Date.now() < 4 * 60 * 60 * 1000); // Less than 4 hours remaining
+            (msg.expiresAt - currentTime < 4 * 60 * 60 * 1000); // Less than 4 hours remaining
           const isTemp = msg.isTemp === true;
           const expirationTimeText = getExpirationTime(msg.expiresAt);
           
@@ -136,7 +161,7 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
                 >
                   <span>{formatMessageTimestamp(msg.timestamp)}</span>
                   {!isSaved && !isTemp && expirationTimeText && (
-                    <span className="text-red-300 text-xs">
+                    <span className={`text-xs ${isCurrentUser ? 'text-purple-100' : 'text-red-400'}`}>
                       {expirationTimeText}
                     </span>
                   )}
