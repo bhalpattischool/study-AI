@@ -61,6 +61,11 @@
 }
 
 @layer utilities {
+  /* Define rounded-inherit utility class */
+  .rounded-inherit {
+    border-radius: inherit;
+  }
+  
   /* Enhanced Glass morphism effects */
   .glass {
     @apply backdrop-blur-lg bg-white/30 dark:bg-black/30 border border-white/30 dark:border-white/10 shadow-xl;
@@ -98,7 +103,7 @@
   
   .glow::after {
     content: "";
-    @apply absolute inset-0 rounded-inherit blur-md bg-inherit opacity-70 -z-10 transition-all duration-1000;
+    @apply absolute inset-0 rounded-full blur-md bg-inherit opacity-70 -z-10 transition-all duration-1000;
     animation: glow-pulse 2s ease-in-out infinite alternate;
   }
   
