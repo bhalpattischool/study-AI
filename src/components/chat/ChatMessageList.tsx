@@ -48,6 +48,18 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
     }, 3000);
   };
 
+  // Calculate time remaining for message expiration
+  const getExpirationTime = (expiresAt: number) => {
+    if (!expiresAt) return null;
+    
+    const timeLeft = expiresAt - Date.now();
+    const hoursLeft = Math.ceil(timeLeft / (60 * 60 * 1000));
+    
+    if (hoursLeft < 1) return "< 1h left";
+    if (hoursLeft < 24) return `${hoursLeft}h left`;
+    return `${Math.floor(hoursLeft / 24)}d left`;
+  };
+
   useEffect(() => {
     // Clean up timer on unmount
     return () => {
@@ -73,25 +85,29 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
           const isExpiringSoon = msg.expiresAt && !isSaved && 
             (msg.expiresAt - Date.now() < 4 * 60 * 60 * 1000); // Less than 4 hours remaining
           const isTemp = msg.isTemp === true;
+          const expirationTimeText = getExpirationTime(msg.expiresAt);
           
           return (
             <div 
               key={msg.id} 
-              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-3`}
             >
               <div 
-                className={`relative max-w-[75%] rounded-lg p-3 ${
+                className={`relative max-w-[75%] rounded-2xl p-3 ${
                   isCurrentUser 
                     ? 'bg-purple-500 text-white rounded-br-none' 
                     : 'bg-gray-200 dark:bg-gray-700 rounded-bl-none'
                 } ${isSaved ? 'border-l-4 border-amber-500' : ''}
                   ${isExpiringSoon ? 'border-red-500 border' : ''}
-                  ${isTemp ? 'opacity-70' : 'opacity-100'}`}
+                  ${isTemp ? 'opacity-70' : 'opacity-100'} shadow-sm`}
                 onClick={() => !isTemp && handleMessageClick(msg.id)}
               >
-                {isGroup && !isCurrentUser && (
-                  <div className="text-xs font-medium mb-1">
-                    {msg.senderName}
+                {/* Sender name - always show in group chats */}
+                {isGroup && (
+                  <div className={`text-xs font-semibold mb-1 ${
+                    isCurrentUser ? 'text-purple-100' : 'text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {isCurrentUser ? 'You' : msg.senderName}
                   </div>
                 )}
                 
@@ -119,9 +135,9 @@ const ChatMessageList = memo(({ messages, isGroup, chatId, onMessageUpdated }: C
                   } text-right mt-1 flex justify-end items-center space-x-2`}
                 >
                   <span>{formatMessageTimestamp(msg.timestamp)}</span>
-                  {isExpiringSoon && !isSaved && !isTemp && (
-                    <span className="text-red-500 text-xs">
-                      {Math.ceil((msg.expiresAt - Date.now()) / (60 * 60 * 1000))}h left
+                  {!isSaved && !isTemp && expirationTimeText && (
+                    <span className="text-red-300 text-xs">
+                      {expirationTimeText}
                     </span>
                   )}
                 </div>

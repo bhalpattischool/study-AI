@@ -33,7 +33,8 @@ export const createChatGroup = async (name: string, members: {[uid: string]: boo
       sender: "system",
       senderName: "System",
       text: `Welcome to ${name}!`,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours expiration
     };
     
     // Set group data
@@ -65,13 +66,13 @@ export const sendMessage = async (chatId: string, senderUid: string, text: strin
       ? senderSnapshot.val().displayName || `User_${senderUid.substring(0, 5)}`
       : `User_${senderUid.substring(0, 5)}`;
     
-    // Create message object
+    // Create message object with 24-hour expiration
     const message = {
       sender: senderUid,
       senderName,
       text,
       timestamp: Date.now(),
-      expiresAt: Date.now() + (48 * 60 * 60 * 1000), // 48 hours in milliseconds
+      expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours in milliseconds
       saved: false
     };
     
@@ -330,7 +331,7 @@ export const deleteMessage = async (chatId: string, messageId: string, isGroup: 
   }
 };
 
-// Toggle save status of a message
+// Toggle save status of a message (prevents auto-deletion)
 export const toggleSaveMessage = async (chatId: string, messageId: string, isGroup: boolean) => {
   try {
     const currentUserUid = auth.currentUser?.uid;

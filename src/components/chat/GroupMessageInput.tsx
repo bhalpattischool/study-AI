@@ -82,13 +82,13 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-3 border-t flex flex-col gap-2 bg-white dark:bg-gray-800">
+    <form onSubmit={handleSubmit} className="p-3 border-t flex flex-col gap-2 bg-white dark:bg-gray-800 shadow-lg">
       {previewUrl && (
         <div className="relative inline-block max-w-[150px] mr-2">
           <img 
             src={previewUrl} 
             alt="पूर्वावलोकन" 
-            className="h-20 w-auto object-cover rounded border border-gray-300" 
+            className="h-20 w-auto object-cover rounded-lg border border-gray-300" 
           />
           <Button
             type="button"
@@ -108,8 +108,7 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="संदेश लिखें या छवि चुनें..."
-          className="min-h-[50px] max-h-[120px] flex-1 resize-none"
-          disabled={isLoading || isSending}
+          className="min-h-[50px] max-h-[120px] flex-1 resize-none rounded-full px-4 py-2 text-sm"
         />
         <input
           ref={fileInputRef}
@@ -121,23 +120,24 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
         <Button
           type="button"
           size="icon"
-          className="self-end h-10 w-10"
+          variant="ghost"
+          className="self-end h-10 w-10 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading || isSending}
           title="छवि संलग्न करें"
         >
-          <ImageIcon className="h-5 w-5" />
+          <ImageIcon className="h-5 w-5 text-purple-500" />
         </Button>
         <Button
           type="submit"
           size="icon"
-          className="self-end h-10 w-10"
+          className="self-end h-10 w-10 rounded-full bg-purple-500 hover:bg-purple-600"
           disabled={(!message.trim() && !file) || isLoading || isSending}
         >
           {isSending ? (
             <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
-            <SendHorizontal className="h-5 w-5" />
+            <SendHorizontal className="h-5 w-5 text-white" />
           )}
         </Button>
       </div>

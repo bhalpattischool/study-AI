@@ -156,7 +156,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full glass-morphism border border-purple-200 dark:border-purple-900">
+    <div className="flex flex-col h-full glass-morphism border border-purple-200 dark:border-purple-900 rounded-lg overflow-hidden">
       <ChatHeader
         displayName={displayName}
         isGroup={isGroup}
@@ -183,7 +183,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full"></div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+        <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50 dark:bg-gray-900">
           <ChatMessageList 
             messages={localMessages} 
             isGroup={isGroup} 
