@@ -95,6 +95,20 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "pulse-glow": {
+          "0%, 100%": { 
+            opacity: "1",
+            filter: "brightness(1) blur(0px)" 
+          },
+          "50%": { 
+            opacity: "0.8", 
+            filter: "brightness(1.2) blur(2px)" 
+          },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -106,6 +120,8 @@ const config: Config = {
         "spin-slow": "spin-slow 3s linear infinite",
         "bounce-slow": "bounce 2s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "shimmer": "shimmer 2.5s ease-in-out infinite",
       },
     },
   },

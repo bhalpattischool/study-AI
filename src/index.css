@@ -61,7 +61,7 @@
 }
 
 @layer utilities {
-  /* Glass morphism effects */
+  /* Enhanced Glass morphism effects */
   .glass {
     @apply backdrop-blur-lg bg-white/30 dark:bg-black/30 border border-white/30 dark:border-white/10 shadow-xl;
   }
@@ -78,17 +78,56 @@
     @apply backdrop-blur-2xl bg-white/10 dark:bg-black/40 border border-white/10 dark:border-white/5;
   }
   
-  /* Gradient backgrounds */
+  /* Enhanced Gradient backgrounds */
   .gradient-purple {
-    @apply bg-gradient-to-br from-purple-500 to-indigo-600;
+    @apply bg-gradient-to-br from-purple-500 via-violet-500 to-indigo-600;
   }
   
   .gradient-purple-light {
-    @apply bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30;
+    @apply bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-100 dark:from-purple-900/30 dark:via-violet-900/30 dark:to-indigo-900/30;
   }
   
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400;
+  }
+  
+  /* Glowing effects */
+  .glow {
+    @apply relative;
+  }
+  
+  .glow::after {
+    content: "";
+    @apply absolute inset-0 rounded-inherit blur-md bg-inherit opacity-70 -z-10 transition-all duration-1000;
+    animation: glow-pulse 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes glow-pulse {
+    0%, 100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.05);
+    }
+  }
+  
+  /* Shimmer effect */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+  
+  .shimmer::before {
+    content: "";
+    @apply absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full;
+    animation: shimmer 1.5s infinite;
+  }
+  
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
   }
 }
 
