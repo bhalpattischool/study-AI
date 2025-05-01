@@ -5,6 +5,7 @@ import MessageList from './MessageList';
 import EmptyChatState from './EmptyChatState';
 import ChatFooter from '../ChatFooter';
 import MessageLimitAlert from '../MessageLimitAlert';
+import LoadingAnimation from '../ui/loading-animation';
 
 interface ChatContainerProps {
   chatId: string;
@@ -52,6 +53,13 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
     if (onChatUpdated) onChatUpdated();
   };
 
+  // Determine appropriate loading message based on response state
+  const getLoadingMessage = () => {
+    if (isLoading) return "Study AI लोड हो रहा है...";
+    if (isResponding) return "Study AI सोच रहा है...";
+    return "Study AI प्रतिक्रिया दे रहा है...";
+  };
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50 dark:from-gray-800 dark:to-gray-900 w-full overflow-hidden">
       {showLimitAlert && (
@@ -71,12 +79,22 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
         {messages.length === 0 ? (
           <EmptyChatState onSendMessage={handleSend} />
         ) : (
-          <MessageList 
-            messages={messages}
-            isLoading={isLoading}
-            onMessageEdited={handleMessageEdited}
-            onMessageDeleted={handleMessageDeleted}
-          />
+          <>
+            <MessageList 
+              messages={messages}
+              isLoading={isLoading}
+              onMessageEdited={handleMessageEdited}
+              onMessageDeleted={handleMessageDeleted}
+            />
+            
+            {/* Show our beautiful new loading animation when the AI is responding */}
+            {(isLoading || isResponding) && (
+              <LoadingAnimation 
+                message={getLoadingMessage()}
+                className="my-8"
+              />
+            )}
+          </>
         )}
         <div ref={messagesEndRef} />
       </div>
