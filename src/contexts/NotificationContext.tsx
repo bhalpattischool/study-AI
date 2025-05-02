@@ -46,6 +46,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [playSound, setPlaySound] = useState(true);
   const { currentUser } = useAuth();
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const lastNotificationRef = React.useRef<{senderId?: string, text?: string, timestamp?: number}>({});
 
   // Initialize audio element
   useEffect(() => {
@@ -67,6 +68,26 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Don't notify for user's own messages
       if (message.sender === currentUser.uid) return;
+      
+      // Prevent duplicate notifications by checking with last notification
+      const currentTime = Date.now();
+      const isDuplicate = 
+        message.sender === lastNotificationRef.current.senderId &&
+        message.text === lastNotificationRef.current.text &&
+        lastNotificationRef.current.timestamp &&
+        currentTime - lastNotificationRef.current.timestamp < 5000; // 5 seconds threshold
+      
+      if (isDuplicate) {
+        console.log('Skipping duplicate notification');
+        return;
+      }
+      
+      // Update last notification reference
+      lastNotificationRef.current = {
+        senderId: message.sender,
+        text: message.text,
+        timestamp: currentTime
+      };
       
       // Create notification for new messages
       addNotification({
@@ -110,6 +131,18 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       timestamp: Date.now(),
       isRead: false,
     };
+
+    // Check for duplicates within the last 5 seconds
+    const isDuplicate = notifications.some(
+      n => n.senderId === notification.senderId &&
+           n.message === notification.message &&
+           Date.now() - n.timestamp < 5000
+    );
+
+    if (isDuplicate) {
+      console.log('Duplicate notification detected and prevented');
+      return;
+    }
 
     setNotifications(prev => [newNotification, ...prev]);
 

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 const NotificationToast: React.FC = () => {
-  const { notifications, markAsRead } = useNotification();
+  const { notifications, markAsRead, deleteNotification } = useNotification();
   const [visibleNotification, setVisibleNotification] = useState<null | {
     id: string;
     title: string;
@@ -31,7 +31,7 @@ const NotificationToast: React.FC = () => {
 
       // Auto-hide after 5 seconds
       const timer = setTimeout(() => {
-        setVisibleNotification(null);
+        handleClose();
       }, 5000);
 
       return () => clearTimeout(timer);
@@ -39,14 +39,20 @@ const NotificationToast: React.FC = () => {
   }, [notifications, visibleNotification]);
 
   const handleClose = () => {
-    setVisibleNotification(null);
+    if (visibleNotification) {
+      // Actually mark as read AND delete the notification from the list
+      markAsRead(visibleNotification.id);
+      deleteNotification(visibleNotification.id);
+      setVisibleNotification(null);
+    }
   };
 
   const handleClick = () => {
     if (!visibleNotification) return;
     
-    // Mark notification as read
+    // Mark notification as read AND delete it
     markAsRead(visibleNotification.id);
+    deleteNotification(visibleNotification.id);
     
     // Navigate based on notification type
     if (visibleNotification.groupId) {

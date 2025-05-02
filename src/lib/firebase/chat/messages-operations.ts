@@ -1,4 +1,3 @@
-
 import { ref, push, set, get, onValue, update, remove } from "firebase/database";
 import { database, auth } from '../config';
 
@@ -149,6 +148,9 @@ export const toggleSaveMessage = async (chatId: string, messageId: string, isGro
   }
 };
 
+// Keep track of previously processed messages to avoid duplicates
+const processedMessages = new Map();
+
 // Listen for new messages across all user's chats for notifications
 export const onMessage = (callback: (message: {
   sender: string;
@@ -193,6 +195,19 @@ export const onMessage = (callback: (message: {
           const [messageId, messageData]: [string, any] = messages.sort(
             ([, a]: [string, any], [, b]: [string, any]) => b.timestamp - a.timestamp
           )[0];
+          
+          // Skip if this message has already been processed
+          const messageKey = `${chatId}:${messageId}`;
+          if (processedMessages.has(messageKey)) return;
+          
+          // Mark as processed
+          processedMessages.set(messageKey, Date.now());
+          
+          // Clean up old entries (keeping only last 5 minutes)
+          const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+          processedMessages.forEach((time, key) => {
+            if (time < fiveMinutesAgo) processedMessages.delete(key);
+          });
           
           // Skip if not a new message (relies on timestamp being recent)
           const isRecent = Date.now() - messageData.timestamp < 10000; // Within last 10 seconds
@@ -249,6 +264,19 @@ export const onMessage = (callback: (message: {
           const [messageId, messageData]: [string, any] = messages.sort(
             ([, a]: [string, any], [, b]: [string, any]) => b.timestamp - a.timestamp
           )[0];
+          
+          // Skip if this message has already been processed
+          const messageKey = `group:${groupId}:${messageId}`;
+          if (processedMessages.has(messageKey)) return;
+          
+          // Mark as processed
+          processedMessages.set(messageKey, Date.now());
+          
+          // Clean up old entries
+          const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+          processedMessages.forEach((time, key) => {
+            if (time < fiveMinutesAgo) processedMessages.delete(key);
+          });
           
           // Skip if not a new message (relies on timestamp being recent)
           const isRecent = Date.now() - messageData.timestamp < 10000; // Within last 10 seconds
