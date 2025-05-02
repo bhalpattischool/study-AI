@@ -48,7 +48,7 @@ const Feedback = () => {
   });
 
   // EmailJS configuration
-  const SERVICE_ID = 'default_service'; // Your EmailJS service ID
+  const SERVICE_ID = 'service_ty10406'; // Your EmailJS service ID
   const TEMPLATE_ID = 'template_feedback'; // Template ID you created in EmailJS
   const USER_ID = 'rOb0aFIHqSNRXhqDz'; // Your EmailJS public key
 
