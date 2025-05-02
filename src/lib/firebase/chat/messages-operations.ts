@@ -148,3 +148,133 @@ export const toggleSaveMessage = async (chatId: string, messageId: string, isGro
     throw error;
   }
 };
+
+// Listen for new messages across all user's chats for notifications
+export const onMessage = (callback: (message: {
+  sender: string;
+  senderName?: string;
+  text: string;
+  chatId: string;
+  isGroup: boolean;
+  groupName?: string;
+}) => void) => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    console.warn("Cannot listen for messages: No user logged in");
+    return () => {};
+  }
+
+  const userId = currentUser.uid;
+  
+  // Listen for changes in 1-on-1 chats
+  const userChatsUnsubscribe = onValue(
+    ref(database, 'chats'), 
+    async (snapshot) => {
+      if (!snapshot.exists()) return;
+      
+      const chatsData = snapshot.val();
+      
+      // Filter chats that involve the current user
+      Object.entries(chatsData).forEach(([chatId, chatData]: [string, any]) => {
+        if (!chatData.participants || !chatData.participants[userId]) return;
+        
+        // Set up listener for each chat's messages
+        const messagesRef = ref(database, `chats/${chatId}/messages`);
+        
+        onValue(messagesRef, async (messagesSnapshot) => {
+          if (!messagesSnapshot.exists()) return;
+          
+          const messagesData = messagesSnapshot.val();
+          const messages = Object.entries(messagesData);
+          
+          if (messages.length === 0) return;
+          
+          // Sort by timestamp and get the newest message
+          const [messageId, messageData]: [string, any] = messages.sort(
+            ([, a]: [string, any], [, b]: [string, any]) => b.timestamp - a.timestamp
+          )[0];
+          
+          // Skip if not a new message (relies on timestamp being recent)
+          const isRecent = Date.now() - messageData.timestamp < 10000; // Within last 10 seconds
+          if (!isRecent) return;
+          
+          // Skip the user's own messages
+          if (messageData.sender === userId) return;
+          
+          // Get sender's name for notification
+          const otherUserId = chatId.replace(userId, '').replace('_', '');
+          const senderSnapshot = await get(ref(database, `users/${messageData.sender}`));
+          const senderName = senderSnapshot.exists() 
+            ? senderSnapshot.val().displayName || `User_${messageData.sender.substring(0, 5)}`
+            : messageData.senderName || `User_${messageData.sender.substring(0, 5)}`;
+          
+          // Call the callback with the message details
+          callback({
+            sender: messageData.sender,
+            senderName,
+            text: messageData.text,
+            chatId,
+            isGroup: false
+          });
+        }, { onlyOnce: false });
+      });
+    },
+    { onlyOnce: false }
+  );
+  
+  // Listen for changes in group chats
+  const groupsUnsubscribe = onValue(
+    ref(database, 'groups'),
+    async (snapshot) => {
+      if (!snapshot.exists()) return;
+      
+      const groupsData = snapshot.val();
+      
+      // Filter groups that the user is a member of
+      Object.entries(groupsData).forEach(([groupId, groupData]: [string, any]) => {
+        if (!groupData.members || !groupData.members[userId]) return;
+        
+        // Set up listener for each group's messages
+        const messagesRef = ref(database, `groups/${groupId}/messages`);
+        
+        onValue(messagesRef, async (messagesSnapshot) => {
+          if (!messagesSnapshot.exists()) return;
+          
+          const messagesData = messagesSnapshot.val();
+          const messages = Object.entries(messagesData);
+          
+          if (messages.length === 0) return;
+          
+          // Sort by timestamp and get the newest message
+          const [messageId, messageData]: [string, any] = messages.sort(
+            ([, a]: [string, any], [, b]: [string, any]) => b.timestamp - a.timestamp
+          )[0];
+          
+          // Skip if not a new message (relies on timestamp being recent)
+          const isRecent = Date.now() - messageData.timestamp < 10000; // Within last 10 seconds
+          if (!isRecent) return;
+          
+          // Skip the user's own messages or system messages
+          if (messageData.sender === userId || messageData.sender === 'system') return;
+          
+          // Call the callback with the message details
+          callback({
+            sender: messageData.sender,
+            senderName: messageData.senderName,
+            text: messageData.text,
+            chatId: groupId,
+            isGroup: true,
+            groupName: groupData.name
+          });
+        }, { onlyOnce: false });
+      });
+    },
+    { onlyOnce: false }
+  );
+  
+  // Return unsubscribe function
+  return () => {
+    userChatsUnsubscribe();
+    groupsUnsubscribe();
+  };
+};

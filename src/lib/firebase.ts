@@ -60,7 +60,8 @@ export {
   startChat,
   createChatGroup,
   updateGroupMembership,
-  deleteGroup
+  deleteGroup,
+  onMessage
 } from './firebase/chat';
 
 export { 
