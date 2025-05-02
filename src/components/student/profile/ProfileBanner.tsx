@@ -14,12 +14,18 @@ interface ProfileBannerProps {
 }
 
 const ProfileBanner: React.FC<ProfileBannerProps> = ({ profileData, levelProgress }) => {
+  // Ensure we have valid data
+  const name = profileData?.name || 'Student';
+  const points = profileData?.points || 0;
+  const level = profileData?.level || 1;
+  const photoURL = profileData?.photoURL || '';
+  
   const shareProfile = async () => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `${profileData?.name || 'Student'} का अध्ययन प्रोफाइल`,
-          text: `देखें ${profileData?.name || 'Student'} का अध्ययन प्रोफाइल! वर्तमान स्तर: ${profileData?.level}, अर्जित अंक: ${profileData?.points}`,
+          title: `${name} का अध्ययन प्रोफाइल`,
+          text: `देखें ${name} का अध्ययन प्रोफाइल! वर्तमान स्तर: ${level}, अर्जित अंक: ${points}`,
           url: window.location.href,
         });
         toast.success('प्रोफाइल शेयर किया गया');
@@ -45,29 +51,29 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({ profileData, levelProgres
       <CardContent className="pt-0 relative">
         <div className="flex flex-col items-center -mt-12">
           <div className="w-24 h-24 rounded-full bg-white p-1 shadow-md">
-            {profileData.photoURL ? (
+            {photoURL ? (
               <img 
-                src={profileData.photoURL} 
-                alt={profileData.name} 
+                src={photoURL} 
+                alt={name} 
                 className="w-full h-full rounded-full object-cover" 
               />
             ) : (
               <div className="w-full h-full rounded-full bg-purple-100 flex items-center justify-center text-2xl font-bold text-purple-700">
-                {profileData.name.charAt(0)}
+                {name.charAt(0)}
               </div>
             )}
           </div>
           
-          <h2 className="text-xl font-bold mt-4">{profileData.name}</h2>
+          <h2 className="text-xl font-bold mt-4">{name}</h2>
           
           <div className="flex items-center gap-2 mt-2">
             <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 flex items-center gap-1">
               <Star className="h-3 w-3" />
-              {profileData.points} पॉइंट्स
+              {points} पॉइंट्स
             </Badge>
             <Badge className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 flex items-center gap-1">
               <Award className="h-3 w-3" />
-              Level {profileData.level}
+              Level {level}
             </Badge>
           </div>
           

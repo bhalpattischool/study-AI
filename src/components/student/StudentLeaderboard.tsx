@@ -34,6 +34,8 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
       const unsubscribe = observeLeaderboardData((leaderboardData) => {
         const studentsWithCurrentUser = leaderboardData.map(student => ({
           ...student,
+          // Ensure name is never undefined
+          name: student.name || 'Unknown',
           isCurrentUser: student.id === currentUser.uid
         }));
         
@@ -178,16 +180,16 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                           {student.photoURL ? (
                             <img 
                               src={student.photoURL} 
-                              alt={student.name} 
+                              alt={student.name || 'Student'} 
                               className="w-full h-full rounded-full object-cover" 
                             />
                           ) : (
-                            student.name.charAt(0)
+                            (student.name || 'S').charAt(0)
                           )}
                         </div>
                         <div className="min-w-0">
                           <span className={`block truncate ${student.isCurrentUser ? "font-bold" : ""}`}>
-                            {student.name}
+                            {student.name || 'Unknown Student'}
                           </span>
                           {student.isCurrentUser && (
                             <span className="text-xs text-purple-600 dark:text-purple-400">(आप)</span>

@@ -127,10 +127,10 @@ const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                   <Label htmlFor={`add-user-${user.id}`} className="flex items-center space-x-2 cursor-pointer">
                     <div className="w-6 h-6 rounded-full bg-purple-200 flex items-center justify-center text-xs">
                       {user.photoURL ? (
-                        <img src={user.photoURL} className="w-full h-full object-cover rounded-full" alt={user.name}/>
-                      ) : user.name.charAt(0)}
+                        <img src={user.photoURL} className="w-full h-full object-cover rounded-full" alt={user.name || 'User'}/>
+                      ) : (user.name || 'U').charAt(0)}
                     </div>
-                    <span>{user.name} (Level {user.level})</span>
+                    <span>{user.name || 'Unknown User'} {user.level ? `(Level ${user.level})` : ''}</span>
                   </Label>
                 </div>
               ))}
@@ -162,10 +162,10 @@ const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                   <Label htmlFor={`remove-user-${user.id}`} className="flex items-center space-x-2 cursor-pointer">
                     <div className="w-6 h-6 rounded-full bg-red-200 flex items-center justify-center text-xs">
                       {user.photoURL ? (
-                        <img src={user.photoURL} className="w-full h-full object-cover rounded-full" alt={user.name}/>
-                      ) : user.name.charAt(0)}
+                        <img src={user.photoURL} className="w-full h-full object-cover rounded-full" alt={user.name || 'User'}/>
+                      ) : (user.name || 'U').charAt(0)}
                     </div>
-                    <span>{user.name} (Level {user.level})</span>
+                    <span>{user.name || 'Unknown User'} {user.level ? `(Level ${user.level})` : ''}</span>
                   </Label>
                 </div>
               ))}

@@ -167,14 +167,14 @@ const GroupChatModal: React.FC<GroupChatModalProps> = ({
                         {user.photoURL ? (
                           <img 
                             src={user.photoURL} 
-                            alt={user.name} 
+                            alt={user.name || 'User'} 
                             className="w-full h-full rounded-full object-cover" 
                           />
                         ) : (
-                          user.name.charAt(0)
+                          (user.name || 'U').charAt(0)
                         )}
                       </div>
-                      <span>{user.name} (Level {user.level})</span>
+                      <span>{user.name || 'Unknown User'} {user.level ? `(Level ${user.level})` : ''}</span>
                     </Label>
                   </div>
                 ))
