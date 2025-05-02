@@ -1,4 +1,37 @@
 
+// Import Firebase functions first
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+  sendPasswordResetEmail,
+  onAuthStateChanged 
+} from "firebase/auth";
+
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  getDocs,
+  query,
+  where,
+  onSnapshot,
+  serverTimestamp,
+  Timestamp
+} from "firebase/firestore";
+
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getDatabase } from "firebase/database";
+
 // Re-export everything from modular Firebase structure
 export { 
   auth, 
@@ -39,39 +72,6 @@ export {
   addPointsToUserDb,
   getUserPointsHistory 
 } from './firebase/points';
-
-// Import Firebase functions first so they're available for use and re-export
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  signOut,
-  sendPasswordResetEmail,
-  onAuthStateChanged 
-} from "firebase/auth";
-
-import { 
-  getFirestore, 
-  collection, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc,
-  getDocs,
-  query,
-  where,
-  onSnapshot,
-  serverTimestamp,
-  Timestamp
-} from "firebase/firestore";
-
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getDatabase } from "firebase/database";
 
 // Re-export firebase storage functions
 export { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
