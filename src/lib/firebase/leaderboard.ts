@@ -1,8 +1,9 @@
 
-import { ref, get, onValue } from "firebase/database";
+import { ref, get, query, orderByChild, limitToFirst, onValue } from "firebase/database";
 import { database } from './config';
 
-export const getLeaderboardData = async () => {
+// Get leaderboard data
+export const getLeaderboardData = async (limit: number = 10) => {
   try {
     const usersRef = ref(database, 'users');
     const snapshot = await get(usersRef);
@@ -11,79 +12,58 @@ export const getLeaderboardData = async () => {
       return [];
     }
     
-    const users = snapshot.val();
-    const leaderboardData = Object.keys(users).map(userId => {
-      const user = users[userId];
-      return {
-        id: userId,
-        name: user.displayName || `Student_${userId.substring(0, 5)}`,
-        points: user.points || 0,
-        level: user.level || 1,
-        photoURL: user.photoURL,
-        rank: 0 // Will be calculated after sorting
-      };
+    const users: any[] = [];
+    snapshot.forEach((childSnapshot) => {
+      users.push({
+        id: childSnapshot.key,
+        ...childSnapshot.val()
+      });
     });
     
-    // Sort by points (descending)
-    leaderboardData.sort((a, b) => b.points - a.points);
-    
-    // Assign ranks
-    leaderboardData.forEach((student, index) => {
-      student.rank = index + 1;
+    // Sort by points (and then by level if points are equal)
+    users.sort((a, b) => {
+      if (b.points !== a.points) {
+        return b.points - a.points;
+      }
+      return b.level - a.level;
     });
     
-    return leaderboardData;
+    // Return only the top N users
+    return users.slice(0, limit);
   } catch (error) {
-    console.error("Error fetching leaderboard data:", error);
-    return [];
+    console.error("Error getting leaderboard data:", error);
+    throw error;
   }
 };
 
-export const getUserPointsHistory = async (userId: string) => {
-  try {
-    const historyRef = ref(database, `users/${userId}/pointsHistory`);
-    const snapshot = await get(historyRef);
-    
-    if (!snapshot.exists()) {
-      return [];
-    }
-    
-    const history = snapshot.val();
-    return Object.values(history);
-  } catch (error) {
-    console.error("Error fetching points history:", error);
-    return [];
-  }
-};
-
-export const observeLeaderboardData = (callback: (data: any[]) => void) => {
+// Observe leaderboard data in real-time
+export const observeLeaderboardData = (limit: number = 10, callback: (data: any[]) => void) => {
   const usersRef = ref(database, 'users');
-  return onValue(usersRef, async (snapshot) => {
-    if (!snapshot.exists()) {
+  
+  const unsubscribe = onValue(usersRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const users: any[] = [];
+      snapshot.forEach((childSnapshot) => {
+        users.push({
+          id: childSnapshot.key,
+          ...childSnapshot.val()
+        });
+      });
+      
+      // Sort by points (and then by level if points are equal)
+      users.sort((a, b) => {
+        if (b.points !== a.points) {
+          return b.points - a.points;
+        }
+        return b.level - a.level;
+      });
+      
+      // Return only the top N users
+      callback(users.slice(0, limit));
+    } else {
       callback([]);
-      return;
     }
-    
-    const users = snapshot.val();
-    const leaderboardData = Object.keys(users).map(userId => {
-      const user = users[userId];
-      return {
-        id: userId,
-        name: user.displayName || `Student_${userId.substring(0, 5)}`,
-        points: user.points || 0,
-        level: user.level || 1,
-        photoURL: user.photoURL,
-        rank: 0
-      };
-    });
-    
-    leaderboardData.sort((a, b) => b.points - a.points);
-    
-    leaderboardData.forEach((student, index) => {
-      student.rank = index + 1;
-    });
-    
-    callback(leaderboardData);
   });
+  
+  return unsubscribe;
 };
-

@@ -1,34 +1,28 @@
 
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { updateProfile } from "firebase/auth";
-import { storage, database } from './config';
-import { auth } from './config';
-import { ref as dbRef, update } from "firebase/database";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { storage } from "./config";
 
-export const uploadProfileImage = async (userId: string, file: File) => {
+// Upload a file to Firebase Storage
+export const uploadFile = async (path: string, file: File) => {
   try {
-    const storageRef = ref(storage, `profile-images/${userId}`);
-    await uploadBytes(storageRef, file);
-    const photoURL = await getDownloadURL(storageRef);
-    
-    // Update profile with photo URL
-    if (auth.currentUser) {
-      await updateProfile(auth.currentUser, {
-        photoURL: photoURL
-      });
-      
-      // Update in Firebase database
-      await update(dbRef(database, `users/${userId}`), {
-        photoURL: photoURL
-      });
-    }
-    
-    return photoURL;
+    const storageRef = ref(storage, path);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return { ref: snapshot.ref, downloadURL };
   } catch (error) {
-    console.error("Error uploading profile image:", error);
+    console.error("Error uploading file:", error);
     throw error;
   }
 };
 
-// Re-export storage functions for direct use
-export { ref, uploadBytes, getDownloadURL };
+// Delete a file from Firebase Storage
+export const deleteFile = async (path: string) => {
+  try {
+    const storageRef = ref(storage, path);
+    await deleteObject(storageRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    throw error;
+  }
+};

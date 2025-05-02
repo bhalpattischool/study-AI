@@ -1,81 +1,86 @@
 
-import { ref, get, onValue, set } from "firebase/database";
+import { ref, push, set, get, query, orderByChild, limitToLast } from "firebase/database";
 import { database } from './config';
 
-export const getUserPoints = async (userId: string) => {
-  const pointsRef = ref(database, `users/${userId}/points`);
-  const snapshot = await get(pointsRef);
-  return snapshot.exists() ? snapshot.val() : 0;
-};
-
-export const getUserLevel = async (userId: string) => {
-  const levelRef = ref(database, `users/${userId}/level`);
-  const snapshot = await get(levelRef);
-  return snapshot.exists() ? snapshot.val() : 1;
-};
-
-export const observeUserPoints = (userId: string, callback: (points: number) => void) => {
-  const pointsRef = ref(database, `users/${userId}/points`);
-  return onValue(pointsRef, (snapshot) => {
-    const points = snapshot.exists() ? snapshot.val() : 0;
-    callback(points);
-  });
-};
-
-export const observeUserLevel = (userId: string, callback: (level: number) => void) => {
-  const levelRef = ref(database, `users/${userId}/level`);
-  return onValue(levelRef, (snapshot) => {
-    const level = snapshot.exists() ? snapshot.val() : 1;
-    callback(level);
-  });
-};
-
-export const addPointsToUserDb = async (userId: string, points: number, description: string, type: string) => {
+// Add points to a user
+export const addPointsToUserDb = async (userId: string, points: number, reason: string) => {
   try {
     // Get current points
-    const currentPoints = await getUserPoints(userId);
-    const newTotalPoints = currentPoints + points;
+    const userPointsRef = ref(database, `users/${userId}`);
+    const snapshot = await get(userPointsRef);
     
-    // Update points
-    await set(ref(database, `users/${userId}/points`), newTotalPoints);
-    
-    // Calculate and update level (1 level per 100 points)
-    const newLevel = Math.floor(newTotalPoints / 100) + 1;
-    const currentLevel = await getUserLevel(userId);
-    
-    if (newLevel > currentLevel) {
-      await set(ref(database, `users/${userId}/level`), newLevel);
-      
-      // Add level up bonus
-      const levelUpRecord = {
-        id: Date.now() + 1,
-        type: 'achievement',
-        points: 10,
-        description: `लेवल ${newLevel} पर पहुंचने का बोनस`,
-        timestamp: new Date().toISOString()
-      };
-      
-      await set(ref(database, `users/${userId}/pointsHistory/${levelUpRecord.id}`), levelUpRecord);
-      
-      // Also add 10 more points for leveling up
-      await set(ref(database, `users/${userId}/points`), newTotalPoints + 10);
+    if (!snapshot.exists()) {
+      throw new Error("User not found");
     }
     
-    // Add points record
-    const pointRecord = {
-      id: Date.now(),
-      type,
+    const userData = snapshot.val();
+    const currentPoints = userData.points || 0;
+    const currentLevel = userData.level || 1;
+    
+    // Calculate new level (simple algorithm, can be made more complex)
+    let newLevel = currentLevel;
+    const pointsForNextLevel = currentLevel * 100; // Example: level 1 = 100 points, level 2 = 200 points
+    
+    if (currentPoints + points >= pointsForNextLevel) {
+      newLevel = currentLevel + 1;
+    }
+    
+    // Update user's points and level
+    await set(ref(database, `users/${userId}`), {
+      ...userData,
+      points: currentPoints + points,
+      level: newLevel
+    });
+    
+    // Add to points history
+    const historyRef = ref(database, `points_history/${userId}`);
+    await push(historyRef, {
       points,
-      description,
-      timestamp: new Date().toISOString()
+      reason,
+      timestamp: Date.now(),
+      newTotal: currentPoints + points,
+      levelUp: newLevel > currentLevel
+    });
+    
+    return {
+      previousPoints: currentPoints,
+      newPoints: currentPoints + points,
+      previousLevel: currentLevel,
+      newLevel,
+      leveledUp: newLevel > currentLevel
     };
-    
-    await set(ref(database, `users/${userId}/pointsHistory/${pointRecord.id}`), pointRecord);
-    
-    return newTotalPoints;
   } catch (error) {
     console.error("Error adding points:", error);
     throw error;
   }
 };
 
+// Get user's point history
+export const getUserPointsHistory = async (userId: string, limit: number = 20) => {
+  try {
+    const historyRef = query(
+      ref(database, `points_history/${userId}`),
+      orderByChild('timestamp'),
+      limitToLast(limit)
+    );
+    
+    const snapshot = await get(historyRef);
+    if (!snapshot.exists()) {
+      return [];
+    }
+    
+    const history: any[] = [];
+    snapshot.forEach((item) => {
+      history.push({
+        id: item.key,
+        ...item.val()
+      });
+    });
+    
+    // Sort by timestamp (newest first)
+    return history.sort((a, b) => b.timestamp - a.timestamp);
+  } catch (error) {
+    console.error("Error getting points history:", error);
+    throw error;
+  }
+};
