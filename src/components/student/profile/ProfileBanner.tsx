@@ -1,12 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Award, Share2, LinkIcon } from 'lucide-react';
+import { Star, Award, Share2, LinkIcon, Upload } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { toast } from 'sonner';
 import { ProfileData } from '@/types/student';
+import { uploadFile } from '@/lib/firebase/storage';
+import { auth } from '@/lib/firebase';
 
 interface ProfileBannerProps {
   profileData: ProfileData;
@@ -19,6 +21,8 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({ profileData, levelProgres
   const points = profileData?.points || 0;
   const level = profileData?.level || 1;
   const photoURL = profileData?.photoURL || '';
+  
+  const [uploading, setUploading] = useState(false);
   
   const shareProfile = async () => {
     try {
@@ -44,13 +48,45 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({ profileData, levelProgres
     navigator.clipboard.writeText(window.location.href);
     toast.success('प्रोफाइल लिंक कॉपी किया गया');
   };
+  
+  const handleProfileImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0] && auth.currentUser) {
+      const file = e.target.files[0];
+      
+      try {
+        setUploading(true);
+        const userId = auth.currentUser.uid;
+        const path = `profile_images/${userId}`;
+        const { downloadURL } = await uploadFile(path, file);
+        
+        // Update user profile photo URL in Firebase Auth
+        if (auth.currentUser) {
+          await auth.currentUser.updateProfile({
+            photoURL: downloadURL
+          });
+        }
+        
+        toast.success('प्रोफाइल फोटो अपडेट किया गया');
+        
+        // Force refresh to update UI
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } catch (error) {
+        console.error('Error uploading profile image:', error);
+        toast.error('प्रोफाइल फोटो अपलोड करने में त्रुटि');
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
 
   return (
     <Card className="mb-4 overflow-hidden">
       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 h-24"></div>
       <CardContent className="pt-0 relative">
         <div className="flex flex-col items-center -mt-12">
-          <div className="w-24 h-24 rounded-full bg-white p-1 shadow-md">
+          <div className="relative w-24 h-24 rounded-full bg-white p-1 shadow-md">
             {photoURL ? (
               <img 
                 src={photoURL} 
@@ -59,7 +95,25 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({ profileData, levelProgres
               />
             ) : (
               <div className="w-full h-full rounded-full bg-purple-100 flex items-center justify-center text-2xl font-bold text-purple-700">
-                {name.charAt(0)}
+                {name ? name.charAt(0) : 'S'}
+              </div>
+            )}
+            
+            <label htmlFor="profile-image" className="absolute bottom-0 right-0 w-7 h-7 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer border-2 border-white">
+              <Upload className="h-3 w-3 text-white" />
+              <input
+                id="profile-image"
+                type="file"
+                accept="image/*"
+                onChange={handleProfileImageChange}
+                className="hidden"
+                disabled={uploading}
+              />
+            </label>
+            
+            {uploading && (
+              <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center">
+                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
               </div>
             )}
           </div>
