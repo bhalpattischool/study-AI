@@ -4,7 +4,7 @@ export {
   auth, 
   database, 
   storage 
-} from './lib/firebase/config';
+} from './firebase/config';
 
 // Re-export all functions from modular files
 export { 
@@ -14,7 +14,7 @@ export {
   logoutUser, 
   resetPassword,
   getUserProfile 
-} from './lib/firebase/auth';
+} from './firebase/auth';
 
 export { 
   sendMessage, 
@@ -28,17 +28,17 @@ export {
   createChatGroup,
   updateGroupMembership,
   deleteGroup
-} from './lib/firebase/chat';
+} from './firebase/chat';
 
 export { 
   getLeaderboardData,
   observeLeaderboardData 
-} from './lib/firebase/leaderboard';
+} from './firebase/leaderboard';
 
 export { 
   addPointsToUserDb,
   getUserPointsHistory 
-} from './lib/firebase/points';
+} from './firebase/points';
 
 // Re-export firebase storage functions directly
 export { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
