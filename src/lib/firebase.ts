@@ -74,6 +74,7 @@ export {
 
 // Message listener
 const onMessage = (callback: (message: any) => void) => {
+  // Use the imported functions directly since they're now available in this scope
   const auth = getAuth();
   const user = auth.currentUser;
   if (!user) return () => {}; 
