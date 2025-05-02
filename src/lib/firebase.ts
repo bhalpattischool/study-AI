@@ -40,7 +40,40 @@ export {
   getUserPointsHistory 
 } from './firebase/points';
 
-// Re-export firebase storage functions directly
+// Import Firebase functions first so they're available for use and re-export
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+  sendPasswordResetEmail,
+  onAuthStateChanged 
+} from "firebase/auth";
+
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  getDocs,
+  query,
+  where,
+  onSnapshot,
+  serverTimestamp,
+  Timestamp
+} from "firebase/firestore";
+
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getDatabase } from "firebase/database";
+
+// Re-export firebase storage functions
 export { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 export { getDatabase } from "firebase/database";
 export { 
@@ -74,7 +107,7 @@ export {
 
 // Message listener
 const onMessage = (callback: (message: any) => void) => {
-  // Use the imported functions directly since they're now available in this scope
+  // Now these functions are properly imported above
   const auth = getAuth();
   const user = auth.currentUser;
   if (!user) return () => {}; 
