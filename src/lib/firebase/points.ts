@@ -3,7 +3,7 @@ import { ref, push, set, get, query, orderByChild, limitToLast } from "firebase/
 import { database } from './config';
 
 // Add points to a user
-export const addPointsToUserDb = async (userId: string, points: number, reason: string) => {
+export const addPointsToUserDb = async (userId: string, points: number, reason: string, type?: string) => {
   try {
     // Get current points
     const userPointsRef = ref(database, `users/${userId}`);
@@ -37,6 +37,7 @@ export const addPointsToUserDb = async (userId: string, points: number, reason: 
     await push(historyRef, {
       points,
       reason,
+      type: type || 'activity', // Default to 'activity' if no type is provided
       timestamp: Date.now(),
       newTotal: currentPoints + points,
       levelUp: newLevel > currentLevel

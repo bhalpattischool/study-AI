@@ -23,7 +23,13 @@ export const loginUser = async (email: string, password: string) => {
 };
 
 // Register a new user
-export const registerUser = async (email: string, password: string, displayName: string) => {
+export const registerUser = async (
+  email: string, 
+  password: string, 
+  displayName: string,
+  userCategory?: string,
+  educationLevel?: string
+) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -37,7 +43,9 @@ export const registerUser = async (email: string, password: string, displayName:
       displayName,
       createdAt: Date.now(),
       points: 0,
-      level: 1
+      level: 1,
+      ...(userCategory && { category: userCategory }),
+      ...(educationLevel && { education: educationLevel })
     });
     
     return user;

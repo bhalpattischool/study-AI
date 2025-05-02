@@ -37,7 +37,20 @@ export const getLeaderboardData = async (limit: number = 10) => {
 };
 
 // Observe leaderboard data in real-time
-export const observeLeaderboardData = (limit: number = 10, callback: (data: any[]) => void) => {
+export const observeLeaderboardData = (
+  callbackOrLimit: ((data: any[]) => void) | number = 10, 
+  callback?: (data: any[]) => void
+) => {
+  // Handle both function signatures:
+  // observeLeaderboardData(callback) - callbackOrLimit is the callback, use default limit
+  // observeLeaderboardData(limit, callback) - callbackOrLimit is the limit, callback is provided
+  const limit = typeof callbackOrLimit === 'function' ? 10 : callbackOrLimit;
+  const finalCallback = typeof callbackOrLimit === 'function' ? callbackOrLimit : callback;
+  
+  if (!finalCallback) {
+    throw new Error("Callback function is required for observeLeaderboardData");
+  }
+  
   const usersRef = ref(database, 'users');
   
   const unsubscribe = onValue(usersRef, (snapshot) => {
@@ -58,10 +71,15 @@ export const observeLeaderboardData = (limit: number = 10, callback: (data: any[
         return b.level - a.level;
       });
       
+      // Add rank property
+      users.forEach((user, index) => {
+        user.rank = index + 1;
+      });
+      
       // Return only the top N users
-      callback(users.slice(0, limit));
+      finalCallback(users.slice(0, limit));
     } else {
-      callback([]);
+      finalCallback([]);
     }
   });
   
