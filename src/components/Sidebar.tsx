@@ -12,10 +12,12 @@ import {
   SendHorizontal,
   Users,
   MessageCircle,
-  X
+  X,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,6 +26,8 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const { language } = useLanguage();
+  const isHindi = language === 'hi';
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -61,54 +65,61 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </Button>
         </div>
         
-        <nav className="flex flex-col gap-1 p-4">
+        <nav className="flex flex-col gap-1 p-4 h-[calc(100%-3.5rem-8rem)]">
           <SidebarLink 
             to="/" 
             icon={<Home className="h-5 w-5" />} 
-            label="Home" 
+            label={isHindi ? "होम" : "Home"} 
             active={isActive('/')} 
           />
           
           <SidebarLink 
             to="/messages" 
             icon={<MessagesSquare className="h-5 w-5" />} 
-            label="History" 
+            label={isHindi ? "इतिहास" : "History"} 
             active={isActive('/messages')} 
           />
           
           <SidebarLink 
             to="/saved" 
             icon={<Bookmark className="h-5 w-5" />} 
-            label="Saved" 
+            label={isHindi ? "सेव किया गया" : "Saved"} 
             active={isActive('/saved')} 
           />
 
           <SidebarLink 
             to="/chat" 
             icon={<MessageCircle className="h-5 w-5" />} 
-            label="Chat" 
+            label={isHindi ? "चैट" : "Chat"} 
             active={isActive('/chat')} 
           />
           
           <SidebarLink 
             to="/activities" 
             icon={<GraduationCap className="h-5 w-5" />} 
-            label="Activities" 
+            label={isHindi ? "गतिविधियां" : "Activities"} 
             active={isActive('/activities')} 
           />
           
           <SidebarLink 
             to="/teacher" 
             icon={<SendHorizontal className="h-5 w-5" />} 
-            label="Ask Teacher" 
+            label={isHindi ? "शिक्षक से पूछें" : "Ask Teacher"} 
             active={isActive('/teacher')} 
           />
           
           <SidebarLink 
             to="/profile" 
             icon={<User className="h-5 w-5" />} 
-            label="Profile" 
+            label={isHindi ? "प्रोफाइल" : "Profile"} 
             active={isActive('/profile')} 
+          />
+          
+          <SidebarLink 
+            to="/about" 
+            icon={<Info className="h-5 w-5" />} 
+            label={isHindi ? "जानकारी" : "About"} 
+            active={isActive('/about')} 
           />
         </nav>
         
@@ -116,10 +127,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="rounded-lg bg-purple-50 dark:bg-gray-800 p-4">
             <div className="flex items-center gap-2 mb-2">
               <Users className="h-5 w-5 text-purple-600" />
-              <h3 className="font-medium">Students Community</h3>
+              <h3 className="font-medium">
+                {isHindi ? "छात्र समुदाय" : "Students Community"}
+              </h3>
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
-              Connect with other students on the leaderboard and share your learning journey!
+              {isHindi
+                ? "लीडरबोर्ड पर अन्य छात्रों से जुड़ें और अपनी सीखने की यात्रा साझा करें!"
+                : "Connect with other students on the leaderboard and share your learning journey!"}
             </p>
             <Button 
               asChild
@@ -127,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             >
               <Link to="/chat">
                 <MessageCircle className="h-4 w-4 mr-2" />
-                Open Chat
+                {isHindi ? "चैट खोलें" : "Open Chat"}
               </Link>
             </Button>
           </div>

@@ -1,57 +1,57 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from "@/providers/ThemeProvider";
-import { Toaster } from "@/components/ui/toaster";
-import { ThemeWrapper } from '@/ThemeWrapper';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { NotificationProvider } from '@/contexts/NotificationContext';
-import Index from '@/pages/Index';
-import Login from '@/pages/Login';
-import Signup from '@/pages/Signup';
-import ForgotPassword from '@/pages/ForgotPassword';
-import Profile from '@/pages/Profile';
-import ChatHistory from '@/pages/ChatHistory';
-import SavedMessages from '@/pages/SavedMessages';
-import NotFound from '@/pages/NotFound';
-import TeacherChats from '@/pages/TeacherChats';
-import StudentProfile from '@/pages/StudentProfile';
-import StudentActivities from '@/pages/StudentActivities';
-import Feedback from '@/pages/Feedback';
-import ChatSystem from '@/pages/ChatSystem';
-import { Toaster as SonnerToaster } from 'sonner';
-import NotificationToast from '@/components/notifications/NotificationToast';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import Index from './pages/Index';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import Profile from './pages/Profile';
+import ChatHistory from './pages/ChatHistory';
+import SavedMessages from './pages/SavedMessages';
+import Feedback from './pages/Feedback';
+import StudentActivities from './pages/StudentActivities';
+import TeacherChats from './pages/TeacherChats';
+import StudentProfile from './pages/StudentProfile';
+import NotFound from './pages/NotFound';
+import { ThemeWrapper } from './components/ThemeWrapper';
+import { AuthProvider } from './contexts/AuthContext';
+import AboutPage from './pages/AboutPage';
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <ThemeProvider defaultTheme="light" storageKey="ui-theme">
-      <ThemeWrapper>
+    <ThemeWrapper>
+      <BrowserRouter>
         <AuthProvider>
-          <NotificationProvider>
-            <Router>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/messages" element={<ChatHistory />} />
-                <Route path="/saved" element={<SavedMessages />} />
-                <Route path="/teacher" element={<TeacherChats />} />
-                <Route path="/student/:studentId" element={<StudentProfile />} />
-                <Route path="/student-activities" element={<StudentActivities />} />
-                <Route path="/activities" element={<StudentActivities />} />
-                <Route path="/feedback" element={<Feedback />} />
-                <Route path="/chat" element={<ChatSystem />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <SonnerToaster position="top-right" closeButton richColors />
-              <Toaster />
-              <NotificationToast />
-            </Router>
-          </NotificationProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/messages" element={<ChatHistory />} />
+            <Route path="/saved-messages" element={<SavedMessages />} />
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/student-activities" element={<StudentActivities />} />
+            <Route path="/teacher-chats" element={<TeacherChats />} />
+            <Route path="/student-profile/:id" element={<StudentProfile />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </AuthProvider>
-      </ThemeWrapper>
-    </ThemeProvider>
+      </BrowserRouter>
+    </ThemeWrapper>
   );
 }
 

@@ -20,6 +20,8 @@ export const hindiTranslations: TranslationKeys = {
   assistHomework: 'होमवर्क में सहायता',
   motivate: 'प्रेरित करें',
   generateTeaching: 'पढ़ाना शुरू करें',
+  about: 'जानकारी',
+  aboutStudyAI: 'स्टडी AI के बारे में',
   
   // QuizGenerator translations
   quizDescription: 'अपने ज्ञान का परीक्षण करने के लिए अपने विषय और प्राथमिकताओं के आधार पर एक क्विज़ उत्पन्न करें',

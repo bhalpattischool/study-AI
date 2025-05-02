@@ -1,4 +1,3 @@
-
 export type Language = 'en' | 'hi';
 
 export interface TranslationKeys {
@@ -20,6 +19,8 @@ export interface TranslationKeys {
   assistHomework: string;
   motivate: string;
   generateTeaching: string;
+  about: string;
+  aboutStudyAI: string;
   
   // QuizGenerator translations
   quizDescription: string;

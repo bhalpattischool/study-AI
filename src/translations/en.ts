@@ -20,6 +20,8 @@ export const englishTranslations: TranslationKeys = {
   assistHomework: 'Assist Homework',
   motivate: 'Motivate',
   generateTeaching: 'Start Teaching',
+  about: 'About',
+  aboutStudyAI: 'About Study AI',
   
   // QuizGenerator translations
   quizDescription: 'Generate a quiz based on your topic and preferences to test your knowledge',
