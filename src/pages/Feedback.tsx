@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import emailjs from 'emailjs-com';
 
 const Feedback = () => {
   const { currentUser, isLoading } = useAuth();
@@ -26,38 +27,38 @@ const Feedback = () => {
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
 
-  // The email address to receive feedback
-  const FEEDBACK_EMAIL = 'ajit91884270@gmail.com';
+  // EmailJS configuration
+  const SERVICE_ID = 'default_service'; // Your EmailJS service ID
+  const TEMPLATE_ID = 'template_feedback'; // Template ID you created in EmailJS
+  const USER_ID = 'rOb0aFIHqSNRXhqDz'; // Your EmailJS public key
 
-  // For demonstration purposes, we'll simulate sending an email
+  // Send feedback using EmailJS
   const sendFeedback = async () => {
     if (!feedback.trim()) {
-      toast.error('Please enter your feedback');
+      toast.error('कृपया अपनी प्रतिक्रिया दर्ज करें / Please enter your feedback');
       return;
     }
 
     try {
       setIsSending(true);
       
-      // This is a simulation of sending feedback
-      // In a real application, you would use a backend API to send an email
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const templateParams = {
+        user_email: currentUser?.email || 'Anonymous',
+        rating: rating,
+        message: feedback,
+        to_email: 'ajit91884270@gmail.com',
+      };
+      
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, USER_ID);
       
       // Success message
-      toast.success('Your feedback has been sent');
+      toast.success('आपकी प्रतिक्रिया भेज दी गई है / Your feedback has been sent');
       setFeedback('');
       setRating('positive');
       
-      // In a real app, you would call an API here that sends an email to FEEDBACK_EMAIL
-      console.log(`Feedback sent to ${FEEDBACK_EMAIL}:`, {
-        rating,
-        feedback,
-        user: currentUser?.email || 'Anonymous'
-      });
-      
     } catch (error) {
       console.error('Error sending feedback:', error);
-      toast.error('Failed to send feedback');
+      toast.error('प्रतिक्रिया भेजने में विफल / Failed to send feedback');
     } finally {
       setIsSending(false);
     }

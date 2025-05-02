@@ -18,11 +18,15 @@ import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import AboutPage from './pages/AboutPage';
 import NotificationToast from './components/notifications/NotificationToast';
+import { initEmailJS } from './utils/emailjs';
 
 function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Initialize EmailJS
+    initEmailJS();
+    
     // Simulate loading
     setTimeout(() => {
       setLoading(false);
