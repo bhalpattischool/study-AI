@@ -47,7 +47,10 @@ import {
   listenForMessages,
   getUserChats,
   getUserGroups,
-  startChat 
+  startChat,
+  createChatGroup,
+  updateGroupMembership,
+  deleteGroup
 } from './firebase/chat';
 import { 
   getLeaderboardData,
@@ -160,6 +163,9 @@ export {
   getUserChats,
   getUserGroups,
   startChat,
+  createChatGroup,
+  updateGroupMembership,
+  deleteGroup,
   getLeaderboardData,
   observeLeaderboardData,
   addPointsToUserDb,
