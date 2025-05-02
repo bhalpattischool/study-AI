@@ -1,6 +1,49 @@
 
-import { initializeApp } from "firebase/app";
-import { 
+// Re-export everything from modular Firebase structure
+export { 
+  auth, 
+  database, 
+  storage 
+} from './lib/firebase/config';
+
+// Re-export all functions from modular files
+export { 
+  loginUser, 
+  registerUser, 
+  uploadProfileImage, 
+  logoutUser, 
+  resetPassword,
+  getUserProfile 
+} from './lib/firebase/auth';
+
+export { 
+  sendMessage, 
+  getGroupDetails, 
+  deleteMessage, 
+  toggleSaveMessage,
+  listenForMessages,
+  getUserChats,
+  getUserGroups,
+  startChat,
+  createChatGroup,
+  updateGroupMembership,
+  deleteGroup
+} from './lib/firebase/chat';
+
+export { 
+  getLeaderboardData,
+  observeLeaderboardData 
+} from './lib/firebase/leaderboard';
+
+export { 
+  addPointsToUserDb,
+  getUserPointsHistory 
+} from './lib/firebase/points';
+
+// Re-export firebase storage functions directly
+export { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+export { getDatabase } from "firebase/database";
+export { 
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
@@ -9,10 +52,10 @@ import {
   updateProfile,
   signOut,
   sendPasswordResetEmail,
-  User,
-  onAuthStateChanged
+  onAuthStateChanged 
 } from "firebase/auth";
-import { 
+
+export { 
   getFirestore, 
   collection, 
   doc, 
@@ -28,66 +71,15 @@ import {
   serverTimestamp,
   Timestamp
 } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getDatabase } from "firebase/database";
-// Import all functions from modular files
-import { 
-  loginUser, 
-  registerUser, 
-  uploadProfileImage, 
-  logoutUser, 
-  resetPassword,
-  getUserProfile 
-} from './firebase/auth';
-import { 
-  sendMessage, 
-  getGroupDetails, 
-  deleteMessage, 
-  toggleSaveMessage as toggleSaveMsgInternal, 
-  listenForMessages,
-  getUserChats,
-  getUserGroups,
-  startChat,
-  createChatGroup,
-  updateGroupMembership,
-  deleteGroup
-} from './firebase/chat';
-import { 
-  getLeaderboardData,
-  observeLeaderboardData 
-} from './firebase/leaderboard';
-import { 
-  addPointsToUserDb,
-  getUserPointsHistory 
-} from './firebase/points';
-import { 
-  auth as firebaseAuth, 
-  database as firebaseDatabase, 
-  storage as firebaseStorage 
-} from './firebase/config';
-
-// Your Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyB-hHn3RRif66Rldx0njeRnLdmVcOqP4Ak",
-  authDomain: "study-ai-chat-8cc2c.firebaseapp.com",
-  projectId: "study-ai-chat-8cc2c",
-  storageBucket: "study-ai-chat-8cc2c.appspot.com",
-  messagingSenderId: "673966481134",
-  appId: "1:673966481134:web:be6a9578480741bd276e9c",
-  measurementId: "G-C1VV8BY2Y7"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-const database = getDatabase(app);
 
 // Message listener
 const onMessage = (callback: (message: any) => void) => {
+  const auth = getAuth();
   const user = auth.currentUser;
   if (!user) return () => {}; 
+
+  // Database already initialized in config.ts
+  const db = getFirestore();
 
   // Listen for all group messages where the user is a member
   const groupsQuery = query(collection(db, "groups"));
@@ -136,39 +128,5 @@ const onMessage = (callback: (message: any) => void) => {
   return unsubscribe;
 };
 
-// For backward compatibility, ensure we have all the functions exported
-const toggleSaveMessage = toggleSaveMsgInternal;
-
-// Export everything
-export {
-  auth,
-  db,
-  storage,
-  database,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  onAuthStateChanged,
-  loginUser,
-  registerUser,
-  uploadProfileImage,
-  logoutUser,
-  resetPassword,
-  getUserProfile,
-  sendMessage,
-  getGroupDetails,
-  deleteMessage,
-  toggleSaveMessage,
-  listenForMessages,
-  getUserChats,
-  getUserGroups,
-  startChat,
-  createChatGroup,
-  updateGroupMembership,
-  deleteGroup,
-  getLeaderboardData,
-  observeLeaderboardData,
-  addPointsToUserDb,
-  getUserPointsHistory,
-  onMessage
-};
+// Export the message listener
+export { onMessage };
