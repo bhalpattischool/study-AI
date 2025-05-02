@@ -15,7 +15,9 @@ import StudentProfile from './pages/StudentProfile';
 import NotFound from './pages/NotFound';
 import { ThemeWrapper } from './ThemeWrapper';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import AboutPage from './pages/AboutPage';
+import NotificationToast from './components/notifications/NotificationToast';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -35,21 +37,24 @@ function App() {
     <ThemeWrapper>
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/messages" element={<ChatHistory />} />
-            <Route path="/saved-messages" element={<SavedMessages />} />
-            <Route path="/feedback" element={<Feedback />} />
-            <Route path="/student-activities" element={<StudentActivities />} />
-            <Route path="/teacher-chats" element={<TeacherChats />} />
-            <Route path="/student-profile/:id" element={<StudentProfile />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <NotificationProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/messages" element={<ChatHistory />} />
+              <Route path="/saved-messages" element={<SavedMessages />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route path="/student-activities" element={<StudentActivities />} />
+              <Route path="/teacher-chats" element={<TeacherChats />} />
+              <Route path="/student-profile/:id" element={<StudentProfile />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <NotificationToast />
+          </NotificationProvider>
         </AuthProvider>
       </BrowserRouter>
     </ThemeWrapper>
