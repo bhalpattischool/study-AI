@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import Index from './pages/Index';
@@ -12,7 +13,7 @@ import StudentActivities from './pages/StudentActivities';
 import TeacherChats from './pages/TeacherChats';
 import StudentProfile from './pages/StudentProfile';
 import NotFound from './pages/NotFound';
-import { ThemeWrapper } from './components/ThemeWrapper';
+import { ThemeWrapper } from './ThemeWrapper';
 import { AuthProvider } from './contexts/AuthContext';
 import AboutPage from './pages/AboutPage';
 
