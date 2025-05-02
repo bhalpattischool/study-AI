@@ -2,10 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, SendHorizonal, Volume2, VolumeX } from "lucide-react";
-import { toast } from "sonner";
+import { SendHorizonal } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChatFooterProps {
@@ -16,12 +14,8 @@ interface ChatFooterProps {
 
 const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled = false }) => {
   const [input, setInput] = useState('');
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isMobile = useIsMobile();
-  const { isTTSEnabled, toggleTTS } = useTextToSpeech();
   const { language } = useLanguage();
 
   // Auto-resize textarea
@@ -32,80 +26,13 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
     }
   }, [input]);
 
-  // Initialize speech recognition
-  useEffect(() => {
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognitionAPI();
-      
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-US';
-      
-      recognitionRef.current.onresult = (event) => {
-        const currentTranscript = Array.from(event.results)
-          .map(result => result[0])
-          .map(result => result.transcript)
-          .join('');
-        
-        setTranscript(currentTranscript);
-        setInput(currentTranscript);
-      };
-      
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
-      
-      recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error', event.error);
-        setIsListening(false);
-        toast.error(language === 'hi' ? 'वाक् पहचान विफल। पुनः प्रयास करें।' : 'Speech recognition failed. Please try again.');
-      };
-    }
-    
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
-  }, []);
-  
-  // Update recognition language when app language changes
-  useEffect(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : 'en-US';
-    }
-  }, [language]);
-
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
-      toast.error(language === 'hi' ? 'आपके ब्राउज़र में वाक् पहचान समर्थित नहीं है' : 'Speech recognition is not supported in your browser');
-      return;
-    }
-    
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    } else {
-      setTranscript('');
-      recognitionRef.current.start();
-      setIsListening(true);
-      toast.success(language === 'hi' ? 'सुन रहा है... अब बोलें' : 'Listening... Speak now');
-    }
-  };
-
   const handleSend = () => {
     if (input.trim() && !isLoading && !isDisabled) {
       onSend(input.trim());
       setInput('');
-      setTranscript('');
       
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
-      }
-      
-      if (isListening) {
-        toggleListening();
       }
     }
   };
@@ -139,35 +66,6 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend, isLoading, isDisabled =
         />
         
         <div className="absolute right-3 bottom-3 flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTTS}
-            className="h-7 w-7 rounded-md text-purple-400 hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900 dark:hover:text-purple-300 transition-colors"
-            title={isTTSEnabled 
-              ? (language === 'hi' ? "टेक्स्ट-टू-स्पीच अक्षम करें" : "Disable text-to-speech") 
-              : (language === 'hi' ? "टेक्स्ट-टू-स्पीच सक्षम करें" : "Enable text-to-speech")}
-          >
-            {isTTSEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleListening}
-            disabled={isDisabled}
-            className={`h-7 w-7 rounded-md transition-colors ${
-              isListening 
-                ? 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-300 animate-pulse' 
-                : 'text-purple-400 hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900 dark:hover:text-purple-300'
-            } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title={isListening 
-              ? (language === 'hi' ? 'रिकॉर्डिंग बंद करें' : 'Stop recording') 
-              : (language === 'hi' ? 'आवाज़ इनपुट' : 'Voice input')}
-          >
-            {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-          </Button>
-          
           <Button
             onClick={handleSend}
             disabled={!input.trim() || isLoading || isDisabled}

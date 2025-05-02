@@ -1,23 +1,19 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Copy, Trash, Pencil, User, VolumeIcon, Heart, Volume2, VolumeX, Bookmark, BookmarkCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Copy, Pencil, Trash, Heart, Bookmark } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface MessageActionsProps {
   isUserMessage: boolean;
   isCopied: boolean;
   isLiked: boolean;
   isBookmarked: boolean;
-  isTTSEnabled: boolean;
-  handleEdit: () => void;
+  handleEdit?: () => void;
   handleCopy: () => void;
   handleDelete: () => void;
-  handleLike: () => void;
+  handleLike?: () => void;
   handleBookmark: () => void;
-  handleTextToSpeech: () => void;
-  toggleTTS: () => void;
 }
 
 const MessageActions: React.FC<MessageActionsProps> = ({
@@ -25,118 +21,77 @@ const MessageActions: React.FC<MessageActionsProps> = ({
   isCopied,
   isLiked,
   isBookmarked,
-  isTTSEnabled,
   handleEdit,
   handleCopy,
   handleDelete,
   handleLike,
   handleBookmark,
-  handleTextToSpeech,
-  toggleTTS
 }) => {
   return (
     <div className={cn(
-      "opacity-0 group-hover:opacity-100 transition-opacity gap-1",
-      isUserMessage ? "flex justify-start flex-row-reverse" : "flex justify-start"
+      "opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex gap-1",
+      isUserMessage ? "justify-end" : "justify-start"
     )}>
-      {isUserMessage && (
-        <Button 
-          size="sm" 
-          variant="ghost" 
+      {isUserMessage && handleEdit && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-300"
           onClick={handleEdit}
-          className="h-7 px-2 text-xs text-purple-500 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-900 transition-colors"
+          title="Edit message"
         >
-          <Pencil size={14} className="mr-1" />
-          Edit
+          <Pencil size={14} />
         </Button>
       )}
-      
-      <Button 
-        size="sm" 
-        variant="ghost" 
-        onClick={handleBookmark}
-        className={cn(
-          "h-7 px-2 text-xs transition-colors",
-          isBookmarked 
-            ? "text-amber-500" 
-            : "text-gray-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900"
-        )}
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+        onClick={handleCopy}
+        title={isCopied ? "Copied!" : "Copy message"}
       >
-        {isBookmarked ? (
-          <>
-            <BookmarkCheck size={14} className="mr-1 fill-amber-500" />
-            Saved
-          </>
-        ) : (
-          <>
-            <Bookmark size={14} className="mr-1" />
-            Save
-          </>
-        )}
+        <Copy size={14} className={isCopied ? "text-green-500" : ""} />
       </Button>
-      
-      {!isUserMessage && (
-        <>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={handleLike}
-            className={cn(
-              "h-7 px-2 text-xs transition-colors",
-              isLiked 
-                ? "text-pink-500" 
-                : "text-gray-500 hover:text-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900"
-            )}
-          >
-            <Heart size={14} className={cn("mr-1", isLiked ? "fill-pink-500" : "")} />
-            {isLiked ? "Liked" : "Like"}
-          </Button>
-          
-          <div className="flex items-center gap-1 h-7 px-2 text-xs text-indigo-500 dark:text-indigo-400">
-            {isTTSEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-            <span className="mr-1">TTS</span>
-            <Switch 
-              checked={isTTSEnabled}
-              onCheckedChange={toggleTTS} 
-              className="scale-75 data-[state=checked]:bg-indigo-500"
-            />
-          </div>
-          
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={handleTextToSpeech}
-            className={cn(
-              "h-7 px-2 text-xs transition-colors",
-              !isTTSEnabled 
-                ? "text-gray-400 cursor-not-allowed" 
-                : "text-indigo-500 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900"
-            )}
-          >
-            <VolumeIcon size={14} className="mr-1" />
-            Speak
-          </Button>
-          
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={handleCopy}
-            className="h-7 px-2 text-xs text-purple-500 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-900 transition-colors"
-          >
-            <Copy size={14} className={cn("mr-1", isCopied ? "text-green-500" : "")} />
-            {isCopied ? "Copied!" : "Copy"}
-          </Button>
-        </>
+
+      {!isUserMessage && handleLike && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 rounded-md text-gray-500 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+          onClick={handleLike}
+          title={isLiked ? "Unlike" : "Like message"}
+        >
+          <Heart 
+            size={14} 
+            className={isLiked ? "text-red-500 fill-red-500" : ""} 
+            fill={isLiked ? "currentColor" : "none"} 
+          />
+        </Button>
       )}
-      
-      <Button 
-        size="sm" 
-        variant="ghost" 
-        onClick={handleDelete}
-        className="h-7 px-2 text-xs text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900 transition-colors"
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6 rounded-md text-gray-500 hover:text-amber-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+        onClick={handleBookmark}
+        title={isBookmarked ? "Remove bookmark" : "Bookmark message"}
       >
-        <Trash size={14} className="mr-1" />
-        Delete
+        <Bookmark 
+          size={14} 
+          className={isBookmarked ? "text-amber-500 fill-amber-500" : ""} 
+          fill={isBookmarked ? "currentColor" : "none"} 
+        />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6 rounded-md text-gray-500 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+        onClick={handleDelete}
+        title="Delete message"
+      >
+        <Trash size={14} />
       </Button>
     </div>
   );

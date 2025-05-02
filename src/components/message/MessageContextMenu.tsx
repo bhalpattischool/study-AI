@@ -1,29 +1,25 @@
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Copy, Trash, Pencil, Heart, VolumeIcon, VolumeX, Bookmark, BookmarkCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { Copy, Pencil, Trash, Heart, Bookmark } from 'lucide-react';
 
 interface MessageContextMenuProps {
-  children: React.ReactNode;
+  children: ReactNode;
   isUserMessage: boolean;
   isLiked: boolean;
   isBookmarked: boolean;
-  isTTSEnabled: boolean;
   onCopy: () => void;
   onEdit?: () => void;
   onDelete: () => void;
   onLike?: () => void;
   onBookmark: () => void;
-  onTextToSpeech?: () => void;
-  onToggleTTS?: () => void;
 }
 
 const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
@@ -31,115 +27,58 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   isUserMessage,
   isLiked,
   isBookmarked,
-  isTTSEnabled,
   onCopy,
   onEdit,
   onDelete,
   onLike,
   onBookmark,
-  onTextToSpeech,
-  onToggleTTS,
 }) => {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div className="w-full h-full">{children}</div>
+        <div className="cursor-pointer">
+          {children}
+        </div>
       </ContextMenuTrigger>
-      <ContextMenuContent className="min-w-[160px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-        <ContextMenuItem 
-          onClick={onCopy}
-          className="flex items-center cursor-pointer text-sm"
-        >
-          <Copy size={16} className="mr-2" />
+      <ContextMenuContent className="w-64">
+        <ContextMenuItem onClick={onCopy}>
+          <Copy className="mr-2 h-4 w-4" />
           Copy
+          <ContextMenuShortcut>⌘C</ContextMenuShortcut>
         </ContextMenuItem>
         
         {isUserMessage && onEdit && (
-          <ContextMenuItem 
-            onClick={onEdit}
-            className="flex items-center cursor-pointer text-sm"
-          >
-            <Pencil size={16} className="mr-2" />
+          <ContextMenuItem onClick={onEdit}>
+            <Pencil className="mr-2 h-4 w-4" />
             Edit
+            <ContextMenuShortcut>⌘E</ContextMenuShortcut>
           </ContextMenuItem>
         )}
         
-        <ContextMenuItem 
-          onClick={onBookmark}
-          className={cn(
-            "flex items-center cursor-pointer text-sm",
-            isBookmarked && "text-amber-500"
-          )}
-        >
-          {isBookmarked ? (
-            <>
-              <BookmarkCheck size={16} className="mr-2 fill-amber-500" />
-              Remove Bookmark
-            </>
-          ) : (
-            <>
-              <Bookmark size={16} className="mr-2" />
-              Bookmark
-            </>
-          )}
-        </ContextMenuItem>
-        
-        {!isUserMessage && (
-          <>
-            <ContextMenuItem 
-              onClick={onLike}
-              className={cn(
-                "flex items-center cursor-pointer text-sm",
-                isLiked && "text-pink-500"
-              )}
-            >
-              <Heart size={16} className={cn("mr-2", isLiked && "fill-pink-500")} />
-              {isLiked ? "Unlike" : "Like"}
-            </ContextMenuItem>
-            
-            {onTextToSpeech && (
-              <ContextMenuItem 
-                onClick={onTextToSpeech}
-                className={cn(
-                  "flex items-center cursor-pointer text-sm",
-                  !isTTSEnabled && "text-gray-400 cursor-not-allowed"
-                )}
-                disabled={!isTTSEnabled}
-              >
-                <VolumeIcon size={16} className="mr-2" />
-                Speak
-              </ContextMenuItem>
-            )}
-            
-            {onToggleTTS && (
-              <ContextMenuItem 
-                onClick={onToggleTTS}
-                className="flex items-center cursor-pointer text-sm"
-              >
-                {isTTSEnabled ? (
-                  <>
-                    <VolumeX size={16} className="mr-2" />
-                    Disable TTS
-                  </>
-                ) : (
-                  <>
-                    <VolumeIcon size={16} className="mr-2" />
-                    Enable TTS
-                  </>
-                )}
-              </ContextMenuItem>
-            )}
-          </>
+        {!isUserMessage && onLike && (
+          <ContextMenuItem onClick={onLike}>
+            <Heart 
+              className={`mr-2 h-4 w-4 ${isLiked ? "text-red-500 fill-red-500" : ""}`}
+              fill={isLiked ? "currentColor" : "none"}
+            />
+            {isLiked ? "Unlike" : "Like"}
+          </ContextMenuItem>
         )}
+        
+        <ContextMenuItem onClick={onBookmark}>
+          <Bookmark
+            className={`mr-2 h-4 w-4 ${isBookmarked ? "text-amber-500 fill-amber-500" : ""}`}
+            fill={isBookmarked ? "currentColor" : "none"}
+          />
+          {isBookmarked ? "Unbookmark" : "Bookmark"}
+        </ContextMenuItem>
         
         <ContextMenuSeparator />
         
-        <ContextMenuItem 
-          onClick={onDelete}
-          className="flex items-center cursor-pointer text-sm text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900"
-        >
-          <Trash size={16} className="mr-2" />
+        <ContextMenuItem onClick={onDelete} className="text-red-600">
+          <Trash className="mr-2 h-4 w-4" />
           Delete
+          <ContextMenuShortcut>⌘⌫</ContextMenuShortcut>
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

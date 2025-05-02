@@ -5,7 +5,6 @@ import { Message as MessageType } from "@/lib/db";
 import MessageBody from './message/MessageBody';
 import MessageActions from './message/MessageActions';
 import MessageContextMenu from './message/MessageContextMenu';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useMessageState } from '@/hooks/useMessageState';
 import { useMessageBookmark } from '@/hooks/useMessageBookmark';
 
@@ -22,7 +21,6 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
     handleCopy, handleDelete, handleEdit, handleSaveEdit, handleCancelEdit, handleLike
   } = useMessageState(message, onEdited, onDeleted);
   
-  const { isTTSEnabled, toggleTTS, handleTextToSpeech } = useTextToSpeech();
   const { handleBookmark } = useMessageBookmark(
     message.chatId, 
     message.id, 
@@ -48,14 +46,11 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
           isUserMessage={isUserMessage}
           isLiked={isLiked}
           isBookmarked={isBookmarked}
-          isTTSEnabled={isTTSEnabled}
           onCopy={handleCopy}
           onEdit={isUserMessage ? handleEdit : undefined}
           onDelete={handleDelete}
           onLike={!isUserMessage ? handleLike : undefined}
           onBookmark={handleBookmark}
-          onTextToSpeech={!isUserMessage ? () => handleTextToSpeech(message.content) : undefined}
-          onToggleTTS={!isUserMessage ? toggleTTS : undefined}
         >
           <MessageBody 
             isUserMessage={isUserMessage}
@@ -91,14 +86,11 @@ const Message: React.FC<MessageProps> = ({ message, onEdited, onDeleted }) => {
             isCopied={isCopied}
             isLiked={isLiked}
             isBookmarked={isBookmarked}
-            isTTSEnabled={isTTSEnabled}
             handleEdit={handleEdit}
             handleCopy={handleCopy}
             handleDelete={handleDelete}
             handleLike={handleLike}
             handleBookmark={handleBookmark}
-            handleTextToSpeech={() => handleTextToSpeech(message.content)}
-            toggleTTS={toggleTTS}
           />
         </div>
       )}
