@@ -29,6 +29,39 @@ import {
   Timestamp
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getDatabase } from "firebase/database";
+// Import all functions from modular files
+import { 
+  loginUser, 
+  registerUser, 
+  uploadProfileImage, 
+  logoutUser, 
+  resetPassword,
+  getUserProfile 
+} from './firebase/auth';
+import { 
+  sendMessage, 
+  getGroupDetails, 
+  deleteMessage, 
+  toggleSaveMessage as toggleSaveMsgInternal, 
+  listenForMessages,
+  getUserChats,
+  getUserGroups,
+  startChat 
+} from './firebase/chat';
+import { 
+  getLeaderboardData,
+  observeLeaderboardData 
+} from './firebase/leaderboard';
+import { 
+  addPointsToUserDb,
+  getUserPointsHistory 
+} from './firebase/points';
+import { 
+  auth as firebaseAuth, 
+  database as firebaseDatabase, 
+  storage as firebaseStorage 
+} from './firebase/config';
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -46,233 +79,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-
-// Google Auth Provider
-const googleProvider = new GoogleAuthProvider();
-
-// Authentication functions
-const signInWithGoogle = async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-    
-    // Check if user exists in firestore, if not create profile
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    
-    if (!userDoc.exists()) {
-      await setDoc(doc(db, "users", user.uid), {
-        name: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        created: serverTimestamp(),
-        points: 0,
-        level: 1
-      });
-    }
-    
-    return user;
-  } catch (error) {
-    console.error("Error signing in with Google: ", error);
-    throw error;
-  }
-};
-
-// Email/Password Authentication
-const signUpWithEmailAndPassword = async (email: string, password: string, name: string) => {
-  try {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    const user = result.user;
-    
-    // Update user profile
-    await updateProfile(user, {
-      displayName: name
-    });
-    
-    // Create user in firestore
-    await setDoc(doc(db, "users", user.uid), {
-      name,
-      email,
-      photoURL: null,
-      created: serverTimestamp(),
-      points: 0,
-      level: 1
-    });
-    
-    return user;
-  } catch (error) {
-    console.error("Error signing up: ", error);
-    throw error;
-  }
-};
-
-const loginWithEmailAndPassword = async (email: string, password: string) => {
-  try {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    return result.user;
-  } catch (error) {
-    console.error("Error signing in: ", error);
-    throw error;
-  }
-};
-
-const logoutUser = async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error("Error signing out: ", error);
-    throw error;
-  }
-};
-
-const resetPassword = async (email: string) => {
-  try {
-    await sendPasswordResetEmail(auth, email);
-  } catch (error) {
-    console.error("Error resetting password: ", error);
-    throw error;
-  }
-};
-
-// User Profile functions
-const getUserProfile = async (uid: string) => {
-  try {
-    const userDoc = await getDoc(doc(db, "users", uid));
-    if (userDoc.exists()) {
-      return { id: userDoc.id, ...userDoc.data() };
-    }
-    return null;
-  } catch (error) {
-    console.error("Error getting user profile: ", error);
-    throw error;
-  }
-};
-
-const updateUserProfile = async (uid: string, data: any) => {
-  try {
-    await updateDoc(doc(db, "users", uid), data);
-  } catch (error) {
-    console.error("Error updating user profile: ", error);
-    throw error;
-  }
-};
-
-// Chat functions
-const createChatGroup = async (name: string, members: Record<string, boolean>) => {
-  try {
-    const groupRef = await addDoc(collection(db, "groups"), {
-      name,
-      members,
-      admins: { [auth.currentUser?.uid || '']: true },
-      createdAt: serverTimestamp(),
-      lastMessage: null,
-      lastMessageTime: null
-    });
-    
-    return groupRef.id;
-  } catch (error) {
-    console.error("Error creating group: ", error);
-    throw error;
-  }
-};
-
-const deleteGroup = async (groupId: string) => {
-  try {
-    await deleteDoc(doc(db, "groups", groupId));
-    
-    // TODO: Delete all messages in the group
-    // This would require a subcollection query and batch delete
-  } catch (error) {
-    console.error("Error deleting group: ", error);
-    throw error;
-  }
-};
-
-const updateGroupMembership = async (groupId: string, userId: string, isAdd: boolean) => {
-  try {
-    const groupRef = doc(db, "groups", groupId);
-    
-    if (isAdd) {
-      await updateDoc(groupRef, {
-        [`members.${userId}`]: true
-      });
-    } else {
-      await updateDoc(groupRef, {
-        [`members.${userId}`]: false
-      });
-    }
-  } catch (error) {
-    console.error("Error updating group membership: ", error);
-    throw error;
-  }
-};
-
-const sendMessage = async (chatId: string, userId: string, text: string, isGroup: boolean = false) => {
-  try {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-    
-    let chatRef;
-    let groupData = null;
-
-    if (isGroup) {
-      chatRef = collection(db, "groups", chatId, "messages");
-      const groupDoc = await getDoc(doc(db, "groups", chatId));
-      if (groupDoc.exists()) {
-        groupData = { id: chatId, ...groupDoc.data() };
-      }
-    } else {
-      chatRef = collection(db, "chats", chatId, "messages");
-    }
-    
-    // Add the message
-    await addDoc(chatRef, {
-      text,
-      sender: userId,
-      senderName: user.displayName || "User",
-      timestamp: serverTimestamp(),
-      // Set message to expire after 24 hours unless saved
-      expiresAt: Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000))
-    });
-    
-    // Update group's last message
-    if (isGroup && groupData) {
-      await updateDoc(doc(db, "groups", chatId), {
-        lastMessage: text.startsWith('[image:') ? '📷 Photo' : text,
-        lastMessageTime: serverTimestamp(),
-        lastSender: user.displayName || "User"
-      });
-    }
-    
-    return true;
-  } catch (error) {
-    console.error("Error sending message: ", error);
-    throw error;
-  }
-};
-
-// Leaderboard functions
-const getLeaderboardData = async () => {
-  try {
-    const q = query(collection(db, "users"));
-    const querySnapshot = await getDocs(q);
-    
-    const users: any[] = [];
-    querySnapshot.forEach((doc) => {
-      users.push({ id: doc.id, ...doc.data() });
-    });
-    
-    // Sort by level and points
-    return users.sort((a, b) => {
-      if (b.level !== a.level) {
-        return b.level - a.level;
-      }
-      return b.points - a.points;
-    });
-  } catch (error) {
-    console.error("Error getting leaderboard data: ", error);
-    throw error;
-  }
-};
+const database = getDatabase(app);
 
 // Message listener
 const onMessage = (callback: (message: any) => void) => {
@@ -326,25 +133,36 @@ const onMessage = (callback: (message: any) => void) => {
   return unsubscribe;
 };
 
+// For backward compatibility, ensure we have all the functions exported
+const toggleSaveMessage = toggleSaveMsgInternal;
+
+// Export everything
 export {
   auth,
   db,
   storage,
+  database,
   ref,
   uploadBytes,
   getDownloadURL,
   onAuthStateChanged,
-  signInWithGoogle,
-  signUpWithEmailAndPassword,
-  loginWithEmailAndPassword,
+  loginUser,
+  registerUser,
+  uploadProfileImage,
   logoutUser,
   resetPassword,
   getUserProfile,
-  updateUserProfile,
-  createChatGroup,
-  deleteGroup,
-  updateGroupMembership,
   sendMessage,
+  getGroupDetails,
+  deleteMessage,
+  toggleSaveMessage,
+  listenForMessages,
+  getUserChats,
+  getUserGroups,
+  startChat,
   getLeaderboardData,
+  observeLeaderboardData,
+  addPointsToUserDb,
+  getUserPointsHistory,
   onMessage
 };
