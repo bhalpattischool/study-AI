@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { ProfileData } from '@/types/student';
 import { uploadFile } from '@/lib/firebase/storage';
 import { auth } from '@/lib/firebase';
+import { updateProfile } from 'firebase/auth';
 
 interface ProfileBannerProps {
   profileData: ProfileData;
@@ -61,7 +62,7 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({ profileData, levelProgres
         
         // Update user profile photo URL in Firebase Auth
         if (auth.currentUser) {
-          await auth.currentUser.updateProfile({
+          await updateProfile(auth.currentUser, {
             photoURL: downloadURL
           });
         }
