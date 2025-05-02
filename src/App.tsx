@@ -13,6 +13,7 @@ import StudentActivities from './pages/StudentActivities';
 import TeacherChats from './pages/TeacherChats';
 import StudentProfile from './pages/StudentProfile';
 import NotFound from './pages/NotFound';
+import ChatSystem from './pages/ChatSystem';
 import { ThemeWrapper } from './ThemeWrapper';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -55,6 +56,7 @@ function App() {
               <Route path="/teacher-chats" element={<TeacherChats />} />
               <Route path="/student-profile/:id" element={<StudentProfile />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/chat" element={<ChatSystem />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <NotificationToast />
