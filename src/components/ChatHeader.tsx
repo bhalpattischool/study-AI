@@ -5,19 +5,20 @@ import { Menu, Plus, Clock, MoonStar, Sun } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from "@/lib/utils";
 import { useTheme } from '@/providers/ThemeProvider';
+import NotificationBell from './notifications/NotificationBell';
 
 interface ChatHeaderProps {
   onToggleSidebar: () => void;
   onNewChat: () => void;
   className?: string;
-  children?: React.ReactNode;  // Add this line to accept children
+  children?: React.ReactNode;
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ 
   onToggleSidebar, 
   onNewChat, 
   className,
-  children,  // Add this to the props
+  children,
 }) => {
   const isMobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
@@ -46,6 +47,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
       </Button>
 
       <div className="flex items-center gap-2">
+        <NotificationBell className="mr-1" />
+        
         <Button 
           variant="ghost" 
           size="icon" 
@@ -64,7 +67,6 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           {isDarkMode ? <Sun size={18} /> : <MoonStar size={18} />}
         </Button>
         
-        {/* Add support for children */}
         {children}
       </div>
     </header>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SendHorizontal, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface GroupMessageInputProps {
   onSendMessage: (text: string, file?: File) => void;
@@ -17,7 +17,8 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const { currentUser } = useAuth();
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -107,8 +108,9 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="संदेश लिखें या छवि चुनें..."
-          className="min-h-[50px] max-h-[120px] flex-1 resize-none rounded-full px-4 py-2 text-sm"
+          placeholder={`${currentUser?.displayName || 'आप'} के रूप में संदेश लिखें...`}
+          className="min-h-[50px] max-h-[120px] flex-1 resize-none"
+          disabled={isLoading || isSending}
         />
         <input
           ref={fileInputRef}
@@ -120,24 +122,23 @@ const GroupMessageInput: React.FC<GroupMessageInputProps> = ({ onSendMessage, is
         <Button
           type="button"
           size="icon"
-          variant="ghost"
-          className="self-end h-10 w-10 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30"
+          className="self-end h-10 w-10"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading || isSending}
-          title="छवि संलग्न करें"
+          title="Attach image"
         >
-          <ImageIcon className="h-5 w-5 text-purple-500" />
+          <ImageIcon className="h-5 w-5" />
         </Button>
         <Button
           type="submit"
           size="icon"
-          className="self-end h-10 w-10 rounded-full bg-purple-500 hover:bg-purple-600"
+          className="self-end h-10 w-10"
           disabled={(!message.trim() && !file) || isLoading || isSending}
         >
           {isSending ? (
-            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           ) : (
-            <SendHorizontal className="h-5 w-5 text-white" />
+            <SendHorizontal className="h-5 w-5" />
           )}
         </Button>
       </div>
