@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { 
-  ArrowLeft, Send, ThumbsUp, ThumbsDown, Star, MessageSquare
+  ArrowLeft, Send, Star, MessageSquare 
 } from 'lucide-react';
 import { toast } from "sonner";
 import {
@@ -17,15 +18,34 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import emailjs from 'emailjs-com';
+import { useForm } from "react-hook-form";
+
+// Define the form values type
+interface FeedbackFormValues {
+  name: string;
+  email: string;
+  rating: number;
+  opinion: string;
+  suggestions: string;
+}
 
 const Feedback = () => {
   const { currentUser, isLoading } = useAuth();
-  const [rating, setRating] = useState<string>('positive');
-  const [feedback, setFeedback] = useState('');
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
+  
+  // Initialize form with react-hook-form
+  const form = useForm<FeedbackFormValues>({
+    defaultValues: {
+      name: currentUser?.displayName || '',
+      email: currentUser?.email || '',
+      rating: 5,
+      opinion: '',
+      suggestions: ''
+    }
+  });
 
   // EmailJS configuration
   const SERVICE_ID = 'default_service'; // Your EmailJS service ID
@@ -33,28 +53,31 @@ const Feedback = () => {
   const USER_ID = 'rOb0aFIHqSNRXhqDz'; // Your EmailJS public key
 
   // Send feedback using EmailJS
-  const sendFeedback = async () => {
-    if (!feedback.trim()) {
-      toast.error('कृपया अपनी प्रतिक्रिया दर्ज करें / Please enter your feedback');
-      return;
-    }
-
+  const sendFeedback = async (values: FeedbackFormValues) => {
     try {
       setIsSending(true);
       
       const templateParams = {
-        user_email: currentUser?.email || 'Anonymous',
-        rating: rating,
-        message: feedback,
+        from_name: values.name || 'Anonymous',
+        user_email: values.email || 'Anonymous',
+        rating: values.rating,
+        opinion: values.opinion,
+        suggestions: values.suggestions,
         to_email: 'ajit91884270@gmail.com',
       };
       
-      await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, USER_ID);
+      const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, USER_ID);
+      console.log('EmailJS response:', response);
       
       // Success message
       toast.success('आपकी प्रतिक्रिया भेज दी गई है / Your feedback has been sent');
-      setFeedback('');
-      setRating('positive');
+      form.reset({
+        name: currentUser?.displayName || '',
+        email: currentUser?.email || '',
+        rating: 5,
+        opinion: '',
+        suggestions: ''
+      });
       
     } catch (error) {
       console.error('Error sending feedback:', error);
@@ -94,72 +117,98 @@ const Feedback = () => {
               Your feedback helps us improve our service for all students.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="rating">Your overall experience</Label>
-              <RadioGroup
-                id="rating"
-                value={rating}
-                onValueChange={setRating}
-                className="flex space-x-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="positive" id="positive" />
-                  <Label htmlFor="positive" className="flex items-center space-x-1 cursor-pointer">
-                    <ThumbsUp className="h-4 w-4 text-green-500" />
-                    <span>Positive</span>
-                  </Label>
+          <CardContent>
+            <form className="space-y-4" onSubmit={form.handleSubmit(sendFeedback)}>
+              {/* Name field */}
+              <div className="space-y-2">
+                <Label htmlFor="name">Your Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter your name"
+                  {...form.register("name")}
+                />
+              </div>
+              
+              {/* Email field */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Your Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  {...form.register("email")}
+                />
+              </div>
+              
+              {/* Star Rating */}
+              <div className="space-y-2">
+                <Label>Rate your experience</Label>
+                <div className="flex items-center space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className="focus:outline-none"
+                      onClick={() => form.setValue('rating', star)}
+                    >
+                      <Star
+                        className={`h-8 w-8 ${
+                          form.watch('rating') >= star 
+                            ? 'text-yellow-500 fill-yellow-500' 
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    </button>
+                  ))}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="neutral" id="neutral" />
-                  <Label htmlFor="neutral" className="flex items-center space-x-1 cursor-pointer">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span>Neutral</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="negative" id="negative" />
-                  <Label htmlFor="negative" className="flex items-center space-x-1 cursor-pointer">
-                    <ThumbsDown className="h-4 w-4 text-red-500" />
-                    <span>Negative</span>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="feedback">Tell us more about your experience</Label>
-              <Textarea
-                id="feedback"
-                placeholder="Share your thoughts, ideas, or concerns..."
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                className="min-h-[120px] resize-none"
-              />
-            </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  {form.watch('rating')} out of 5 stars
+                </p>
+              </div>
+              
+              {/* Opinion field */}
+              <div className="space-y-2">
+                <Label htmlFor="opinion">What did you like most?</Label>
+                <Textarea
+                  id="opinion"
+                  placeholder="Tell us what you enjoyed about our service..."
+                  className="min-h-[80px]"
+                  {...form.register("opinion")}
+                />
+              </div>
+              
+              {/* Suggestions field */}
+              <div className="space-y-2">
+                <Label htmlFor="suggestions">Any suggestions for improvement?</Label>
+                <Textarea
+                  id="suggestions"
+                  placeholder="Share your ideas for how we can improve..."
+                  className="min-h-[120px]"
+                  {...form.register("suggestions")}
+                />
+              </div>
+              
+              <div className="flex justify-end pt-2">
+                <Button 
+                  type="submit" 
+                  disabled={isSending}
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  {isSending ? (
+                    <>
+                      <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Send Feedback
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
           </CardContent>
-          <CardFooter className="flex justify-between items-center">
-            <p className="text-xs text-gray-500">
-              Your feedback will be sent to our team
-            </p>
-            <Button 
-              onClick={sendFeedback} 
-              disabled={isSending || !feedback.trim()}
-              className="bg-orange-500 hover:bg-orange-600"
-            >
-              {isSending ? (
-                <>
-                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Send Feedback
-                </>
-              )}
-            </Button>
-          </CardFooter>
         </Card>
         
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
