@@ -40,9 +40,8 @@ const NotificationToast: React.FC = () => {
 
   const handleClose = () => {
     if (visibleNotification) {
-      // Actually mark as read AND delete the notification from the list
+      // Only mark as read but don't delete
       markAsRead(visibleNotification.id);
-      deleteNotification(visibleNotification.id);
       setVisibleNotification(null);
     }
   };
@@ -50,9 +49,8 @@ const NotificationToast: React.FC = () => {
   const handleClick = () => {
     if (!visibleNotification) return;
     
-    // Mark notification as read AND delete it
+    // Only mark as read but don't delete
     markAsRead(visibleNotification.id);
-    deleteNotification(visibleNotification.id);
     
     // Navigate based on notification type
     if (visibleNotification.groupId) {
