@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { onMessage } from '@/lib/firebase';
 
 // Define the notification type
 export interface Notification {
@@ -58,11 +59,58 @@ export function useNotifications() {
     const savedNotifications = localStorage.getItem('study_ai_notifications');
     return savedNotifications ? JSON.parse(savedNotifications) : DEMO_NOTIFICATIONS;
   });
+  
+  const [playSound, setPlaySound] = useState<boolean>(() => {
+    const savedSetting = localStorage.getItem('notification_sound_enabled');
+    return savedSetting !== null ? savedSetting === 'true' : true;
+  });
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('study_ai_notifications', JSON.stringify(notifications));
   }, [notifications]);
+  
+  // Save sound setting to localStorage
+  useEffect(() => {
+    localStorage.setItem('notification_sound_enabled', playSound.toString());
+  }, [playSound]);
+
+  // Listen for new messages from Firebase for real-time notifications
+  useEffect(() => {
+    const unsubscribe = onMessage((messageInfo) => {
+      // Create notification from message
+      const newNotification: Notification = {
+        id: `msg_${Date.now()}`,
+        title: messageInfo.isGroup 
+          ? `${messageInfo.groupName || 'Group'}: ${messageInfo.senderName || 'Someone'}`
+          : `${messageInfo.senderName || 'Someone'}`,
+        message: messageInfo.text,
+        read: false,
+        timestamp: Date.now(),
+        type: messageInfo.isGroup ? 'group' : 'message',
+        groupId: messageInfo.isGroup ? messageInfo.chatId : undefined,
+        chatId: messageInfo.isGroup ? undefined : messageInfo.chatId,
+        senderName: messageInfo.senderName
+      };
+      
+      addNotification(newNotification);
+      
+      // Play notification sound if enabled
+      if (playSound) {
+        try {
+          const audio = new Audio('/notification-sound.mp3');
+          audio.play();
+        } catch (err) {
+          console.error('Failed to play notification sound:', err);
+        }
+      }
+    });
+    
+    // Clean up listener when component unmounts
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [playSound]); // Re-run when sound setting changes
 
   // Mark a specific notification as read
   const markAsRead = (id: string) => {
@@ -79,19 +127,21 @@ export function useNotifications() {
   // Add a new notification
   const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const newNotification: Notification = {
-      id: Date.now().toString(),
+      id: `manual_${Date.now()}`,
       ...notification,
       read: false,
       timestamp: Date.now()
     };
     setNotifications(prev => [newNotification, ...prev]);
     
-    // Play notification sound
-    try {
-      const audio = new Audio('/notification-sound.mp3');
-      audio.play();
-    } catch (err) {
-      console.error('Failed to play notification sound:', err);
+    // Play notification sound if enabled
+    if (playSound) {
+      try {
+        const audio = new Audio('/notification-sound.mp3');
+        audio.play();
+      } catch (err) {
+        console.error('Failed to play notification sound:', err);
+      }
     }
   };
 
@@ -111,6 +161,8 @@ export function useNotifications() {
     markAllAsRead,
     addNotification,
     removeNotification,
-    clearNotifications
+    clearNotifications,
+    playSound,
+    setPlaySound
   };
 }
