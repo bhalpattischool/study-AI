@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useNotification } from '@/contexts/NotificationContext';
 import { Notification } from '@/hooks/useNotifications';
 import { Bell, Check, Trash2, VolumeX, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,17 +15,14 @@ interface NotificationPanelProps {
 const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
   const { 
     notifications, 
-    markAllAsRead: markAllAsRead, 
+    markAllAsRead, 
     markAsRead, 
-    clearNotifications,
+    clearNotifications, 
     removeNotification: deleteNotification,
-    addNotification
-  } = useNotificationContext();
+    playSound,
+    setPlaySound
+  } = useNotification();
   const navigate = useNavigate();
-  
-  // We don't have playSound in our context, so removing those references
-  const playSound = true; // Default value
-  const setPlaySound = () => {}; // Empty function as placeholder
 
   const handleActionClick = (notification: Notification) => {
     markAsRead(notification.id);
@@ -61,14 +58,16 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
           <h3 className="font-semibold">आपके सूचनाएं</h3>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setPlaySound(!playSound)}
-            title={playSound ? "ध्वनि बंद करें" : "ध्वनि चालू करें"}
-          >
-            {playSound ? <Volume2 size={16} /> : <VolumeX size={16} />}
-          </Button>
+          {typeof playSound !== 'undefined' && (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => typeof setPlaySound === 'function' && setPlaySound(!playSound)}
+              title={playSound ? "ध्वनि बंद करें" : "ध्वनि चालू करें"}
+            >
+              {playSound ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            </Button>
+          )}
           
           <Button 
             variant="ghost" 
@@ -101,7 +100,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
               <li 
                 key={notification.id}
                 className={`p-3 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-                  !notification.read ? 'bg-purple-50 dark:bg-purple-900/20' : ''
+                  !(notification.read || notification.isRead) ? 'bg-purple-50 dark:bg-purple-900/20' : ''
                 }`}
               >
                 <div className="flex">
@@ -130,7 +129,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
                 </div>
                 
                 <div className="flex mt-2 justify-end">
-                  {!notification.read && (
+                  {!(notification.read || notification.isRead) && (
                     <Button 
                       variant="ghost" 
                       size="sm" 

@@ -10,6 +10,8 @@ interface NotificationContextType {
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   removeNotification: (id: string) => void;
   clearNotifications: () => void;
+  playSound?: boolean;
+  setPlaySound?: (value: boolean) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
