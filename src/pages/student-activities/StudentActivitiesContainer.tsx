@@ -5,6 +5,7 @@ import StudentProfileQR from '@/components/student/StudentProfileQR';
 import StudentActivitiesHelp from '@/components/student/StudentActivitiesHelp';
 import StudentActivitiesHeader from './StudentActivitiesHeader';
 import StudentActivitiesTabs from './StudentActivitiesTabs';
+import FloatingLeaderboardWidget from '@/components/student/FloatingLeaderboardWidget';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface StudentActivitiesContainerProps {
@@ -56,6 +57,9 @@ const StudentActivitiesContainer: React.FC<StudentActivitiesContainerProps> = ({
       studentLevel={studentLevel}
     />
     <StudentActivitiesHelp />
+    
+    {/* फ्लोटिंग लीडरबोर्ड विजेट */}
+    {currentUser && <FloatingLeaderboardWidget currentUserId={currentUser.uid} />}
   </div>
 );
 

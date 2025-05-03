@@ -20,6 +20,7 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import AboutPage from './pages/AboutPage';
 import NotificationToast from './components/notifications/NotificationToast';
 import { initEmailJS } from './utils/emailjs';
+import StudyTimerFloatingWidget from './components/study/floating-timer/StudyTimerFloatingWidget';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -66,6 +67,7 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
             <NotificationToast />
+            <StudyTimerFloatingWidget />
           </NotificationProvider>
         </AuthProvider>
       </BrowserRouter>
