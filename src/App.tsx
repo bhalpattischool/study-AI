@@ -35,7 +35,9 @@ function App() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full"></div>
+    </div>;
   }
 
   return (
@@ -49,12 +51,16 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/chat-history" element={<ChatHistory />} />
               <Route path="/messages" element={<ChatHistory />} />
               <Route path="/saved-messages" element={<SavedMessages />} />
+              <Route path="/saved" element={<SavedMessages />} />
               <Route path="/feedback" element={<Feedback />} />
               <Route path="/student-activities" element={<StudentActivities />} />
+              <Route path="/activities" element={<StudentActivities />} />
               <Route path="/teacher-chats" element={<TeacherChats />} />
-              <Route path="/student-profile/:id" element={<StudentProfile />} />
+              <Route path="/teacher" element={<TeacherChats />} />
+              <Route path="/student-profile/:userId" element={<StudentProfile />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/chat" element={<ChatSystem />} />
               <Route path="*" element={<NotFound />} />

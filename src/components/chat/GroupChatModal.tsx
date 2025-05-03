@@ -58,6 +58,7 @@ const GroupChatModal: React.FC<GroupChatModalProps> = ({
 
     if (isOpen && currentUser) {
       fetchUsers();
+      setSelectedUsers({});
     }
   }, [isOpen, currentUser]);
 

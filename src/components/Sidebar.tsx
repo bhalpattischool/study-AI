@@ -74,17 +74,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           />
           
           <SidebarLink 
-            to="/messages" 
+            to="/chat-history" 
             icon={<MessagesSquare className="h-5 w-5" />} 
             label={isHindi ? "इतिहास" : "History"} 
-            active={isActive('/messages')} 
+            active={isActive('/chat-history') || isActive('/messages')} 
           />
           
           <SidebarLink 
-            to="/saved" 
+            to="/saved-messages" 
             icon={<Bookmark className="h-5 w-5" />} 
             label={isHindi ? "सेव किया गया" : "Saved"} 
-            active={isActive('/saved')} 
+            active={isActive('/saved-messages') || isActive('/saved')} 
           />
 
           <SidebarLink 
@@ -95,17 +95,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           />
           
           <SidebarLink 
-            to="/activities" 
+            to="/student-activities" 
             icon={<GraduationCap className="h-5 w-5" />} 
             label={isHindi ? "गतिविधियां" : "Activities"} 
-            active={isActive('/activities')} 
+            active={isActive('/student-activities') || isActive('/activities')} 
           />
           
           <SidebarLink 
-            to="/teacher" 
+            to="/teacher-chats" 
             icon={<SendHorizontal className="h-5 w-5" />} 
             label={isHindi ? "शिक्षक से पूछें" : "Ask Teacher"} 
-            active={isActive('/teacher')} 
+            active={isActive('/teacher-chats') || isActive('/teacher')} 
           />
           
           <SidebarLink 

@@ -14,9 +14,14 @@ export const getLeaderboardData = async (limit: number = 10) => {
     
     const users: any[] = [];
     snapshot.forEach((childSnapshot) => {
+      const userData = childSnapshot.val();
       users.push({
         id: childSnapshot.key,
-        ...childSnapshot.val()
+        name: userData.displayName || userData.name || `User_${childSnapshot.key?.substring(0, 5)}`,
+        points: userData.points || 0,
+        level: userData.level || 1,
+        photoURL: userData.photoURL || null,
+        ...userData
       });
     });
     
@@ -57,9 +62,14 @@ export const observeLeaderboardData = (
     if (snapshot.exists()) {
       const users: any[] = [];
       snapshot.forEach((childSnapshot) => {
+        const userData = childSnapshot.val();
         users.push({
           id: childSnapshot.key,
-          ...childSnapshot.val()
+          name: userData.displayName || userData.name || `User_${childSnapshot.key?.substring(0, 5)}`,
+          points: userData.points || 0,
+          level: userData.level || 1,
+          photoURL: userData.photoURL || null,
+          ...userData
         });
       });
       

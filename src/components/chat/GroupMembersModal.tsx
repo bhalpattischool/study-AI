@@ -80,6 +80,7 @@ const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
       setIsLoading(false);
     }
   };
+  
   const handleRemoveMembers = async () => {
     if (!groupId) return;
     setIsLoading(true);
