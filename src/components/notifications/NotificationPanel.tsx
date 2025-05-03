@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { useNotification, Notification } from '@/contexts/NotificationContext';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import { Notification } from '@/hooks/useNotifications';
 import { Bell, Check, Trash2, VolumeX, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,14 +15,17 @@ interface NotificationPanelProps {
 const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
   const { 
     notifications, 
-    markAllAsRead, 
+    markAllAsRead: markAllAsRead, 
     markAsRead, 
-    clearNotifications, 
-    deleteNotification,
-    playSound,
-    setPlaySound
-  } = useNotification();
+    clearNotifications,
+    removeNotification: deleteNotification,
+    addNotification
+  } = useNotificationContext();
   const navigate = useNavigate();
+  
+  // We don't have playSound in our context, so removing those references
+  const playSound = true; // Default value
+  const setPlaySound = () => {}; // Empty function as placeholder
 
   const handleActionClick = (notification: Notification) => {
     markAsRead(notification.id);
@@ -97,7 +101,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
               <li 
                 key={notification.id}
                 className={`p-3 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-                  !notification.isRead ? 'bg-purple-50 dark:bg-purple-900/20' : ''
+                  !notification.read ? 'bg-purple-50 dark:bg-purple-900/20' : ''
                 }`}
               >
                 <div className="flex">
@@ -126,7 +130,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
                 </div>
                 
                 <div className="flex mt-2 justify-end">
-                  {!notification.isRead && (
+                  {!notification.read && (
                     <Button 
                       variant="ghost" 
                       size="sm" 

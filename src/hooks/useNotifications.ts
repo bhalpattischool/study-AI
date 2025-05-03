@@ -8,6 +8,11 @@ export interface Notification {
   message: string;
   read: boolean;
   timestamp: number;
+  type?: 'group' | 'message' | 'system'; // Added type property
+  groupId?: string; // Added groupId property
+  chatId?: string; // Added chatId property
+  senderName?: string; // Added senderName property
+  isRead?: boolean; // For compatibility with existing code
 }
 
 // Sample notifications for demonstration
@@ -17,28 +22,33 @@ const DEMO_NOTIFICATIONS: Notification[] = [
     title: 'पाठ्यक्रम अपडेट',
     message: 'आपका गणित का पाठ्यक्रम अपडेट किया गया है। नए अध्याय जोड़े गए हैं।',
     read: false,
-    timestamp: Date.now() - 1000 * 60 * 5 // 5 minutes ago
+    timestamp: Date.now() - 1000 * 60 * 5, // 5 minutes ago
+    type: 'system'
   },
   {
     id: '2',
     title: 'अध्ययन अनुस्मारक',
     message: 'आपका दैनिक अध्ययन लक्ष्य अभी तक पूरा नहीं हुआ है। आज के लिए 30 मिनट अध्ययन बाकी है।',
     read: false,
-    timestamp: Date.now() - 1000 * 60 * 30 // 30 minutes ago
+    timestamp: Date.now() - 1000 * 60 * 30, // 30 minutes ago
+    type: 'system'
   },
   {
     id: '3',
     title: 'क्विज़ परिणाम',
     message: 'बधाई हो! आपने विज्ञान क्विज़ में 90% स्कोर किया है। अपने परिणाम देखें।',
     read: true,
-    timestamp: Date.now() - 1000 * 60 * 60 * 2 // 2 hours ago
+    timestamp: Date.now() - 1000 * 60 * 60 * 2, // 2 hours ago
+    type: 'system'
   },
   {
     id: '4',
     title: 'शिक्षक संदेश',
     message: 'आपके शिक्षक श्री कुमार ने आपके प्रोजेक्ट पर टिप्पणी छोड़ी है। जवाब दें।',
     read: true,
-    timestamp: Date.now() - 1000 * 60 * 60 * 5 // 5 hours ago
+    timestamp: Date.now() - 1000 * 60 * 60 * 5, // 5 hours ago
+    type: 'message',
+    senderName: 'Kumar'
   }
 ];
 

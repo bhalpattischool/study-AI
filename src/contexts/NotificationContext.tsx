@@ -33,3 +33,10 @@ export const useNotificationContext = () => {
   }
   return context;
 };
+
+// Re-export the Notification type for convenience
+export type { Notification } from '../hooks/useNotifications';
+export { useNotifications } from '../hooks/useNotifications';
+
+// Alias for backward compatibility
+export const useNotification = useNotificationContext;
