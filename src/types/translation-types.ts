@@ -1,4 +1,6 @@
 
+export type Language = 'en' | 'hi';
+
 export interface TranslationKeys {
   // Common translations
   advancedStudyTools: string;
@@ -115,4 +117,4 @@ export interface TranslationKeys {
   actionRead: string;
 }
 
-export type TranslationsRecord = Record<string, TranslationKeys>;
+export type TranslationsRecord = Record<Language, TranslationKeys>;

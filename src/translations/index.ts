@@ -1,11 +1,11 @@
 
 import { englishTranslations } from './en';
 import { hindiTranslations } from './hi';
-import { TranslationsRecord } from '../types/translation-types';
+import { TranslationsRecord, Language } from '../types/translation-types';
 
 export const translations: TranslationsRecord = {
   en: englishTranslations,
   hi: hindiTranslations
 };
 
-export * from '../types/translation-types';
+export type { Language, TranslationKeys } from '../types/translation-types';
