@@ -23,6 +23,14 @@ export const englishTranslations: TranslationKeys = {
   about: 'About',
   aboutStudyAI: 'About Study AI',
   
+  // Student Activities Tab Names
+  timer: 'Timer',
+  progress: 'Progress',
+  goals: 'Goals', 
+  tasks: 'Tasks',
+  leaderboard: 'Leaderboard',
+  planner: 'Planner',
+  
   // QuizGenerator translations
   quizDescription: 'Generate a quiz based on your topic and preferences to test your knowledge',
   topic: 'Topic',

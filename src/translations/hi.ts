@@ -1,4 +1,3 @@
-
 import { TranslationKeys } from '../types/translation-types';
 
 export const hindiTranslations: TranslationKeys = {
@@ -22,6 +21,14 @@ export const hindiTranslations: TranslationKeys = {
   generateTeaching: 'पढ़ाना शुरू करें',
   about: 'जानकारी',
   aboutStudyAI: 'स्टडी AI के बारे में',
+  
+  // Student Activities Tab Names
+  timer: 'टाइमर',
+  progress: 'प्रगति',
+  goals: 'लक्ष्य',
+  tasks: 'कार्य',
+  leaderboard: 'लीडरबोर्ड',
+  planner: 'प्लानर',
   
   // QuizGenerator translations
   quizDescription: 'अपने ज्ञान का परीक्षण करने के लिए अपने विषय और प्राथमिकताओं के आधार पर एक क्विज़ उत्पन्न करें',

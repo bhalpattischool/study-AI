@@ -53,42 +53,42 @@ const StudentActivitiesTabs: React.FC<StudentActivitiesTabsProps> = ({
               className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
             >
               <TimerIcon className="h-5 w-5" />
-              <span className="text-xs font-medium">टाइमर</span>
+              <span className="text-xs font-medium">Timer</span>
             </TabsTrigger>
             <TabsTrigger 
               value="progress" 
               className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
             >
               <ChartBarIcon className="h-5 w-5" />
-              <span className="text-xs font-medium">प्रगति</span>
+              <span className="text-xs font-medium">Progress</span>
             </TabsTrigger>
             <TabsTrigger 
               value="goals" 
               className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
             >
               <TargetIcon className="h-5 w-5" />
-              <span className="text-xs font-medium">लक्ष्य</span>
+              <span className="text-xs font-medium">Goals</span>
             </TabsTrigger>
             <TabsTrigger 
               value="tasks" 
               className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
             >
               <ListTodoIcon className="h-5 w-5" />
-              <span className="text-xs font-medium">कार्य</span>
+              <span className="text-xs font-medium">Tasks</span>
             </TabsTrigger>
             <TabsTrigger 
               value="leaderboard" 
               className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
             >
               <TrophyIcon className="h-5 w-5" />
-              <span className="text-xs font-medium">लीडरबोर्ड</span>
+              <span className="text-xs font-medium">Leaderboard</span>
             </TabsTrigger>
             <TabsTrigger 
               value="planner" 
               className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
             >
               <CalendarIcon className="h-5 w-5" />
-              <span className="text-xs font-medium">प्लानर</span>
+              <span className="text-xs font-medium">Planner</span>
             </TabsTrigger>
           </TabsList>
           

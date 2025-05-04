@@ -1,4 +1,3 @@
-export type Language = 'en' | 'hi';
 
 export interface TranslationKeys {
   // Common translations
@@ -21,6 +20,14 @@ export interface TranslationKeys {
   generateTeaching: string;
   about: string;
   aboutStudyAI: string;
+  
+  // Student Activities Tab Names
+  timer: string;
+  progress: string;
+  goals: string;
+  tasks: string;
+  leaderboard: string;
+  planner: string;
   
   // QuizGenerator translations
   quizDescription: string;
@@ -108,4 +115,4 @@ export interface TranslationKeys {
   actionRead: string;
 }
 
-export type TranslationsRecord = Record<Language, TranslationKeys>;
+export type TranslationsRecord = Record<string, TranslationKeys>;
