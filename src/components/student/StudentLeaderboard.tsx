@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { observeLeaderboardData, startChat } from '@/lib/firebase';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface Student {
   id: string;
@@ -24,6 +25,41 @@ interface Student {
 interface StudentLeaderboardProps {
   currentUser: any;
 }
+
+// Function to get user initials
+const getUserInitials = (name: string): string => {
+  const nameParts = name.split(" ");
+  if (nameParts.length >= 2) {
+    return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+// Function to generate a deterministic color based on user id
+const getAvatarColor = (userId: string): string => {
+  const colors = [
+    "bg-purple-500 text-white", // Primary purple
+    "bg-indigo-500 text-white", // Indigo
+    "bg-blue-500 text-white",   // Blue
+    "bg-green-500 text-white",  // Green
+    "bg-yellow-500 text-white", // Yellow
+    "bg-orange-500 text-white", // Orange
+    "bg-red-500 text-white",    // Red
+    "bg-pink-500 text-white",   // Pink
+    "bg-violet-500 text-white", // Violet
+    "bg-emerald-500 text-white", // Emerald
+    "bg-teal-500 text-white",   // Teal
+    "bg-cyan-500 text-white",   // Cyan
+  ];
+  
+  // Use the sum of character codes to pick a color
+  let sum = 0;
+  for (let i = 0; i < userId.length; i++) {
+    sum += userId.charCodeAt(i);
+  }
+  
+  return colors[sum % colors.length];
+};
 
 const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -187,17 +223,11 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                     </TableCell>
                     <TableCell className="font-medium p-2 sm:p-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-purple-200 flex items-center justify-center text-xs shrink-0">
-                          {student.photoURL ? (
-                            <img 
-                              src={student.photoURL} 
-                              alt={student.name || 'Student'} 
-                              className="w-full h-full rounded-full object-cover" 
-                            />
-                          ) : (
-                            (student.name || 'S').charAt(0)
-                          )}
-                        </div>
+                        <Avatar className={`w-6 h-6 sm:w-7 sm:h-7 ${student.isCurrentUser ? 'ring-1 ring-purple-500' : ''}`}>
+                          <AvatarFallback className={`${getAvatarColor(student.id)} text-xs`}>
+                            {getUserInitials(student.name || 'S')}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="min-w-0">
                           <span className={`block truncate ${student.isCurrentUser ? "font-bold" : ""}`}>
                             {student.name || (language === 'hi' ? 'अज्ञात छात्र' : 'Unknown Student')}

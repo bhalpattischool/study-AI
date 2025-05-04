@@ -12,9 +12,46 @@ interface LeaderboardCardProps {
   currentUserId?: string;
 }
 
+// Function to get user initials
+const getUserInitials = (name: string): string => {
+  const nameParts = name.split(" ");
+  if (nameParts.length >= 2) {
+    return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+// Function to generate a deterministic color based on user id
+const getAvatarColor = (userId: string): string => {
+  const colors = [
+    "bg-purple-500 text-white", // Primary purple
+    "bg-indigo-500 text-white", // Indigo
+    "bg-blue-500 text-white",   // Blue
+    "bg-green-500 text-white",  // Green
+    "bg-yellow-500 text-white", // Yellow
+    "bg-orange-500 text-white", // Orange
+    "bg-red-500 text-white",    // Red
+    "bg-pink-500 text-white",   // Pink
+    "bg-violet-500 text-white", // Violet
+    "bg-emerald-500 text-white", // Emerald
+    "bg-teal-500 text-white",   // Teal
+    "bg-cyan-500 text-white",   // Cyan
+  ];
+  
+  // Use the sum of character codes to pick a color
+  let sum = 0;
+  for (let i = 0; i < userId.length; i++) {
+    sum += userId.charCodeAt(i);
+  }
+  
+  return colors[sum % colors.length];
+};
+
 const LeaderboardCard: React.FC<LeaderboardCardProps> = ({ user, currentUserId }) => {
   const [expanded, setExpanded] = useState(false);
   const isCurrentUser = currentUserId === user.id;
+  const userInitials = getUserInitials(user.name);
+  const avatarColor = getAvatarColor(user.id);
   
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Trophy className="h-6 w-6 text-yellow-500 mr-2" />;
@@ -72,10 +109,9 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({ user, currentUserId }
           {getRankIcon(user.rank)}
         </div>
         
-        <Avatar className="h-10 w-10 border-2 border-gray-200 dark:border-gray-700">
-          <AvatarImage src={user.avatar} />
-          <AvatarFallback className="bg-purple-200 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-            {user.name.substring(0, 2).toUpperCase()}
+        <Avatar className={`h-10 w-10 ${isCurrentUser ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-800' : ''}`}>
+          <AvatarFallback className={`${avatarColor} font-medium text-sm`}>
+            {userInitials}
           </AvatarFallback>
         </Avatar>
         
