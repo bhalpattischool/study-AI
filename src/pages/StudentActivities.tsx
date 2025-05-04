@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import StudentActivitiesLoading from './student-activities/StudentActivitiesLoading';
 import StudentActivitiesContainer from './student-activities/StudentActivitiesContainer';
+import { awardDailyLoginBonus } from '@/utils/points';
 
 const StudentActivities = () => {
   const { currentUser, isLoading } = useAuth();
@@ -28,6 +29,15 @@ const StudentActivities = () => {
     }
     if (currentUser) {
       loadStudentData();
+      // Award daily login bonus when user visits the page
+      awardDailyLoginBonus(currentUser.uid).then(awarded => {
+        if (awarded) {
+          // If points were awarded, refresh student data
+          loadStudentData();
+        }
+      }).catch(error => {
+        console.error("Error awarding daily login bonus:", error);
+      });
     }
     // eslint-disable-next-line
   }, [currentUser, isLoading, navigate, location.state]);

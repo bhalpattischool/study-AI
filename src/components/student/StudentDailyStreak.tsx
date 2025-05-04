@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -96,6 +97,14 @@ const StudentDailyStreak: React.FC<StudentDailyStreakProps> = ({ currentUser }) 
     setWeeklyProgress(Math.min(newStreak, 7) * (100/7));
     
     toast.success(`चेक-इन सफल! +${bonusPoints} पॉइंट्स मिले${streakMessage}`);
+    
+    // Update the Firebase database as well
+    try {
+      const { addPointsToUserDb } = await import('@/lib/firebase');
+      await addPointsToUserDb(currentUser.uid, bonusPoints, `दैनिक चेक-इन${streakMessage}`, 'streak');
+    } catch (error) {
+      console.error("Error updating Firebase:", error);
+    }
   };
   
   return (

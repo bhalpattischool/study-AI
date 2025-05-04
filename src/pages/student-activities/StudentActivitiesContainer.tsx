@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import StudentProfileQR from '@/components/student/StudentProfileQR';
 import StudentActivitiesHelp from '@/components/student/StudentActivitiesHelp';
 import StudentActivitiesHeader from './StudentActivitiesHeader';
 import StudentActivitiesTabs from './StudentActivitiesTabs';
 import FloatingLeaderboardWidget from '@/components/student/FloatingLeaderboardWidget';
+import DailyLoginBonus from '@/components/student/DailyLoginBonus';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface StudentActivitiesContainerProps {
@@ -32,35 +33,74 @@ const StudentActivitiesContainer: React.FC<StudentActivitiesContainerProps> = ({
   onSendMessage,
   handleOpenQRDialog,
   isMobile,
-}) => (
-  <div className="max-w-4xl mx-auto relative">
-    <StudentActivitiesHeader 
-      currentUser={currentUser}
-      onOpenQRDialog={handleOpenQRDialog}
-    />
-    <StudentActivitiesTabs
-      currentUser={currentUser}
-      studentPoints={studentPoints}
-      setStudentPoints={setStudentPoints}
-      studentLevel={studentLevel}
-      setStudentLevel={setStudentLevel}
-      onSendMessage={onSendMessage}
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-    />
-    <ScrollArea className={isMobile ? 'h-[calc(100vh-9rem)]' : 'h-[calc(100vh-8rem)]'}>
-      <div className="h-0"></div>
-    </ScrollArea>
-    <StudentProfileQR 
-      currentUser={currentUser}
-      studentPoints={studentPoints}
-      studentLevel={studentLevel}
-    />
-    <StudentActivitiesHelp />
-    
-    {/* फ्लोटिंग लीडरबोर्ड विजेट */}
-    {currentUser && <FloatingLeaderboardWidget currentUserId={currentUser.uid} />}
-  </div>
-);
+}) => {
+  const [loginBonusPoints, setLoginBonusPoints] = useState(0);
+  const [streakDays, setStreakDays] = useState(0);
+  
+  useEffect(() => {
+    if (currentUser) {
+      const streakKey = `${currentUser.uid}_login_streak`;
+      const streak = parseInt(localStorage.getItem(streakKey) || '0');
+      setStreakDays(streak);
+      
+      // Check for today's login bonus
+      const todayBonusKey = `${currentUser.uid}_today_bonus`;
+      const todayBonus = localStorage.getItem(todayBonusKey);
+      
+      if (!todayBonus) {
+        let bonusPoints = 2; // Base login bonus
+        
+        if (streak % 7 === 0 && streak > 0) {
+          bonusPoints += 10;
+        } else if (streak % 3 === 0 && streak > 0) {
+          bonusPoints += 5;
+        }
+        
+        setLoginBonusPoints(bonusPoints);
+        localStorage.setItem(todayBonusKey, Date.now().toString());
+      }
+    }
+  }, [currentUser]);
+
+  return (
+    <div className="max-w-4xl mx-auto relative">
+      <StudentActivitiesHeader 
+        currentUser={currentUser}
+        onOpenQRDialog={handleOpenQRDialog}
+      />
+      <StudentActivitiesTabs
+        currentUser={currentUser}
+        studentPoints={studentPoints}
+        setStudentPoints={setStudentPoints}
+        studentLevel={studentLevel}
+        setStudentLevel={setStudentLevel}
+        onSendMessage={onSendMessage}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
+      <ScrollArea className={isMobile ? 'h-[calc(100vh-9rem)]' : 'h-[calc(100vh-8rem)]'}>
+        <div className="h-0"></div>
+      </ScrollArea>
+      <StudentProfileQR 
+        currentUser={currentUser}
+        studentPoints={studentPoints}
+        studentLevel={studentLevel}
+      />
+      <StudentActivitiesHelp />
+      
+      {/* फ्लोटिंग लीडरबोर्ड विजेट */}
+      {currentUser && <FloatingLeaderboardWidget currentUserId={currentUser.uid} />}
+      
+      {/* Daily Login Bonus */}
+      {currentUser && loginBonusPoints > 0 && (
+        <DailyLoginBonus 
+          userId={currentUser.uid}
+          points={loginBonusPoints}
+          streakDays={streakDays}
+        />
+      )}
+    </div>
+  );
+};
 
 export default StudentActivitiesContainer;

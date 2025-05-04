@@ -38,6 +38,13 @@ export async function addPointsToUser(
       });
       
       localStorage.setItem(`${userId}_points`, (newTotalPoints + 10).toString());
+      
+      // Also update Firebase for level up bonus
+      try {
+        await addPointsToUserDb(userId, 10, `लेवल ${newLevel} पर पहुंचने का बोनस`, 'achievement');
+      } catch (error) {
+        console.error("Error updating Firebase for level up:", error);
+      }
     }
     
     // Add points record
