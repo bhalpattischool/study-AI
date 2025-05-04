@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Medal, Trophy, Star, Award, Flame, Clock, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { LeaderboardUser, getBadgeInfo } from '@/lib/leaderboard-service';
+import { LeaderboardUser, getBadgeInfo } from '@/lib/leaderboard';
 
 interface LeaderboardCardProps {
   user: LeaderboardUser;
