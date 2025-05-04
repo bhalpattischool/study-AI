@@ -1,4 +1,3 @@
-
 export type Language = 'en' | 'hi';
 
 export interface TranslationKeys {
@@ -30,6 +29,13 @@ export interface TranslationKeys {
   tasks: string;
   leaderboard: string;
   planner: string;
+  
+  // Daily Streak
+  dailyStreak: string;
+  dayStreak: string;
+  keepTheStreak: string;
+  loginTomorrow: string;
+  streakBonus: string;
   
   // QuizGenerator translations
   quizDescription: string;

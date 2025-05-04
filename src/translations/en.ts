@@ -1,4 +1,3 @@
-
 import { TranslationKeys } from '../types/translation-types';
 
 export const englishTranslations: TranslationKeys = {
@@ -30,6 +29,13 @@ export const englishTranslations: TranslationKeys = {
   tasks: 'Tasks',
   leaderboard: 'Leaderboard',
   planner: 'Planner',
+  
+  // Daily Streak
+  dailyStreak: 'Daily Streak',
+  dayStreak: 'Day Streak',
+  keepTheStreak: 'Keep the streak going!',
+  loginTomorrow: 'Log in tomorrow to continue your streak',
+  streakBonus: 'Streak Bonus',
   
   // QuizGenerator translations
   quizDescription: 'Generate a quiz based on your topic and preferences to test your knowledge',

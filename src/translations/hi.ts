@@ -25,10 +25,17 @@ export const hindiTranslations: TranslationKeys = {
   // Student Activities Tab Names
   timer: 'टाइमर',
   progress: 'प्रगति',
-  goals: 'लक्ष्य',
+  goals: 'लक्ष्य', 
   tasks: 'कार्य',
   leaderboard: 'लीडरबोर्ड',
   planner: 'प्लानर',
+  
+  // Daily Streak
+  dailyStreak: 'दैनिक स्ट्रीक',
+  dayStreak: 'दिन की स्ट्रीक',
+  keepTheStreak: 'स्ट्रीक जारी रखें!',
+  loginTomorrow: 'अपनी स्ट्रीक जारी रखने के लिए कल फिर लॉगिन करें',
+  streakBonus: 'स्ट्रीक बोनस',
   
   // QuizGenerator translations
   quizDescription: 'अपने ज्ञान का परीक्षण करने के लिए अपने विषय और प्राथमिकताओं के आधार पर एक क्विज़ उत्पन्न करें',

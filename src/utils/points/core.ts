@@ -12,38 +12,41 @@ export async function addPointsToUser(
   
   try {
     // Add points to Firebase DB
-    await addPointsToUserDb(userId, points, description, type);
+    const result = await addPointsToUserDb(userId, points, description, type);
     
     // For backward compatibility, also update localStorage
-    const currentPoints = parseInt(localStorage.getItem(`${userId}_points`) || '0');
-    const newTotalPoints = currentPoints + points;
+    // Use the new total points from Firebase if available
+    let newTotalPoints = result?.newPoints || (parseInt(localStorage.getItem(`${userId}_points`) || '0') + points);
+    let newLevel = result?.newLevel || Math.floor(newTotalPoints / 100) + 1;
     
-    // Update points
+    // Update points and level in localStorage
     localStorage.setItem(`${userId}_points`, newTotalPoints.toString());
+    localStorage.setItem(`${userId}_level`, newLevel.toString());
     
-    // Calculate and update level (1 level per 100 points)
-    const newLevel = Math.floor(newTotalPoints / 100) + 1;
-    const currentLevel = parseInt(localStorage.getItem(`${userId}_level`) || '1');
-    
-    if (newLevel > currentLevel) {
-      localStorage.setItem(`${userId}_level`, newLevel.toString());
+    // Handle level up if not already handled by Firebase
+    if (!result?.leveledUp) {
+      const currentLevel = parseInt(localStorage.getItem(`${userId}_level`) || '1');
       
-      // Add level up record and bonus points
-      addPointRecord(userId, {
-        id: Date.now() + 1,
-        type: 'achievement',
-        points: 10,
-        description: `लेवल ${newLevel} पर पहुंचने का बोनस`,
-        timestamp: new Date().toISOString()
-      });
-      
-      localStorage.setItem(`${userId}_points`, (newTotalPoints + 10).toString());
-      
-      // Also update Firebase for level up bonus
-      try {
-        await addPointsToUserDb(userId, 10, `लेवल ${newLevel} पर पहुंचने का बोनस`, 'achievement');
-      } catch (error) {
-        console.error("Error updating Firebase for level up:", error);
+      if (newLevel > currentLevel) {
+        localStorage.setItem(`${userId}_level`, newLevel.toString());
+        
+        // Add level up record and bonus points
+        addPointRecord(userId, {
+          id: Date.now() + 1,
+          type: 'achievement',
+          points: 10,
+          description: `लेवल ${newLevel} पर पहुंचने का बोनस`,
+          timestamp: new Date().toISOString()
+        });
+        
+        localStorage.setItem(`${userId}_points`, (newTotalPoints + 10).toString());
+        
+        // Also update Firebase for level up bonus
+        try {
+          await addPointsToUserDb(userId, 10, `लेवल ${newLevel} पर पहुंचने का बोनस`, 'achievement');
+        } catch (error) {
+          console.error("Error updating Firebase for level up:", error);
+        }
       }
     }
     

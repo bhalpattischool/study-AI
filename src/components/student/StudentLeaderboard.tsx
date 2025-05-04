@@ -4,10 +4,11 @@ import { CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Trophy, Medal, Star, Share2, MessageCircle } from 'lucide-react';
+import { Users, Trophy, Medal, Star, Share2, MessageCircle, CheckSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { observeLeaderboardData, startChat } from '@/lib/firebase';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Student {
   id: string;
@@ -17,6 +18,7 @@ interface Student {
   rank: number;
   photoURL?: string;
   isCurrentUser?: boolean;
+  streak?: number;
 }
 
 interface StudentLeaderboardProps {
@@ -28,16 +30,24 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
   const [loading, setLoading] = useState(true);
   const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   
   useEffect(() => {
     if (currentUser) {
       const unsubscribe = observeLeaderboardData((leaderboardData) => {
-        const studentsWithCurrentUser = leaderboardData.map(student => ({
-          ...student,
-          // Ensure name is never undefined
-          name: student.name || 'Unknown',
-          isCurrentUser: student.id === currentUser.uid
-        }));
+        const studentsWithCurrentUser = leaderboardData.map(student => {
+          // Get streak information from localStorage for display purposes
+          const streakKey = `${student.id}_login_streak`;
+          const streak = parseInt(localStorage.getItem(streakKey) || '0');
+          
+          return {
+            ...student,
+            // Ensure name is never undefined
+            name: student.name || 'Unknown',
+            isCurrentUser: student.id === currentUser.uid,
+            streak: streak
+          }
+        });
         
         setStudents(studentsWithCurrentUser);
         
@@ -55,9 +65,9 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                   currentUser.uid,
                   20,
                   'achievement',
-                  'टॉप 10 लीडरबोर्ड बोनस'
+                  language === 'hi' ? 'टॉप 10 लीडरबोर्ड बोनस' : 'Top 10 Leaderboard Bonus'
                 );
-                toast.success('आप टॉप 10 में हैं! +20 पॉइंट्स मिले');
+                toast.success(language === 'hi' ? 'आप टॉप 10 में हैं! +20 पॉइंट्स मिले' : 'You are in Top 10! +20 points awarded');
               });
             }
           }
@@ -72,7 +82,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
         }
       };
     }
-  }, [currentUser]);
+  }, [currentUser, language]);
   
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
@@ -85,29 +95,29 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: 'अध्ययन लीडरबोर्ड',
-          text: 'देखें कौन है सबसे आगे!',
+          title: language === 'hi' ? 'अध्ययन लीडरबोर्ड' : 'Study Leaderboard',
+          text: language === 'hi' ? 'देखें कौन है सबसे आगे!' : 'See who is ahead!',
           url: window.location.href,
         });
-        toast.success('लीडरबोर्ड शेयर किया गया');
+        toast.success(language === 'hi' ? 'लीडरबोर्ड शेयर किया गया' : 'Leaderboard shared');
       } else {
         navigator.clipboard.writeText(window.location.href);
-        toast.success('लिंक कॉपी किया गया');
+        toast.success(language === 'hi' ? 'लिंक कॉपी किया गया' : 'Link copied');
       }
     } catch (error) {
       console.error('Error sharing:', error);
-      toast.error('शेयर करने में त्रुटि');
+      toast.error(language === 'hi' ? 'शेयर करने में त्रुटि' : 'Error sharing');
     }
   };
   
   const handleMessageStudent = async (studentId: string) => {
     if (!currentUser) {
-      toast.error('आपको मैसेज भेजने के लिए लॉगिन करना होगा');
+      toast.error(language === 'hi' ? 'आपको मैसेज भेजने के लिए लॉगिन करना होगा' : 'You need to login to send messages');
       return;
     }
     
     if (studentId === currentUser.uid) {
-      toast.error('आप अपने आप को मैसेज नहीं भेज सकते');
+      toast.error(language === 'hi' ? 'आप अपने आप को मैसेज नहीं भेज सकते' : 'You cannot message yourself');
       return;
     }
     
@@ -116,7 +126,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
       navigate('/chat', { state: { activeChatId: chatId, recipientId: studentId, isGroup: false } });
     } catch (error) {
       console.error('Error starting chat:', error);
-      toast.error('चैट शुरू करने में त्रुटि');
+      toast.error(language === 'hi' ? 'चैट शुरू करने में त्रुटि' : 'Error starting chat');
     }
   };
   
@@ -126,7 +136,7 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Users className="h-5 w-5 text-purple-600" />
-            लीडरबोर्ड
+            {t('leaderboard')}
           </h3>
           <Button 
             variant="outline" 
@@ -135,14 +145,14 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
             className="flex items-center gap-1"
           >
             <Share2 className="h-4 w-4 hidden sm:block" />
-            <span className="sm:ml-1">शेयर</span>
+            <span className="sm:ml-1">{language === 'hi' ? 'शेयर' : 'Share'}</span>
           </Button>
         </div>
         
         {currentUserRank && (
           <div className="bg-purple-100 dark:bg-purple-900/20 rounded-lg p-3 mb-4">
             <p className="text-sm font-medium">
-              आपका रैंक: <Badge className="ml-2">{currentUserRank}</Badge>
+              {language === 'hi' ? 'आपका रैंक:' : 'Your Rank:'} <Badge className="ml-2">{currentUserRank}</Badge>
             </p>
           </div>
         )}
@@ -156,10 +166,11 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12 text-center p-2 sm:p-4">रैंक</TableHead>
-                  <TableHead className="p-2 sm:p-4">छात्र</TableHead>
-                  <TableHead className="text-right p-2 sm:p-4">पॉइंट्स</TableHead>
-                  <TableHead className="text-right w-20 p-2 sm:p-4">लेवल</TableHead>
+                  <TableHead className="w-12 text-center p-2 sm:p-4">{language === 'hi' ? 'रैंक' : 'Rank'}</TableHead>
+                  <TableHead className="p-2 sm:p-4">{language === 'hi' ? 'छात्र' : 'Student'}</TableHead>
+                  <TableHead className="text-right p-2 sm:p-4">{language === 'hi' ? 'पॉइंट्स' : 'Points'}</TableHead>
+                  <TableHead className="text-right w-20 p-2 sm:p-4">{language === 'hi' ? 'लेवल' : 'Level'}</TableHead>
+                  <TableHead className="text-center w-24 p-2 sm:p-4">{language === 'hi' ? 'स्ट्रीक' : 'Streak'}</TableHead>
                   <TableHead className="w-20 p-2 sm:p-4"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -189,10 +200,12 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                         </div>
                         <div className="min-w-0">
                           <span className={`block truncate ${student.isCurrentUser ? "font-bold" : ""}`}>
-                            {student.name || 'Unknown Student'}
+                            {student.name || (language === 'hi' ? 'अज्ञात छात्र' : 'Unknown Student')}
                           </span>
                           {student.isCurrentUser && (
-                            <span className="text-xs text-purple-600 dark:text-purple-400">(आप)</span>
+                            <span className="text-xs text-purple-600 dark:text-purple-400">
+                              {language === 'hi' ? '(आप)' : '(You)'}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -208,6 +221,15 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                         {student.level}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-center p-2 sm:p-4">
+                      {student.streak ? (
+                        <Badge className={`${student.streak >= 7 ? 'bg-orange-500' : 'bg-amber-400'}`}>
+                          <Flame className="h-3.5 w-3.5 mr-1" /> {student.streak}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
+                    </TableCell>
                     <TableCell className="p-2 sm:p-4">
                       {!student.isCurrentUser && currentUser && (
                         <Button 
@@ -217,7 +239,9 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
                           onClick={() => handleMessageStudent(student.id)}
                         >
                           <MessageCircle className="h-4 w-4" />
-                          <span className="hidden sm:inline">Message</span>
+                          <span className="hidden sm:inline">
+                            {language === 'hi' ? 'मैसेज' : 'Message'}
+                          </span>
                         </Button>
                       )}
                     </TableCell>
@@ -229,7 +253,9 @@ const StudentLeaderboard: React.FC<StudentLeaderboardProps> = ({ currentUser }) 
         ) : (
           <div className="text-center py-8 border rounded-md">
             <Users className="h-10 w-10 mx-auto text-gray-300 mb-2" />
-            <p className="text-gray-500">अभी कोई छात्र रजिस्टर नहीं हुआ है</p>
+            <p className="text-gray-500">
+              {language === 'hi' ? 'अभी कोई छात्र रजिस्टर नहीं हुआ है' : 'No students registered yet'}
+            </p>
           </div>
         )}
       </div>

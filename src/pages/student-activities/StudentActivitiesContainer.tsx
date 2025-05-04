@@ -8,6 +8,8 @@ import StudentActivitiesTabs from './StudentActivitiesTabs';
 import FloatingLeaderboardWidget from '@/components/student/FloatingLeaderboardWidget';
 import DailyLoginBonus from '@/components/student/DailyLoginBonus';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import DailyStreakDisplay from '@/components/student/DailyStreakDisplay';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface StudentActivitiesContainerProps {
   currentUser: any;
@@ -36,6 +38,7 @@ const StudentActivitiesContainer: React.FC<StudentActivitiesContainerProps> = ({
 }) => {
   const [loginBonusPoints, setLoginBonusPoints] = useState(0);
   const [streakDays, setStreakDays] = useState(0);
+  const [showStreakCard, setShowStreakCard] = useState(true);
   
   useEffect(() => {
     if (currentUser) {
@@ -48,12 +51,12 @@ const StudentActivitiesContainer: React.FC<StudentActivitiesContainerProps> = ({
       const todayBonus = localStorage.getItem(todayBonusKey);
       
       if (!todayBonus) {
-        let bonusPoints = 2; // Base login bonus
+        let bonusPoints = 5; // Increased base login bonus
         
         if (streak % 7 === 0 && streak > 0) {
-          bonusPoints += 10;
+          bonusPoints += 15;
         } else if (streak % 3 === 0 && streak > 0) {
-          bonusPoints += 5;
+          bonusPoints += 10;
         }
         
         setLoginBonusPoints(bonusPoints);
@@ -68,6 +71,17 @@ const StudentActivitiesContainer: React.FC<StudentActivitiesContainerProps> = ({
         currentUser={currentUser}
         onOpenQRDialog={handleOpenQRDialog}
       />
+      
+      {/* Display daily streak if streak > 0 */}
+      {currentUser && streakDays > 0 && showStreakCard && (
+        <div className="mb-4">
+          <DailyStreakDisplay 
+            streakDays={streakDays} 
+            className="border-purple-200"
+          />
+        </div>
+      )}
+      
       <StudentActivitiesTabs
         currentUser={currentUser}
         studentPoints={studentPoints}

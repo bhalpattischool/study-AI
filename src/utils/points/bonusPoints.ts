@@ -58,6 +58,21 @@ export async function awardDailyLoginBonus(userId: string): Promise<boolean> {
       localStorage.setItem(longestStreakKey, newStreak.toString());
     }
     
+    // Try to update streak info in Firebase database
+    try {
+      const { getDatabase, ref, update } = await import('firebase/database');
+      const { database } = await import('@/lib/firebase/config');
+      
+      const userRef = ref(database, `users/${userId}`);
+      await update(userRef, {
+        streak: newStreak,
+        longestStreak: Math.max(newStreak, currentLongestStreak)
+      });
+    } catch (error) {
+      console.error("Failed to update streak in Firebase:", error);
+      // Continue using localStorage as fallback
+    }
+    
     return true;
   }
   

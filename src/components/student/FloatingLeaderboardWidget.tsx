@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, ChevronDown, ChevronUp, X, Crown } from 'lucide-react';
+import { Trophy, ChevronDown, ChevronUp, X, Crown, Flame } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { observeLeaderboardData } from '@/lib/firebase/leaderboard';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LeaderboardUser {
   id: string;
@@ -16,6 +17,7 @@ interface LeaderboardUser {
   level: number;
   photoURL?: string;
   rank: number;
+  streak?: number;
 }
 
 interface FloatingLeaderboardWidgetProps {
@@ -27,14 +29,25 @@ const FloatingLeaderboardWidget: React.FC<FloatingLeaderboardWidgetProps> = ({ c
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userRank, setUserRank] = useState<number | null>(null);
+  const { language } = useLanguage();
   
   useEffect(() => {
     const unsubscribe = observeLeaderboardData(5, (data) => {
-      setLeaderboardData(data);
+      // Add streak information to leaderboard data
+      const dataWithStreak = data.map(user => {
+        const streakKey = `${user.id}_login_streak`;
+        const streak = parseInt(localStorage.getItem(streakKey) || '0');
+        return {
+          ...user,
+          streak
+        };
+      });
+      
+      setLeaderboardData(dataWithStreak);
       setIsLoading(false);
       
       // Find current user rank
-      const userInfo = data.find(user => user.id === currentUserId);
+      const userInfo = dataWithStreak.find(user => user.id === currentUserId);
       if (userInfo) {
         setUserRank(userInfo.rank);
       }
@@ -79,7 +92,7 @@ const FloatingLeaderboardWidget: React.FC<FloatingLeaderboardWidgetProps> = ({ c
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="font-semibold flex items-center gap-1.5">
                     <Trophy className="h-4 w-4 text-yellow-500" />
-                    <span>टॉप छात्र</span>
+                    <span>{language === 'hi' ? 'टॉप छात्र' : 'Top Students'}</span>
                   </h3>
                   <Button 
                     variant="ghost" 
@@ -97,7 +110,7 @@ const FloatingLeaderboardWidget: React.FC<FloatingLeaderboardWidgetProps> = ({ c
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {leaderboardData.map((user, index) => (
+                    {leaderboardData.map((user) => (
                       <div 
                         key={user.id} 
                         className={cn(
@@ -117,13 +130,23 @@ const FloatingLeaderboardWidget: React.FC<FloatingLeaderboardWidgetProps> = ({ c
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {user.name || 'अज्ञात छात्र'}
-                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium truncate">
+                              {user.name || (language === 'hi' ? 'अज्ञात छात्र' : 'Unknown Student')}
+                            </p>
+                            {user.streak && user.streak > 0 && (
+                              <Badge variant="outline" className="ml-1 px-1 h-5 bg-orange-100 border-orange-200">
+                                <Flame className="h-3 w-3 text-orange-500 mr-0.5" />
+                                <span className="text-[10px]">{user.streak}</span>
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Badge variant="secondary" className="text-xs px-1 h-4">
+                              {user.points} {language === 'hi' ? 'अंक' : 'pts'}
+                            </Badge>
+                          </div>
                         </div>
-                        <Badge variant="secondary" className="text-xs">
-                          {user.points} अंक
-                        </Badge>
                       </div>
                     ))}
                   </div>
@@ -135,10 +158,12 @@ const FloatingLeaderboardWidget: React.FC<FloatingLeaderboardWidgetProps> = ({ c
                       <span className="font-medium w-5 text-center">
                         {userRank}
                       </span>
-                      <span className="text-xs text-purple-600">आप</span>
+                      <span className="text-xs text-purple-600">
+                        {language === 'hi' ? 'आप' : 'You'}
+                      </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium">
-                          अपने स्कोर में सुधार करें!
+                          {language === 'hi' ? 'अपने स्कोर में सुधार करें!' : 'Improve your score!'}
                         </p>
                       </div>
                     </div>
@@ -161,7 +186,9 @@ const FloatingLeaderboardWidget: React.FC<FloatingLeaderboardWidgetProps> = ({ c
         whileTap={{ scale: 0.95 }}
       >
         <Trophy className="h-4 w-4" />
-        <span className="text-sm font-medium">लीडरबोर्ड</span>
+        <span className="text-sm font-medium">
+          {language === 'hi' ? 'लीडरबोर्ड' : 'Leaderboard'}
+        </span>
         {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
       </motion.button>
     </div>
