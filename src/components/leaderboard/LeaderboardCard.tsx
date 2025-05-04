@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Medal, Trophy, Star, Award, Fire, Clock, Sparkles } from 'lucide-react';
+import { Medal, Trophy, Star, Award, Flame, Clock, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -95,7 +95,7 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({ user, currentUserId }
             </div>
             <div className="flex items-center gap-1.5">
               <div className="flex items-center">
-                <Fire className="h-3 w-3 text-red-500" />
+                <Flame className="h-3 w-3 text-red-500" />
                 <span className="ml-0.5">{user.streakDays} दिन</span>
               </div>
               <div className="flex items-center ml-2">

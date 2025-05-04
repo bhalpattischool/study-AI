@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +7,7 @@ import {
   Users, 
   Search, 
   ArrowUpDown, 
-  Fire, 
+  Flame,
   Clock, 
   Star, 
   Filter, 
@@ -167,7 +166,7 @@ const LeaderboardPage = () => {
                       XP पॉइंट्स
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setSortBy('streakDays')}>
-                      <Fire className="h-4 w-4 mr-2" />
+                      <Flame className="h-4 w-4 mr-2" />
                       स्ट्रीक दिन
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setSortBy('studyHours')}>
@@ -314,7 +313,7 @@ const LeaderboardPage = () => {
                     <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
                       <p className="text-xs text-gray-600 dark:text-gray-400">स्ट्रीक</p>
                       <div className="flex items-center">
-                        <Fire className="h-3 w-3 text-red-500 mr-1" />
+                        <Flame className="h-3 w-3 text-red-500 mr-1" />
                         <span className="font-bold">15</span>
                       </div>
                     </div>

@@ -4,7 +4,7 @@ import { CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Trophy, Medal, Star, Share2, MessageCircle, CheckSquare } from 'lucide-react';
+import { Users, Trophy, Medal, Star, Share2, MessageCircle, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { observeLeaderboardData, startChat } from '@/lib/firebase';
