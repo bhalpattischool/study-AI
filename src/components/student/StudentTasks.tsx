@@ -275,7 +275,7 @@ const StudentTasks: React.FC<StudentTasksProps> = ({
                 >
                   <h4 className="font-medium text-sm">{getCategoryLabel(category)}</h4>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" size="sm" className="bg-white dark:bg-gray-800">
+                    <Badge variant="outline" className="bg-white dark:bg-gray-800">
                       {categoryTasks.filter(t => !t.completed).length}/{categoryTasks.length}
                     </Badge>
                     {expandedCategories[category] ? (

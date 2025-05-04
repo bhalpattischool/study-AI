@@ -11,6 +11,14 @@ import StudentLeaderboard from '@/components/student/StudentLeaderboard';
 import StudentGoals from '@/components/student/StudentGoals';
 import StudentTasks from '@/components/student/StudentTasks';
 import StudyGoalTracker from '@/components/student/StudyGoalTracker';
+import { 
+  TimerIcon, 
+  ChartBarIcon, 
+  TargetIcon, 
+  ListTodoIcon, 
+  TrophyIcon, 
+  CalendarIcon 
+} from '@/components/student/TabIcons';
 
 interface StudentActivitiesTabsProps {
   currentUser: any;
@@ -36,25 +44,61 @@ const StudentActivitiesTabs: React.FC<StudentActivitiesTabsProps> = ({
   const isMobile = useMediaQuery("(max-width: 640px)");
 
   return (
-    <Card>
-      <CardHeader className="p-4 pb-0">
+    <Card className="border-purple-100 dark:border-purple-900 overflow-hidden shadow-md">
+      <CardHeader className="p-0 pb-0">
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-6">
-            <TabsTrigger value="timer">टाइमर</TabsTrigger>
-            <TabsTrigger value="progress">प्रगति</TabsTrigger>
-            <TabsTrigger value="goals">लक्ष्य</TabsTrigger>
-            <TabsTrigger value="tasks">कार्य</TabsTrigger>
-            <TabsTrigger value="leaderboard">लीडरबोर्ड</TabsTrigger>
-            <TabsTrigger value="planner">प्लानर</TabsTrigger>
+          <TabsList className="grid grid-cols-3 sm:grid-cols-6 h-auto p-1 gap-1 bg-purple-50 dark:bg-purple-900/20 rounded-none">
+            <TabsTrigger 
+              value="timer"
+              className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
+            >
+              <TimerIcon className="h-5 w-5" />
+              <span className="text-xs font-medium">टाइमर</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="progress" 
+              className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
+            >
+              <ChartBarIcon className="h-5 w-5" />
+              <span className="text-xs font-medium">प्रगति</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="goals" 
+              className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
+            >
+              <TargetIcon className="h-5 w-5" />
+              <span className="text-xs font-medium">लक्ष्य</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="tasks" 
+              className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
+            >
+              <ListTodoIcon className="h-5 w-5" />
+              <span className="text-xs font-medium">कार्य</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="leaderboard" 
+              className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
+            >
+              <TrophyIcon className="h-5 w-5" />
+              <span className="text-xs font-medium">लीडरबोर्ड</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="planner" 
+              className="flex flex-col items-center justify-center gap-1 h-16 sm:h-14 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
+            >
+              <CalendarIcon className="h-5 w-5" />
+              <span className="text-xs font-medium">प्लानर</span>
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="timer" className="m-0 space-y-4 p-4">
+          <TabsContent value="timer" className="m-0 space-y-4 p-4 animate-fade-in">
             <DailyTaskGenerator />
           </TabsContent>
-          <TabsContent value="planner" className="m-0 space-y-4 p-4">
+          <TabsContent value="planner" className="m-0 space-y-4 p-4 animate-fade-in">
             <StudyPlanner onSendMessage={onSendMessage} />
           </TabsContent>
-          <TabsContent value="progress" className="m-0">
+          <TabsContent value="progress" className="m-0 animate-fade-in">
             <div className="grid grid-cols-1 gap-4 p-4">
               <Card>
                 <CardHeader className="pb-2">
@@ -70,7 +114,7 @@ const StudentActivitiesTabs: React.FC<StudentActivitiesTabsProps> = ({
               </Card>
             </div>
           </TabsContent>
-          <TabsContent value="goals" className="m-0">
+          <TabsContent value="goals" className="m-0 animate-fade-in">
             <div className="grid grid-cols-1 gap-4 p-4">
               <Card>
                 <CardHeader className="pb-2">
@@ -86,7 +130,7 @@ const StudentActivitiesTabs: React.FC<StudentActivitiesTabsProps> = ({
               </Card>
             </div>
           </TabsContent>
-          <TabsContent value="tasks" className="m-0">
+          <TabsContent value="tasks" className="m-0 animate-fade-in">
             <div className="grid grid-cols-1 gap-4 p-4">
               <Card>
                 <CardHeader className="pb-2">
@@ -108,7 +152,7 @@ const StudentActivitiesTabs: React.FC<StudentActivitiesTabsProps> = ({
               </Card>
             </div>
           </TabsContent>
-          <TabsContent value="leaderboard" className="m-0">
+          <TabsContent value="leaderboard" className="m-0 animate-fade-in">
             <div className="p-4">
               <Card>
                 <CardHeader className="pb-2">
