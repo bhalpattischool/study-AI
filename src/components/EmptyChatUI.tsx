@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import SuggestionButton from './SuggestionButton';
-import { MessageSquare, Code, FileText, BookOpen, Bell, Calculator, Brain, GraduationCap, Clock } from 'lucide-react';
+import { MessageSquare, Code, FileText, BookOpen, Bell, Calculator, Brain, GraduationCap, Clock, Award } from 'lucide-react';
 import { getTimeBasedGreeting } from '@/utils/timeUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import StudyTimer from './study/StudyTimer';
@@ -130,10 +130,10 @@ const EmptyChatUI: React.FC<EmptyChatUIProps> = ({
         <Button 
           variant="outline" 
           className="flex flex-col items-center gap-2 p-4 h-auto border-purple-100 dark:border-purple-900 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/30"
-          onClick={() => navigate('/saved-messages')}
+          onClick={() => navigate('/leaderboard')}
         >
-          <BookOpen className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-          <span className="text-sm">Saved Messages</span>
+          <Award className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+          <span className="text-sm">Leaderboard</span>
         </Button>
         
         <Button 

@@ -13,7 +13,8 @@ import {
   Users,
   MessageCircle,
   X,
-  Info
+  Info,
+  Award
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -109,6 +110,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           />
           
           <SidebarLink 
+            to="/leaderboard" 
+            icon={<Award className="h-5 w-5" />} 
+            label={isHindi ? "लीडरबोर्ड" : "Leaderboard"} 
+            active={isActive('/leaderboard')} 
+          />
+          
+          <SidebarLink 
             to="/profile" 
             icon={<User className="h-5 w-5" />} 
             label={isHindi ? "प्रोफाइल" : "Profile"} 
@@ -140,9 +148,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               asChild
               className="w-full bg-purple-600 hover:bg-purple-700"
             >
-              <Link to="/chat">
-                <MessageCircle className="h-4 w-4 mr-2" />
-                {isHindi ? "चैट खोलें" : "Open Chat"}
+              <Link to="/leaderboard">
+                <Award className="h-4 w-4 mr-2" />
+                {isHindi ? "लीडरबोर्ड देखें" : "View Leaderboard"}
               </Link>
             </Button>
           </div>

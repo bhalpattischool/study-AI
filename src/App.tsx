@@ -14,6 +14,7 @@ import TeacherChats from './pages/TeacherChats';
 import StudentProfile from './pages/StudentProfile';
 import NotFound from './pages/NotFound';
 import ChatSystem from './pages/ChatSystem';
+import Leaderboard from './pages/Leaderboard';
 import { ThemeWrapper } from './ThemeWrapper';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -64,6 +65,7 @@ function App() {
               <Route path="/student-profile/:userId" element={<StudentProfile />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/chat" element={<ChatSystem />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <NotificationToast />
