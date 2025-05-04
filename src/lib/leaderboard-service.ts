@@ -1,5 +1,7 @@
+// Leaderboard service with Firebase integration
 
-// Mock leaderboard service with sample data
+import { database } from './firebase/config';
+import { ref, get, onValue, query, orderByChild } from 'firebase/database';
 
 export interface LeaderboardUser {
   id: string;
@@ -14,133 +16,164 @@ export interface LeaderboardUser {
   lastActive: string;
 }
 
-// Mock leaderboard data
-export const getLeaderboardData = (): LeaderboardUser[] => {
-  return [
-    {
-      id: '1',
-      name: 'Raj Sharma',
-      avatar: 'https://i.pravatar.cc/150?img=11',
-      rank: 1,
-      xp: 15750,
-      streakDays: 42,
-      studyHours: 256,
-      level: 21,
-      badges: ['math-wizard', 'science-master', 'study-marathon'],
-      lastActive: '2 घंटे पहले'
-    },
-    {
-      id: '2',
-      name: 'Priya Patel',
-      avatar: 'https://i.pravatar.cc/150?img=5',
-      rank: 2,
-      xp: 14320,
-      streakDays: 36,
-      studyHours: 231,
-      level: 19,
-      badges: ['literature-buff', 'history-expert', 'consistent-learner'],
-      lastActive: '10 मिनट पहले'
-    },
-    {
-      id: '3',
-      name: 'Vikram Singh',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-      rank: 3,
-      xp: 13890,
-      streakDays: 29,
-      studyHours: 215,
-      level: 18,
-      badges: ['physics-genius', 'quiz-champion'],
-      lastActive: '5 मिनट पहले'
-    },
-    {
-      id: '4',
-      name: 'Ananya Gupta',
-      avatar: 'https://i.pravatar.cc/150?img=9',
-      rank: 4,
-      xp: 12450,
-      streakDays: 25,
-      studyHours: 189,
-      level: 17,
-      badges: ['chemistry-master', 'early-bird'],
-      lastActive: 'आज'
-    },
-    {
-      id: '5',
-      name: 'Rohan Mehta',
-      avatar: 'https://i.pravatar.cc/150?img=15',
-      rank: 5,
-      xp: 11930,
-      streakDays: 21,
-      studyHours: 178,
-      level: 16,
-      badges: ['biology-expert', 'night-owl'],
-      lastActive: 'कल'
-    },
-    {
-      id: '6',
-      name: 'Neha Verma',
-      avatar: 'https://i.pravatar.cc/150?img=3',
-      rank: 6,
-      xp: 10850,
-      streakDays: 19,
-      studyHours: 160,
-      level: 15,
-      badges: ['geography-pro', 'quick-learner'],
-      lastActive: '30 मिनट पहले'
-    },
-    {
-      id: '7',
-      name: 'Arjun Kumar',
-      avatar: 'https://i.pravatar.cc/150?img=17',
-      rank: 7,
-      xp: 9750,
-      streakDays: 15,
-      studyHours: 148,
-      level: 14,
-      badges: ['computer-genius', 'problem-solver'],
-      lastActive: 'आज'
-    },
-    {
-      id: '8',
-      name: 'Divya Reddy',
-      avatar: 'https://i.pravatar.cc/150?img=24',
-      rank: 8,
-      xp: 8930,
-      streakDays: 14,
-      studyHours: 133,
-      level: 13,
-      badges: ['language-expert', 'dedicated-student'],
-      lastActive: '1 घंटे पहले'
-    },
-    {
-      id: '9',
-      name: 'Aditya Joshi',
-      avatar: 'https://i.pravatar.cc/150?img=20',
-      rank: 9,
-      xp: 7890,
-      streakDays: 12,
-      studyHours: 118,
-      level: 11,
-      badges: ['economics-master', 'rising-star'],
-      lastActive: 'कल'
-    },
-    {
-      id: '10',
-      name: 'Meera Shah',
-      avatar: 'https://i.pravatar.cc/150?img=23',
-      rank: 10,
-      xp: 6950,
-      streakDays: 9,
-      studyHours: 102,
-      level: 10,
-      badges: ['art-enthusiast', 'team-player'],
-      lastActive: '3 घंटे पहले'
-    },
-  ];
+// Convert Firebase user data to LeaderboardUser format
+const transformUserData = (userId: string, userData: any, rank: number): LeaderboardUser => {
+  // Calculate streak days from login streak data or use default value
+  const streakKey = `${userId}_login_streak`;
+  const streakDays = parseInt(localStorage.getItem(streakKey) || '0');
+
+  // Calculate study hours from points (for example: 10 points = 1 hour)
+  const studyHours = Math.floor((userData.points || 0) / 10);
+
+  // Get recent activity timestamp
+  const lastLoginTime = userData.lastLogin || userData.createdAt || Date.now();
+  const lastActive = getLastActiveText(lastLoginTime);
+
+  // Create badges based on achievements
+  const badges = generateBadges(userData);
+
+  return {
+    id: userId,
+    name: userData.displayName || userData.name || `User_${userId.substring(0, 5)}`,
+    avatar: userData.photoURL || undefined,
+    rank,
+    xp: userData.points || 0,
+    streakDays,
+    studyHours,
+    level: userData.level || 1,
+    badges,
+    lastActive
+  };
 };
 
-// Get user badges with descriptions
+// Generate badges based on user data
+const generateBadges = (userData: any): string[] => {
+  const badges: string[] = [];
+  
+  // Points based badges
+  if ((userData.points || 0) >= 10000) badges.push('study-marathon');
+  if ((userData.points || 0) >= 5000) badges.push('dedicated-student');
+  
+  // Level based badges
+  if ((userData.level || 0) >= 15) badges.push('math-wizard');
+  if ((userData.level || 0) >= 10) badges.push('science-master');
+  if ((userData.level || 0) >= 5) badges.push('quick-learner');
+  
+  // Other badges based on user data
+  if (userData.studySessions && userData.studySessions > 50) badges.push('consistent-learner');
+  if (userData.quizScores && userData.quizScores.length > 20) badges.push('quiz-champion');
+  
+  // If no badges yet, give at least one
+  if (badges.length === 0) badges.push('rising-star');
+  
+  return badges;
+};
+
+// Get formatted last active text based on timestamp
+const getLastActiveText = (timestamp: number): string => {
+  const now = Date.now();
+  const diff = now - timestamp;
+  
+  // Less than an hour
+  if (diff < 3600000) {
+    const minutes = Math.floor(diff / 60000);
+    return `${minutes} मिनट पहले`;
+  }
+  
+  // Less than a day
+  if (diff < 86400000) {
+    const hours = Math.floor(diff / 3600000);
+    return `${hours} घंटे पहले`;
+  }
+  
+  // Less than 2 days
+  if (diff < 172800000) {
+    return 'कल';
+  }
+  
+  // More than 2 days
+  return 'कुछ दिन पहले';
+};
+
+// Get leaderboard data from Firebase
+export const getLeaderboardData = async (): Promise<LeaderboardUser[]> => {
+  try {
+    const usersRef = ref(database, 'users');
+    const snapshot = await get(usersRef);
+    
+    if (!snapshot.exists()) {
+      return [];
+    }
+    
+    const users: any[] = [];
+    snapshot.forEach((childSnapshot) => {
+      const userData = childSnapshot.val();
+      users.push({
+        id: childSnapshot.key,
+        ...userData
+      });
+    });
+    
+    // Sort by points (and then by level if points are equal)
+    users.sort((a, b) => {
+      if (b.points !== a.points) {
+        return b.points - a.points;
+      }
+      return b.level - a.level;
+    });
+    
+    // Transform to LeaderboardUser format with ranks
+    return users.map((user, index) => transformUserData(user.id, user, index + 1));
+  } catch (error) {
+    console.error("Error getting leaderboard data:", error);
+    return [];
+  }
+};
+
+// Real-time leaderboard data listener
+export const observeLeaderboardData = (callback: (data: LeaderboardUser[]) => void): (() => void) => {
+  const usersRef = ref(database, 'users');
+  
+  const listener = onValue(usersRef, (snapshot) => {
+    if (!snapshot.exists()) {
+      callback([]);
+      return;
+    }
+    
+    const users: any[] = [];
+    snapshot.forEach((childSnapshot) => {
+      const userData = childSnapshot.val();
+      users.push({
+        id: childSnapshot.key,
+        ...userData
+      });
+    });
+    
+    // Sort by points (and then by level if points are equal)
+    users.sort((a, b) => {
+      if (b.points !== a.points) {
+        return b.points - a.points;
+      }
+      return b.level - a.level;
+    });
+    
+    // Transform to LeaderboardUser format with ranks
+    const transformedUsers = users.map((user, index) => 
+      transformUserData(user.id, user, index + 1)
+    );
+    
+    callback(transformedUsers);
+  });
+  
+  return () => {
+    // Return unsubscribe function
+    // This is called when the component unmounts
+    // to prevent memory leaks
+    listener();
+  };
+};
+
+// Get badge information by ID - This can remain as is
 export const getBadgeInfo = (badgeId: string) => {
   const badges: Record<string, { name: string, description: string, color: string }> = {
     'math-wizard': { 

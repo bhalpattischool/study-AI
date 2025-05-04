@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +25,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { LeaderboardUser, getLeaderboardData } from '@/lib/leaderboard-service';
+import { LeaderboardUser, observeLeaderboardData } from '@/lib/leaderboard-service';
 import LeaderboardCard from '@/components/leaderboard/LeaderboardCard';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -36,24 +37,30 @@ const LeaderboardPage = () => {
   const [timeFilter, setTimeFilter] = useState<'all' | 'week' | 'month' | 'today'>('all');
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserData, setCurrentUserData] = useState<LeaderboardUser | null>(null);
   
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        // In a real app, we would fetch from API with the filters applied
-        // For now, we'll use our mock data and filter/sort it client-side
-        const data = getLeaderboardData();
-        setUsers(data);
-      } catch (error) {
-        console.error('Error loading leaderboard data:', error);
-      } finally {
-        setIsLoading(false);
+    const unsubscribe = observeLeaderboardData((leaderboardData) => {
+      setUsers(leaderboardData);
+      
+      // Find current user's data
+      if (currentUser) {
+        const userData = leaderboardData.find(user => user.id === currentUser.uid);
+        if (userData) {
+          setCurrentUserData(userData);
+        }
+      }
+      
+      setIsLoading(false);
+    });
+    
+    // Return cleanup function
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
       }
     };
-    
-    loadData();
-  }, [timeFilter]);
+  }, [currentUser, timeFilter]);
   
   // Sort the users based on the selected criteria
   const sortedUsers = [...users].sort((a, b) => {
@@ -290,14 +297,13 @@ const LeaderboardPage = () => {
                 आपकी स्थिति
               </h2>
               
-              {currentUser ? (
+              {currentUser && currentUserData ? (
                 <div className="space-y-3">
                   <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
                     <p className="text-sm text-gray-600 dark:text-gray-400">वर्तमान रैंक</p>
                     <div className="flex items-center">
                       <Trophy className="h-5 w-5 text-purple-500 mr-2" />
-                      <span className="text-2xl font-bold">7</span>
-                      <span className="text-green-500 text-xs ml-2">+2 ↑</span>
+                      <span className="text-2xl font-bold">{currentUserData.rank}</span>
                     </div>
                   </div>
                   
@@ -306,7 +312,7 @@ const LeaderboardPage = () => {
                       <p className="text-xs text-gray-600 dark:text-gray-400">XP</p>
                       <div className="flex items-center">
                         <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 mr-1" />
-                        <span className="font-bold">9750</span>
+                        <span className="font-bold">{currentUserData.xp}</span>
                       </div>
                     </div>
                     
@@ -314,7 +320,7 @@ const LeaderboardPage = () => {
                       <p className="text-xs text-gray-600 dark:text-gray-400">स्ट्रीक</p>
                       <div className="flex items-center">
                         <Flame className="h-3 w-3 text-red-500 mr-1" />
-                        <span className="font-bold">15</span>
+                        <span className="font-bold">{currentUserData.streakDays}</span>
                       </div>
                     </div>
                     
@@ -322,7 +328,7 @@ const LeaderboardPage = () => {
                       <p className="text-xs text-gray-600 dark:text-gray-400">घंटे</p>
                       <div className="flex items-center">
                         <Clock className="h-3 w-3 text-blue-500 mr-1" />
-                        <span className="font-bold">148</span>
+                        <span className="font-bold">{currentUserData.studyHours}</span>
                       </div>
                     </div>
                   </div>
@@ -330,11 +336,14 @@ const LeaderboardPage = () => {
                   <div className="mt-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">अगला रैंक तक</p>
                     <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
-                      <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2.5 rounded-full" style={{ width: '65%' }}></div>
+                      <div 
+                        className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2.5 rounded-full" 
+                        style={{ width: `${Math.min(100, (currentUserData.xp % 1000) / 10)}%` }}
+                      ></div>
                     </div>
                     <div className="flex justify-between mt-1 text-xs text-gray-500">
-                      <span>820 XP प्राप्त किए</span>
-                      <span>1250 XP की आवश्यकता</span>
+                      <span>{currentUserData.xp} XP प्राप्त किए</span>
+                      <span>{Math.ceil(currentUserData.xp / 1000) * 1000} XP तक</span>
                     </div>
                   </div>
                 </div>
