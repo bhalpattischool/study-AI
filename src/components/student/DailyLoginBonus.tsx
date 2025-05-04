@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Confetti } from "lucide-react";
+import { Award, PartyPopper } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface DailyLoginBonusProps {
@@ -62,7 +62,7 @@ const DailyLoginBonus: React.FC<DailyLoginBonusProps> = ({ userId, points, strea
                 transition={{ delay: 0.5 }}
                 className="absolute -bottom-2 -right-2 bg-orange-500 text-white rounded-full px-2 py-1 text-xs font-medium flex items-center"
               >
-                <Confetti className="h-3 w-3 mr-1" />
+                <PartyPopper className="h-3 w-3 mr-1" />
                 {streakDays} दिन की स्ट्रीक!
               </motion.div>
             )}
