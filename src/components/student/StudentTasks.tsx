@@ -4,7 +4,7 @@ import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/student/Badge";
+import { Badge } from "@/components/ui/badge";
 import { 
   CheckSquare, 
   Plus, 
@@ -12,9 +12,11 @@ import {
   Trash2, 
   Star,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ListCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { addPointsToUser } from '@/utils/points';
 
 interface StudentTasksProps {
   studentPoints: number;
@@ -56,6 +58,28 @@ const StudentTasks: React.FC<StudentTasksProps> = ({
       const savedTasks = localStorage.getItem(`${currentUser.uid}_tasks`);
       if (savedTasks) {
         setTasks(JSON.parse(savedTasks));
+      } else {
+        // Add default tasks if no tasks exist
+        const defaultTasks = [
+          {
+            id: "default1",
+            text: "अध्ययन के लिए दैनिक समय निकालें",
+            points: 5,
+            priority: "medium" as const,
+            completed: false,
+            category: "study"
+          },
+          {
+            id: "default2",
+            text: "टैक्स फॉर्म भरें",
+            points: 10,
+            priority: "high" as const,
+            completed: false,
+            category: "homework"
+          }
+        ];
+        setTasks(defaultTasks);
+        localStorage.setItem(`${currentUser.uid}_tasks`, JSON.stringify(defaultTasks));
       }
     }
   }, [currentUser]);
@@ -118,31 +142,25 @@ const StudentTasks: React.FC<StudentTasksProps> = ({
   const toggleTaskCompletion = (taskId: string) => {
     const updatedTasks = tasks.map(task => {
       if (task.id === taskId && !task.completed) {
-        // Award points only when completing the task
-        const points = studentPoints + task.points;
-        setStudentPoints(points);
-        localStorage.setItem(`${currentUser.uid}_points`, points.toString());
-        
-        // Check if level up is needed
-        const newLevel = Math.floor(points / 100) + 1;
-        if (newLevel > studentLevel) {
-          setStudentLevel(newLevel);
-          localStorage.setItem(`${currentUser.uid}_level`, newLevel.toString());
-          toast.success(`बधाई हो! आप लेवल ${newLevel} पर पहुंच गए हैं`, { duration: 5000 });
+        // Award points through the points system
+        if (currentUser) {
+          addPointsToUser(
+            currentUser.uid,
+            task.points,
+            'task',
+            `कार्य पूरा: ${task.text}`
+          ).then(() => {
+            // Reload points after awarding
+            const points = localStorage.getItem(`${currentUser.uid}_points`);
+            const level = localStorage.getItem(`${currentUser.uid}_level`);
+            setStudentPoints(points ? parseInt(points) : 0);
+            setStudentLevel(level ? parseInt(level) : 1);
+            
+            toast.success(`कार्य पूरा! +${task.points} पॉइंट्स मिले`);
+          }).catch(error => {
+            console.error("Error awarding points:", error);
+          });
         }
-        
-        // Add to points history
-        const history = JSON.parse(localStorage.getItem(`${currentUser.uid}_points_history`) || '[]');
-        history.push({
-          id: Date.now(),
-          type: 'task',
-          points: task.points,
-          description: `कार्य पूरा: ${task.text}`,
-          timestamp: new Date().toISOString()
-        });
-        localStorage.setItem(`${currentUser.uid}_points_history`, JSON.stringify(history));
-        
-        toast.success(`कार्य पूरा! +${task.points} पॉइंट्स मिले`);
         
         return {...task, completed: true};
       }
@@ -189,8 +207,8 @@ const StudentTasks: React.FC<StudentTasksProps> = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <CheckSquare className="h-5 w-5 text-purple-600" />
-            मेरे कार्य
+            <ListCheck className="h-5 w-5 text-purple-600" />
+            दैनिक कार्य सूची
           </h3>
           <Badge variant="outline" className="bg-purple-100 text-purple-800">
             {tasks.filter(t => !t.completed).length} बाकी

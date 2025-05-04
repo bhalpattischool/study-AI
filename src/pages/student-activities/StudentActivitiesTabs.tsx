@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +10,7 @@ import StudentPointsHistory from '@/components/student/StudentPointsHistory';
 import StudentLeaderboard from '@/components/student/StudentLeaderboard';
 import StudentGoals from '@/components/student/StudentGoals';
 import StudentTasks from '@/components/student/StudentTasks';
+import StudyGoalTracker from '@/components/student/StudyGoalTracker';
 
 interface StudentActivitiesTabsProps {
   currentUser: any;
@@ -37,10 +39,11 @@ const StudentActivitiesTabs: React.FC<StudentActivitiesTabsProps> = ({
     <Card>
       <CardHeader className="p-4 pb-0">
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-6">
             <TabsTrigger value="timer">टाइमर</TabsTrigger>
             <TabsTrigger value="progress">प्रगति</TabsTrigger>
             <TabsTrigger value="goals">लक्ष्य</TabsTrigger>
+            <TabsTrigger value="tasks">कार्य</TabsTrigger>
             <TabsTrigger value="leaderboard">लीडरबोर्ड</TabsTrigger>
             <TabsTrigger value="planner">प्लानर</TabsTrigger>
           </TabsList>
@@ -81,9 +84,13 @@ const StudentActivitiesTabs: React.FC<StudentActivitiesTabsProps> = ({
                   setStudentLevel={setStudentLevel}
                 />
               </Card>
+            </div>
+          </TabsContent>
+          <TabsContent value="tasks" className="m-0">
+            <div className="grid grid-cols-1 gap-4 p-4">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">अध्ययन कार्य</CardTitle>
+                  <CardTitle className="text-lg">दैनिक कार्य सूची</CardTitle>
                 </CardHeader>
                 <StudentTasks 
                   currentUser={currentUser} 
@@ -92,6 +99,12 @@ const StudentActivitiesTabs: React.FC<StudentActivitiesTabsProps> = ({
                   studentLevel={studentLevel}
                   setStudentLevel={setStudentLevel}
                 />
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">अध्ययन ट्रैकर</CardTitle>
+                </CardHeader>
+                <StudyGoalTracker currentUser={currentUser} />
               </Card>
             </div>
           </TabsContent>

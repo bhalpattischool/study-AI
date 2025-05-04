@@ -24,7 +24,7 @@ export async function awardDailyLoginBonus(userId: string): Promise<boolean> {
     const yesterdayDate = yesterday.toISOString().split('T')[0];
     
     let newStreak = 1;
-    let bonusPoints = 2; // Base login bonus
+    let bonusPoints = 5; // Increased base login bonus
     let streakMessage = '';
     
     if (lastLoginDate && lastLoginDate === yesterdayDate) {
@@ -32,10 +32,10 @@ export async function awardDailyLoginBonus(userId: string): Promise<boolean> {
       localStorage.setItem(streakKey, newStreak.toString());
       
       if (newStreak % 7 === 0) {
-        bonusPoints += 10;
+        bonusPoints += 15; // Increased weekly streak bonus
         streakMessage = ` (${newStreak} दिन की स्ट्रीक बोनस!)`;
       } else if (newStreak % 3 === 0) {
-        bonusPoints += 5;
+        bonusPoints += 10; // Increased 3-day streak bonus
         streakMessage = ` (${newStreak} दिन की स्ट्रीक)`;
       } else {
         streakMessage = ` (${newStreak} दिन की स्ट्रीक)`;
@@ -62,4 +62,36 @@ export async function awardDailyLoginBonus(userId: string): Promise<boolean> {
   }
   
   return false;
+}
+
+// Add a new function to award points for completing study sessions
+export async function addStudySessionPoints(
+  userId: string, 
+  minutes: number, 
+  subject: string
+): Promise<void> {
+  if (!userId || minutes <= 0) return;
+  
+  // Base points calculation - 1 point per 5 minutes studied
+  const basePoints = Math.floor(minutes / 5);
+  
+  // Bonus for longer sessions
+  let bonusPoints = 0;
+  let message = `${minutes} मिनट का अध्ययन पूरा किया`;
+  
+  if (minutes >= 60) {
+    bonusPoints = 10; // Bonus for 1+ hour sessions
+    message = `${minutes} मिनट का लंबा अध्ययन सत्र पूरा किया!`;
+  } else if (minutes >= 30) {
+    bonusPoints = 5; // Bonus for 30+ minute sessions
+  }
+  
+  const totalPoints = basePoints + bonusPoints;
+  
+  // Add subject to message if provided
+  if (subject && subject.trim() !== '') {
+    message = `${subject}: ${message}`;
+  }
+  
+  await addPointsToUser(userId, totalPoints, 'activity', message);
 }
