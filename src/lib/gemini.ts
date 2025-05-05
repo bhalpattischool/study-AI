@@ -33,7 +33,7 @@ export async function generateResponse(prompt: string, history: Message[] = [], 
           temperature: 0.4,
           topP: 0.95,
           topK: 40,
-          // Removed maxOutputTokens limit to allow unlimited response length
+          // Removed maxOutputTokens to allow unlimited response length
         }
       }),
     });

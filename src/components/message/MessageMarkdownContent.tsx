@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -17,11 +17,49 @@ const MessageMarkdownContent: React.FC<MessageMarkdownContentProps> = ({
   isTyping,
   isBot
 }) => {
+  const [displayedContent, setDisplayedContent] = useState('');
+  const [typingIndex, setTypingIndex] = useState(0);
+  const contentRef = useRef(content);
+  const typingSpeedRef = useRef(2); // Increased typing speed (characters per render)
+
+  // Reset typing animation when content changes
+  useEffect(() => {
+    contentRef.current = content;
+    if (!isTyping || !isBot) {
+      setDisplayedContent(content);
+      setTypingIndex(content.length);
+    } else {
+      setTypingIndex(0);
+    }
+  }, [content, isBot]);
+
+  // Handle typing animation
+  useEffect(() => {
+    if (isTyping && isBot && typingIndex < contentRef.current.length) {
+      const typingTimer = setTimeout(() => {
+        // Add multiple characters per render cycle for faster typing
+        const nextIndex = Math.min(typingIndex + typingSpeedRef.current, contentRef.current.length);
+        const nextContent = contentRef.current.substring(0, nextIndex);
+        setDisplayedContent(nextContent);
+        setTypingIndex(nextIndex);
+      }, 10); // Faster interval
+
+      return () => clearTimeout(typingTimer);
+    }
+  }, [isTyping, isBot, typingIndex, content]);
+
+  // Ensure we display the full content when typing is complete
+  useEffect(() => {
+    if (!isTyping || typingIndex >= contentRef.current.length) {
+      setDisplayedContent(contentRef.current);
+    }
+  }, [isTyping, typingIndex]);
+
   return (
     <div className={cn(
       "prose dark:prose-invert max-w-none w-full break-words overflow-hidden prose-p:my-1 prose-pre:my-2 prose-headings:mt-3 prose-headings:mb-2",
       "prose-pre:overflow-x-auto prose-code:whitespace-pre-wrap",
-      isTyping && isBot && "after:content-['▎'] after:animate-pulse after:ml-0.5 after:text-purple-500"
+      isTyping && isBot && typingIndex < contentRef.current.length && "after:content-['▎'] after:animate-pulse after:ml-0.5 after:text-purple-500"
     )}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
@@ -59,7 +97,7 @@ const MessageMarkdownContent: React.FC<MessageMarkdownContentProps> = ({
           }
         }}
       >
-        {content}
+        {displayedContent}
       </ReactMarkdown>
     </div>
   );
