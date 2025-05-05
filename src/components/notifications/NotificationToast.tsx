@@ -25,14 +25,14 @@ const NotificationToast: React.FC = () => {
   if (notifications.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+    <div className="fixed top-4 left-4 z-50 flex flex-col gap-2 max-w-sm">
       <AnimatePresence>
         {notifications.map((notification, index) => (
           <motion.div
             key={`notification-${index}`}
-            initial={{ opacity: 0, y: 50, scale: 0.3 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100, transition: { duration: 0.2 } }}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-purple-200 dark:border-purple-900"
           >
             <div className="flex items-start p-4">
