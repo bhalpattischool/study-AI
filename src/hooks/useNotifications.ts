@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { onMessage } from '@/lib/firebase';
 
 // Define the notification type
@@ -55,105 +55,205 @@ const DEMO_NOTIFICATIONS: Notification[] = [
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>(() => {
-    // Try to load notifications from localStorage
-    const savedNotifications = localStorage.getItem('study_ai_notifications');
-    return savedNotifications ? JSON.parse(savedNotifications) : DEMO_NOTIFICATIONS;
+    try {
+      // Try to load notifications from localStorage
+      const savedNotifications = localStorage.getItem('study_ai_notifications');
+      return savedNotifications ? JSON.parse(savedNotifications) : DEMO_NOTIFICATIONS;
+    } catch (error) {
+      console.error('Error loading notifications from localStorage:', error);
+      return DEMO_NOTIFICATIONS;
+    }
   });
   
   const [playSound, setPlaySound] = useState<boolean>(() => {
-    const savedSetting = localStorage.getItem('notification_sound_enabled');
-    return savedSetting !== null ? savedSetting === 'true' : true;
+    try {
+      const savedSetting = localStorage.getItem('notification_sound_enabled');
+      return savedSetting !== null ? savedSetting === 'true' : true;
+    } catch (error) {
+      console.error('Error loading sound setting from localStorage:', error);
+      return true;
+    }
   });
+
+  const unsubscribeRef = useRef<(() => void) | null>(null);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCountRef = useRef(0);
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('study_ai_notifications', JSON.stringify(notifications));
+    try {
+      localStorage.setItem('study_ai_notifications', JSON.stringify(notifications));
+    } catch (error) {
+      console.error('Error saving notifications to localStorage:', error);
+    }
   }, [notifications]);
   
   // Save sound setting to localStorage
   useEffect(() => {
-    localStorage.setItem('notification_sound_enabled', playSound.toString());
+    try {
+      localStorage.setItem('notification_sound_enabled', playSound.toString());
+    } catch (error) {
+      console.error('Error saving sound setting to localStorage:', error);
+    }
   }, [playSound]);
 
-  // Listen for new messages from Firebase for real-time notifications
-  useEffect(() => {
-    const unsubscribe = onMessage((messageInfo) => {
-      // Create notification from message
-      const newNotification: Notification = {
-        id: `msg_${Date.now()}`,
-        title: messageInfo.isGroup 
-          ? `${messageInfo.groupName || 'Group'}: ${messageInfo.senderName || 'Someone'}`
-          : `${messageInfo.senderName || 'Someone'}`,
-        message: messageInfo.text,
-        read: false,
-        timestamp: Date.now(),
-        type: messageInfo.isGroup ? 'group' : 'message',
-        groupId: messageInfo.isGroup ? messageInfo.chatId : undefined,
-        chatId: messageInfo.isGroup ? undefined : messageInfo.chatId,
-        senderName: messageInfo.senderName
-      };
+  // Setup message listener function with retry logic
+  const setupMessageListener = useCallback(() => {
+    try {
+      console.log("Setting up message listener for notifications");
       
-      addNotification(newNotification);
-      
-      // Play notification sound if enabled
-      if (playSound) {
-        try {
-          const audio = new Audio('/notification-sound.mp3');
-          audio.play();
-        } catch (err) {
-          console.error('Failed to play notification sound:', err);
-        }
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
       }
-    });
-    
-    // Clean up listener when component unmounts
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [playSound]); // Re-run when sound setting changes
+      
+      const unsubscribe = onMessage((messageInfo) => {
+        // Create notification from message
+        console.log("Received message notification:", messageInfo);
+        
+        const newNotification: Notification = {
+          id: `msg_${Date.now()}`,
+          title: messageInfo.isGroup 
+            ? `${messageInfo.groupName || 'Group'}: ${messageInfo.senderName || 'Someone'}`
+            : `${messageInfo.senderName || 'Someone'}`,
+          message: messageInfo.text,
+          read: false,
+          timestamp: Date.now(),
+          type: messageInfo.isGroup ? 'group' : 'message',
+          groupId: messageInfo.isGroup ? messageInfo.chatId : undefined,
+          chatId: messageInfo.isGroup ? undefined : messageInfo.chatId,
+          senderName: messageInfo.senderName
+        };
+        
+        addNotification(newNotification);
+        
+        // Reset retry counter on successful message
+        retryCountRef.current = 0;
+        
+        // Play notification sound if enabled
+        if (playSound) {
+          try {
+            const audio = new Audio('/notification-sound.mp3');
+            audio.play().catch(err => {
+              console.error('Failed to play notification sound:', err);
+            });
+          } catch (err) {
+            console.error('Failed to play notification sound:', err);
+          }
+        }
+      });
+      
+      unsubscribeRef.current = unsubscribe;
+      
+      return unsubscribe;
+    } catch (err) {
+      console.error('Error setting up message listener:', err);
+      return null;
+    }
+  }, [playSound]);
 
-  // Mark a specific notification as read
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map(notification => 
-      notification.id === id ? { ...notification, read: true } : notification
-    ));
-  };
-
-  // Mark all notifications as read
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(notification => ({ ...notification, read: true })));
-  };
-
-  // Add a new notification
-  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+  // Function to add a notification
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const newNotification: Notification = {
       id: `manual_${Date.now()}`,
       ...notification,
       read: false,
       timestamp: Date.now()
     };
-    setNotifications(prev => [newNotification, ...prev]);
+    
+    setNotifications(prev => {
+      // Check if this is a duplicate notification received within 5 seconds
+      const recentDuplicates = prev.filter(n => 
+        n.message === newNotification.message && 
+        n.type === newNotification.type && 
+        n.timestamp > newNotification.timestamp - 5000
+      );
+      
+      if (recentDuplicates.length > 0) {
+        console.log("Ignoring duplicate notification");
+        return prev;
+      }
+      
+      return [newNotification, ...prev];
+    });
     
     // Play notification sound if enabled
     if (playSound) {
       try {
         const audio = new Audio('/notification-sound.mp3');
-        audio.play();
+        audio.play().catch(err => {
+          console.error('Failed to play notification sound:', err);
+        });
       } catch (err) {
         console.error('Failed to play notification sound:', err);
       }
     }
-  };
+  }, [playSound]);
+
+  // Listen for new messages from Firebase for real-time notifications
+  useEffect(() => {
+    const setupListener = () => {
+      try {
+        const unsubscribe = setupMessageListener();
+        
+        if (!unsubscribe) {
+          // Retry setup if it failed
+          if (retryCountRef.current < 3) {
+            console.log(`Retrying message listener setup (${retryCountRef.current + 1}/3)...`);
+            retryCountRef.current += 1;
+            
+            retryTimeoutRef.current = setTimeout(() => {
+              setupListener();
+            }, 2000 * retryCountRef.current); // Exponential backoff
+          } else {
+            console.error("Failed to set up message listener after multiple retries");
+          }
+        } else {
+          // Reset retry counter on successful setup
+          retryCountRef.current = 0;
+        }
+      } catch (error) {
+        console.error("Error in setupListener:", error);
+      }
+    };
+    
+    setupListener();
+    
+    // Clean up listener when component unmounts
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+      
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+    };
+  }, [setupMessageListener]);
+
+  // Mark a specific notification as read
+  const markAsRead = useCallback((id: string) => {
+    setNotifications(notifications => notifications.map(notification => 
+      notification.id === id ? { ...notification, read: true } : notification
+    ));
+  }, []);
+
+  // Mark all notifications as read
+  const markAllAsRead = useCallback(() => {
+    setNotifications(notifications => notifications.map(notification => ({ ...notification, read: true })));
+  }, []);
 
   // Remove a notification
-  const removeNotification = (id: string) => {
-    setNotifications(notifications.filter(notification => notification.id !== id));
-  };
+  const removeNotification = useCallback((id: string) => {
+    setNotifications(notifications => notifications.filter(notification => notification.id !== id));
+  }, []);
 
   // Clear all notifications
-  const clearNotifications = () => {
+  const clearNotifications = useCallback(() => {
     setNotifications([]);
-  };
+  }, []);
 
   return {
     notifications,
