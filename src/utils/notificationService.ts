@@ -17,25 +17,33 @@ let activeNotifications: NotificationData[] = [];
 let notificationSoundLoaded = false;
 let notificationSound: HTMLAudioElement | null = null;
 
-// Preload notification sound
-try {
-  notificationSound = new Audio('/notification-sound.mp3');
-  notificationSound.addEventListener('canplaythrough', () => {
-    console.log('Notification sound loaded successfully');
-    notificationSoundLoaded = true;
-  });
-  notificationSound.addEventListener('error', (e) => {
-    console.error('Failed to load notification sound:', e);
+// Safer audio preloading with better error handling
+const preloadNotificationSound = () => {
+  try {
+    notificationSound = new Audio('/notification-sound.mp3');
+    
+    notificationSound.addEventListener('canplaythrough', () => {
+      console.log('Notification sound loaded successfully');
+      notificationSoundLoaded = true;
+    });
+    
+    notificationSound.addEventListener('error', (e) => {
+      console.error('Failed to load notification sound:', e);
+      notificationSoundLoaded = false;
+      notificationSound = null;
+    });
+    
+    // Start preloading
+    notificationSound.load();
+  } catch (err) {
+    console.error('Error initializing notification sound:', err);
     notificationSoundLoaded = false;
     notificationSound = null;
-  });
-  // Start preloading
-  notificationSound.load();
-} catch (err) {
-  console.error('Error initializing notification sound:', err);
-  notificationSoundLoaded = false;
-  notificationSound = null;
-}
+  }
+};
+
+// Try to preload the sound but don't block functionality if it fails
+preloadNotificationSound();
 
 // Function to check if we're in a WebView
 export const isInWebView = (): boolean => {
@@ -58,25 +66,30 @@ export const areBrowserNotificationsSupported = async (): Promise<boolean> => {
   return false;
 };
 
-// Play notification sound safely
+// Play notification sound safely with better error handling
 const playNotificationSound = (): void => {
+  // Skip sound if it's not available to prevent errors
+  if (!('Audio' in window)) {
+    console.log('Audio not supported in this browser');
+    return;
+  }
+  
   try {
     // If preloaded sound is available, use it
     if (notificationSoundLoaded && notificationSound) {
       // Clone the audio to allow multiple overlapping sounds
       const soundClone = notificationSound.cloneNode() as HTMLAudioElement;
       soundClone.volume = 0.7; // Slightly lower volume
-      soundClone.play().catch(err => {
-        console.error('Could not play notification sound:', err);
-      });
+      
+      // Use a Promise with proper error handling
+      soundClone.play()
+        .then(() => console.log('Playing notification sound'))
+        .catch(err => {
+          console.warn('Could not play notification sound, common in some browsers:', err);
+          // Audio play was prevented, likely due to autoplay restrictions
+        });
     } else {
-      // Fallback - create a new Audio instance
-      console.log('Using fallback notification sound');
-      const audio = new Audio('/notification-sound.mp3');
-      audio.volume = 0.7;
-      audio.play().catch(err => {
-        console.error('Could not play fallback notification sound:', err);
-      });
+      console.log('Preloaded sound not available, skipping sound playback');
     }
   } catch (err) {
     console.error('Error with notification sound:', err);
@@ -89,7 +102,7 @@ export const showNotification = async (data: NotificationData): Promise<void> =>
   // Add to active notifications
   activeNotifications.push(data);
   
-  // Always play sound first to ensure it happens
+  // Try to play sound first but don't block if it fails
   playNotificationSound();
   
   // First try native WebView bridge if available
