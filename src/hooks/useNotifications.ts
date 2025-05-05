@@ -78,6 +78,9 @@ export function useNotifications() {
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
+  
+  // Track processed message IDs to prevent duplicate notifications
+  const processedMessageIdsRef = useRef<Set<string>>(new Set());
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
@@ -96,6 +99,22 @@ export function useNotifications() {
       console.error('Error saving sound setting to localStorage:', error);
     }
   }, [playSound]);
+  
+  // Clean up processed IDs periodically
+  useEffect(() => {
+    const cleanup = setInterval(() => {
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      const oldIds = Array.from(processedMessageIdsRef.current)
+        .filter(id => {
+          const [, timestamp] = id.split('-time-');
+          return parseInt(timestamp) < fiveMinutesAgo;
+        });
+      
+      oldIds.forEach(id => processedMessageIdsRef.current.delete(id));
+    }, 60000); // Clean up every minute
+    
+    return () => clearInterval(cleanup);
+  }, []);
 
   // Setup message listener function with retry logic
   const setupMessageListener = useCallback(() => {
@@ -108,6 +127,18 @@ export function useNotifications() {
       }
       
       const unsubscribe = onMessage((messageInfo) => {
+        // Generate a unique ID for this message
+        const uniqueId = `${messageInfo.chatId}-${messageInfo.text}-time-${Date.now()}`;
+        
+        // Check if we've already processed this exact message recently
+        if (processedMessageIdsRef.current.has(uniqueId)) {
+          console.log("Ignoring duplicate notification:", messageInfo);
+          return;
+        }
+        
+        // Add to processed IDs
+        processedMessageIdsRef.current.add(uniqueId);
+        
         // Create notification from message
         console.log("Received message notification:", messageInfo);
         
@@ -129,18 +160,6 @@ export function useNotifications() {
         
         // Reset retry counter on successful message
         retryCountRef.current = 0;
-        
-        // Play notification sound if enabled
-        if (playSound) {
-          try {
-            const audio = new Audio('/notification-sound.mp3');
-            audio.play().catch(err => {
-              console.error('Failed to play notification sound:', err);
-            });
-          } catch (err) {
-            console.error('Failed to play notification sound:', err);
-          }
-        }
       });
       
       unsubscribeRef.current = unsubscribe;
@@ -150,7 +169,7 @@ export function useNotifications() {
       console.error('Error setting up message listener:', err);
       return null;
     }
-  }, [playSound]);
+  }, []);
 
   // Function to add a notification
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
@@ -163,13 +182,13 @@ export function useNotifications() {
     
     setNotifications(prev => {
       // Check if this is a duplicate notification received within 5 seconds
-      const recentDuplicates = prev.filter(n => 
+      const isDuplicate = prev.some(n => 
         n.message === newNotification.message && 
         n.type === newNotification.type && 
         n.timestamp > newNotification.timestamp - 5000
       );
       
-      if (recentDuplicates.length > 0) {
+      if (isDuplicate) {
         console.log("Ignoring duplicate notification");
         return prev;
       }
@@ -180,9 +199,21 @@ export function useNotifications() {
     // Play notification sound if enabled
     if (playSound) {
       try {
-        const audio = new Audio('/notification-sound.mp3');
-        audio.play().catch(err => {
-          console.error('Failed to play notification sound:', err);
+        // Use the notificationService to play sound (it has better error handling)
+        import('@/utils/notificationService').then(notificationService => {
+          const data = {
+            title: notification.title || 'Notification',
+            message: notification.message
+          };
+          notificationService.showNotification(data);
+        }).catch(err => {
+          console.error('Failed to import notification service:', err);
+          // Fallback
+          const audio = new Audio('/notification-sound.mp3');
+          audio.volume = 0.7;
+          audio.play().catch(err => {
+            console.error('Failed to play notification sound:', err);
+          });
         });
       } catch (err) {
         console.error('Failed to play notification sound:', err);

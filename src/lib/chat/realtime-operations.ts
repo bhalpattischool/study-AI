@@ -1,8 +1,22 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SupaChatMessage } from "./types";
 import { getGroupMessages } from "./message-operations";
 import { RealtimeChannel } from "@supabase/supabase-js";
+
+// Keep track of processed message IDs to avoid duplicates
+const processedMessageIds = new Set<string>();
+
+// Clear processed IDs periodically to prevent memory leaks
+setInterval(() => {
+  // Only keep messages from the last 5 minutes
+  const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+  processedMessageIds.forEach((idWithTimestamp) => {
+    const [, timestamp] = idWithTimestamp.split('-timestamp-');
+    if (parseInt(timestamp) < fiveMinutesAgo) {
+      processedMessageIds.delete(idWithTimestamp);
+    }
+  });
+}, 60000); // Run cleanup every minute
 
 export function listenForGroupMessages(groupId: string, callback: (messages: SupaChatMessage[]) => void) {
   try {
@@ -54,12 +68,25 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
         },
         (payload) => {
           if (!cancel) {
-            console.log('New message received via realtime:', payload);
-            getGroupMessages(groupId)
-              .then(callback)
-              .catch(error => {
-                console.error("Error in realtime listener:", error);
-              });
+            // Generate a unique ID for this message using the ID and current timestamp
+            const messageId = `${payload.new.id}-timestamp-${Date.now()}`;
+            
+            // Check if we've already processed this message in the last few minutes
+            if (!processedMessageIds.has(messageId)) {
+              console.log('New message received via realtime:', payload);
+              
+              // Mark as processed to avoid duplicates
+              processedMessageIds.add(messageId);
+              
+              // Always fetch fresh messages to ensure we have the latest data
+              getGroupMessages(groupId)
+                .then(callback)
+                .catch(error => {
+                  console.error("Error in realtime listener:", error);
+                });
+            } else {
+              console.log('Duplicate message detected, ignoring:', payload);
+            }
           }
         }
       )
@@ -88,8 +115,12 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
                   },
                   (payload) => {
                     if (!cancel) {
-                      console.log('New message received via realtime (retry):', payload);
-                      getGroupMessages(groupId).then(callback).catch(console.error);
+                      const messageId = `${payload.new.id}-timestamp-${Date.now()}`;
+                      if (!processedMessageIds.has(messageId)) {
+                        console.log('New message received via realtime (retry):', payload);
+                        processedMessageIds.add(messageId);
+                        getGroupMessages(groupId).then(callback).catch(console.error);
+                      }
                     }
                   }
                 )
