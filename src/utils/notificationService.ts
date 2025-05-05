@@ -1,3 +1,4 @@
+
 /**
  * A unified notification service that works across web browsers and WebView
  */
@@ -41,6 +42,7 @@ export const showNotification = async (data: NotificationData): Promise<void> =>
   
   // First try native WebView bridge if available
   if (window.Android?.showNotification) {
+    console.log('Using Android WebView bridge for notification');
     window.Android.showNotification(data.title, data.message);
     return;
   }
@@ -49,6 +51,7 @@ export const showNotification = async (data: NotificationData): Promise<void> =>
   const canUseSystemNotifications = await areBrowserNotificationsSupported();
   if (canUseSystemNotifications) {
     try {
+      console.log('Using browser notification API');
       const notification = new Notification(data.title, {
         body: data.message,
         icon: data.icon || '/notification-icon.png'
@@ -66,6 +69,7 @@ export const showNotification = async (data: NotificationData): Promise<void> =>
     }
   }
 
+  console.log('Falling back to UI notification');
   // Finally, fall back to the notification context for UI notifications
   // This will be handled by NotificationContext
   
