@@ -4,12 +4,13 @@ import { chatDB } from '@/lib/db';
 import { generateResponse } from '@/lib/gemini';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
+import { Message as MessageType } from '@/lib/db';
 
 // Adding constant for guest message limit
 const GUEST_MESSAGE_LIMIT = 2;
 
 export const useChat = (chatId: string, onChatUpdated?: () => void) => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isResponding, setIsResponding] = useState(false);
   const [showLimitAlert, setShowLimitAlert] = useState(false);
@@ -86,7 +87,7 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       const chatHistory = currentChat?.messages || [];
       
       // Get AI response (pass chatId to store response automatically)
-      const response = await generateResponse(input.trim(), chatHistory, chatId);
+      await generateResponse(input.trim(), chatHistory, chatId);
       
       // Update local state with bot response (it's already stored in DB from generateResponse)
       // Refresh messages from storage to ensure we have the latest data
