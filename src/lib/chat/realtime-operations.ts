@@ -63,10 +63,10 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
           }
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         console.log(`Subscription status for ${channelName}:`, status);
         
-        // Handle subscription failures using string literal
+        // Handle subscription failures using string literal comparison
         if (status === "SUBSCRIPTION_ERROR" && retryCount < MAX_RETRIES && !cancel) {
           console.log(`Retrying subscription (${retryCount + 1}/${MAX_RETRIES})...`);
           retryCount++;
@@ -119,7 +119,7 @@ export async function enableRealtimeForChat() {
     
     return new Promise<boolean>((resolve) => {
       channel
-        .subscribe(status => {
+        .subscribe((status: string) => {
           console.log("Realtime connection test status:", status);
           
           // Clean up test channel
