@@ -20,6 +20,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import AboutPage from './pages/AboutPage';
 import NotificationToast from './components/notifications/NotificationToast';
+import NotificationsTestPage from './pages/NotificationsTestPage';
 import { initEmailJS } from './utils/emailjs';
 import StudyTimerFloatingWidget from './components/study/floating-timer/StudyTimerFloatingWidget';
 
@@ -66,6 +67,7 @@ function App() {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/chat" element={<ChatSystem />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/notifications-test" element={<NotificationsTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <NotificationToast />

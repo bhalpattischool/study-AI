@@ -1,82 +1,66 @@
-import React, { useEffect, useState } from 'react';
-import { toast } from "sonner";
-import { Bell } from "lucide-react";
-import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import React, { useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Bell, X } from 'lucide-react';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 const NotificationToast: React.FC = () => {
-  const { notifications } = useNotificationContext();
-  const [shownNotifications, setShownNotifications] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('shown_notification_toasts');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error("Error loading shown notifications from storage:", error);
-      return [];
-    }
-  });
-  
-  // Clean up old notifications from storage periodically
+  const { notifications, dismissNotification } = useNotifications();
+
+  // Auto-dismiss notifications after a delay
   useEffect(() => {
-    try {
-      // Only keep notifications from the last 24 hours
-      const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-      const recentNotifications = notifications.filter(n => n.timestamp >= oneDayAgo);
-      
-      if (recentNotifications.length !== notifications.length) {
-        // Some notifications are older than 24 hours, clean up storage
-        const recentIds = recentNotifications.map(n => n.id);
-        const updatedShownNotifications = shownNotifications.filter(id => 
-          recentIds.includes(id)
-        );
-        
-        setShownNotifications(updatedShownNotifications);
-        localStorage.setItem('shown_notification_toasts', JSON.stringify(updatedShownNotifications));
-      }
-    } catch (error) {
-      console.error("Error cleaning up notifications:", error);
+    if (notifications.length > 0) {
+      const timeouts = notifications.map((_, index) => {
+        // Auto dismiss after duration or default 5000ms
+        const duration = notifications[index]?.duration || 5000;
+        return setTimeout(() => dismissNotification(index), duration);
+      });
+
+      return () => {
+        timeouts.forEach(timeout => clearTimeout(timeout));
+      };
     }
-  }, [notifications]);
-  
-  // Show toast when a new unread notification arrives
-  useEffect(() => {
-    if (!notifications || notifications.length === 0) return;
-    
-    try {
-      const unreadNotifications = notifications.filter(n => !n.read);
-      if (unreadNotifications.length > 0) {
-        // Sort by timestamp to get the most recent first
-        const sortedUnread = [...unreadNotifications].sort((a, b) => b.timestamp - a.timestamp);
-        const latestNotification = sortedUnread[0];
-        
-        // Check if this notification has been shown as a toast already
-        if (!shownNotifications.includes(latestNotification.id)) {
-          console.log("Showing toast for notification:", latestNotification);
-          
-          // Show toast for this notification
-          toast(latestNotification.title, {
-            description: latestNotification.message,
-            icon: <Bell size={16} className="text-purple-500" />,
-            duration: 5000,
-          });
-          
-          // Mark this notification as shown in a toast
-          const updatedShown = [...shownNotifications, latestNotification.id];
-          setShownNotifications(updatedShown);
-          
-          try {
-            localStorage.setItem('shown_notification_toasts', JSON.stringify(updatedShown));
-          } catch (storageError) {
-            console.error("Error saving to localStorage:", storageError);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error processing notifications for toast:", error);
-    }
-  }, [notifications, shownNotifications]);
-  
-  // Component doesn't render anything directly
-  return null;
+  }, [notifications, dismissNotification]);
+
+  if (notifications.length === 0) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+      <AnimatePresence>
+        {notifications.map((notification, index) => (
+          <motion.div
+            key={`notification-${index}`}
+            initial={{ opacity: 0, y: 50, scale: 0.3 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-purple-200 dark:border-purple-900"
+          >
+            <div className="flex items-start p-4">
+              <div className="flex-shrink-0 bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full">
+                <Bell className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              
+              <div className="ml-3 w-0 flex-1 pt-0.5">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {notification.title}
+                </p>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {notification.message}
+                </p>
+              </div>
+              
+              <button
+                onClick={() => dismissNotification(index)}
+                className="ml-4 flex-shrink-0 flex rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <X className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
 };
 
 export default NotificationToast;
