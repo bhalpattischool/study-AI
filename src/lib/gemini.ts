@@ -33,7 +33,7 @@ export async function generateResponse(prompt: string, history: Message[] = [], 
           temperature: 0.4,
           topP: 0.95,
           topK: 40,
-          maxOutputTokens: 8192,
+          // Removed maxOutputTokens limit to allow unlimited response length
         }
       }),
     });
@@ -127,6 +127,6 @@ export async function generateStudyPlan(
     इसे बहुत विस्तृत और विशिष्ट बनाएं, जैसे कि एक शिक्षक अपने छात्र के लिए तैयार करेगा।`;
   }
   
-  // Call the Gemini API
+  // Call the Gemini API with unlimited token response
   return await generateResponse(prompt);
 }
