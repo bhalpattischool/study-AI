@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SupaChatMessage } from "./types";
 import { getGroupMessages } from "./message-operations";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 export function listenForGroupMessages(groupId: string, callback: (messages: SupaChatMessage[]) => void) {
   try {
@@ -65,8 +66,8 @@ export function listenForGroupMessages(groupId: string, callback: (messages: Sup
       .subscribe((status) => {
         console.log(`Subscription status for ${channelName}:`, status);
         
-        // Handle subscription failures
-        if (status === 'SUBSCRIPTION_ERROR' && retryCount < MAX_RETRIES && !cancel) {
+        // Handle subscription failures - use proper string comparison instead of enum
+        if (status === "SUBSCRIPTION_ERROR" && retryCount < MAX_RETRIES && !cancel) {
           console.log(`Retrying subscription (${retryCount + 1}/${MAX_RETRIES})...`);
           retryCount++;
           
@@ -124,7 +125,7 @@ export async function enableRealtimeForChat() {
           // Clean up test channel
           supabase.removeChannel(channel);
           
-          if (status === 'SUBSCRIBED') {
+          if (status === "SUBSCRIBED") {
             console.log("Realtime subscriptions are working");
             resolve(true);
           } else {
