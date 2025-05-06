@@ -1,11 +1,11 @@
 
 import React, { useRef, useEffect } from 'react';
 import { useChat } from '@/hooks/useChat';
-import MessageList from './MessageList';
-import EmptyChatState from './EmptyChatState';
+import ChatBody from './ChatBody';
 import ChatFooter from '../ChatFooter';
-import MessageLimitAlert from '../MessageLimitAlert';
-import LoadingAnimation from '../ui/loading-animation';
+import AlertHandler from './AlertHandler';
+import { useMessageHandler } from '@/hooks/chat/useMessageHandler';
+import { useScrollHandler } from '@/hooks/chat/useScrollHandler';
 
 interface ChatContainerProps {
   chatId: string;
@@ -25,63 +25,42 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
   } = useChat(chatId, onChatUpdated);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { scrollToBottom } = useScrollHandler(messagesEndRef);
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
+  // Set up message handlers
+  const { 
+    handleSend, 
+    handleMessageEdited, 
+    handleMessageDeleted 
+  } = useMessageHandler({
+    chatId,
+    loadMessages,
+    onChatUpdated,
+    scrollToBottom,
+    sendMessage
+  });
 
   // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
-
-  const handleSend = (input: string) => {
-    sendMessage(input);
-    scrollToBottom();
-  };
-
-  const handleMessageEdited = async () => {
-    await loadMessages();
-    if (onChatUpdated) onChatUpdated();
-    scrollToBottom();
-  };
-
-  const handleMessageDeleted = async () => {
-    await loadMessages();
-    if (onChatUpdated) onChatUpdated();
-  };
+  }, [messages, scrollToBottom]);
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50 dark:from-gray-800 dark:to-gray-900 w-full overflow-hidden">
-      {showLimitAlert && (
-        <MessageLimitAlert onClose={() => setShowLimitAlert(false)} />
-      )}
+      <AlertHandler 
+        showLimitAlert={showLimitAlert} 
+        onClose={() => setShowLimitAlert(false)} 
+      />
       
-      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full">
-        {messages.length === 0 ? (
-          <EmptyChatState onSendMessage={handleSend} />
-        ) : (
-          <>
-            <MessageList 
-              messages={messages}
-              isLoading={isLoading}
-              onMessageEdited={handleMessageEdited}
-              onMessageDeleted={handleMessageDeleted}
-            />
-            
-            {/* नया मॉडर्न और अट्रैक्टिव लोडिंग एनिमेशन */}
-            {(isLoading || isResponding) && (
-              <LoadingAnimation 
-                message={isLoading ? "Study AI लोड हो रहा है..." : "Study AI सोच रहा है..."}
-                className="my-4"
-              />
-            )}
-          </>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+      <ChatBody
+        messages={messages}
+        isLoading={isLoading}
+        isResponding={isResponding}
+        onMessageEdited={handleMessageEdited}
+        onMessageDeleted={handleMessageDeleted}
+        onSendMessage={handleSend}
+        messagesEndRef={messagesEndRef}
+      />
       
       <ChatFooter 
         onSend={handleSend} 
