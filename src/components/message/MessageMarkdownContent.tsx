@@ -20,7 +20,7 @@ const MessageMarkdownContent: React.FC<MessageMarkdownContentProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
   const [typingIndex, setTypingIndex] = useState(0);
   const contentRef = useRef(content);
-  const typingSpeedRef = useRef(5); // Even faster typing speed (5 characters per render)
+  const typingSpeedRef = useRef(15); // Super fast typing speed (15 characters per render)
 
   // Reset typing animation when content changes
   useEffect(() => {
@@ -42,7 +42,7 @@ const MessageMarkdownContent: React.FC<MessageMarkdownContentProps> = ({
         const nextContent = contentRef.current.substring(0, nextIndex);
         setDisplayedContent(nextContent);
         setTypingIndex(nextIndex);
-      }, 5); // Even faster interval (5ms instead of 10ms)
+      }, 2); // Ultra fast interval (2ms instead of 5ms)
 
       return () => clearTimeout(typingTimer);
     }

@@ -71,7 +71,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId, onChatUpdated }) 
               onMessageDeleted={handleMessageDeleted}
             />
             
-            {/* Display our beautiful enhanced loading animation when the AI is responding */}
+            {/* नया मॉडर्न और अट्रैक्टिव लोडिंग एनिमेशन */}
             {(isLoading || isResponding) && (
               <LoadingAnimation 
                 message={isLoading ? "Study AI लोड हो रहा है..." : "Study AI सोच रहा है..."}
