@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import MessageList from './MessageList';
 import EmptyChatState from './EmptyChatState';
 import LoadingAnimation from '../ui/loading-animation';
@@ -36,12 +36,14 @@ const ChatBody: React.FC<ChatBodyProps> = ({
             onMessageDeleted={onMessageDeleted}
           />
           
-          {/* नया मॉडर्न और अट्रैक्टिव लोडिंग एनिमेशन */}
+          {/* Enhanced loading animation with status message */}
           {(isLoading || isResponding) && (
-            <LoadingAnimation 
-              message={isLoading ? "Study AI लोड हो रहा है..." : "Study AI सोच रहा है..."}
-              className="my-4"
-            />
+            <div className="flex flex-col items-center justify-center py-4 px-2">
+              <LoadingAnimation 
+                message={isResponding ? "AI is thinking..." : "Loading messages..."}
+                className="my-3" 
+              />
+            </div>
           )}
         </>
       )}
