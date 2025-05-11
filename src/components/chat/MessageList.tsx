@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Message as MessageType } from '@/lib/db';
-import Message from '../Message';
+import Message from './Message';
 
 interface MessageListProps {
   messages: MessageType[];

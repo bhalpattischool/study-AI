@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect } from 'react';
-import { useChat } from '@/hooks/useChat';
+import { useChat } from '@/hooks/chat';
 import ChatBody from './ChatBody';
 import ChatFooter from '../ChatFooter';
 import AlertHandler from './AlertHandler';

@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { cn } from "@/lib/utils";
 import { Message as MessageType } from "@/lib/db";
-import MessageBody from './message/MessageBody';
-import MessageActions from './message/MessageActions';
-import MessageContextMenu from './message/MessageContextMenu';
+import MessageBody from '../message/MessageBody';
+import MessageActions from '../message/MessageActions';
+import MessageContextMenu from '../message/MessageContextMenu';
 import { useMessageState } from '@/hooks/useMessageState';
 import { useMessageBookmark } from '@/hooks/useMessageBookmark';
+import { cn } from "@/lib/utils";
 
 interface MessageProps {
   message: MessageType;
