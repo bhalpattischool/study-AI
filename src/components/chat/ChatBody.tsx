@@ -3,6 +3,7 @@ import React from 'react';
 import MessageList from './MessageList';
 import EmptyChatState from './EmptyChatState';
 import LoadingAnimation from '../ui/loading-animation';
+import { AdBanner } from '../ads';
 
 interface ChatBodyProps {
   messages: any[];
@@ -26,7 +27,13 @@ const ChatBody: React.FC<ChatBodyProps> = ({
   return (
     <div className="flex-1 overflow-y-auto overflow-x-hidden w-full">
       {messages.length === 0 ? (
-        <EmptyChatState onSendMessage={onSendMessage} />
+        <>
+          <EmptyChatState onSendMessage={onSendMessage} />
+          {/* Show ad only on empty chat state for less distraction */}
+          <div className="max-w-md mx-auto px-4">
+            <AdBanner />
+          </div>
+        </>
       ) : (
         <>
           <MessageList 
@@ -43,6 +50,13 @@ const ChatBody: React.FC<ChatBodyProps> = ({
                 message={isResponding ? "AI is thinking..." : "Loading messages..."}
                 className="my-3" 
               />
+            </div>
+          )}
+          
+          {/* Show occasional ad after a few messages */}
+          {messages.length > 0 && messages.length % 10 === 0 && (
+            <div className="max-w-md mx-auto px-4">
+              <AdBanner />
             </div>
           )}
         </>
