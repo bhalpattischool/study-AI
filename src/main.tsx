@@ -8,6 +8,8 @@ import { ThemeWrapper } from './ThemeWrapper'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <ThemeWrapper>
+      <App />
+    </ThemeWrapper>
   </React.StrictMode>,
 )

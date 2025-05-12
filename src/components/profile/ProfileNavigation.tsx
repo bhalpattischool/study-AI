@@ -9,7 +9,8 @@ import {
   GraduationCap,
   MessageSquare,
   ThumbsUp,
-  Activity
+  Activity,
+  Book // लाइब्रेरी आइकन जोड़ा
 } from 'lucide-react';
 import { logoutUser } from '@/lib/firebase';
 import { toast } from 'sonner';
@@ -56,6 +57,19 @@ const ProfileNavigation: React.FC<ProfileNavigationProps> = ({ isAuthenticated }
         <Link to="/saved-messages">
           <Bookmark className="mr-2 h-5 w-5 text-purple-600" />
           Saved Messages
+        </Link>
+      </Button>
+
+      {/* नया लाइब्रेरी बटन जोड़ा */}
+      <Button 
+        variant="outline" 
+        size="lg" 
+        className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700" 
+        asChild
+      >
+        <Link to="/library">
+          <Book className="mr-2 h-5 w-5 text-purple-600" />
+          पुस्तकालय
         </Link>
       </Button>
 
