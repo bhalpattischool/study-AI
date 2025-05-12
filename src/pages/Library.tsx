@@ -5,6 +5,7 @@ import LibraryHeader from '@/components/library/LibraryHeader';
 import LibraryCategories from '@/components/library/LibraryCategories';
 import BooksList from '@/components/library/BooksList';
 import UploadBookModal from '@/components/library/UploadBookModal';
+import LibraryBottomNav from '@/components/library/LibraryBottomNav';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicBooks, getBooksByCategory, getPopularBooks } from '@/lib/firebase/library';
 import { BookCategory } from '@/types/library';
@@ -65,7 +66,7 @@ const Library: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto pb-20">
         <LibraryHeader 
           onUploadClick={() => setIsUploadModalOpen(true)} 
           isAuthenticated={!!currentUser}
@@ -107,6 +108,8 @@ const Library: React.FC = () => {
           </Tabs>
         </div>
       </div>
+      
+      <LibraryBottomNav />
       
       <UploadBookModal 
         isOpen={isUploadModalOpen} 

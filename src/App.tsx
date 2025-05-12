@@ -15,6 +15,9 @@ import StudentProfile from './pages/StudentProfile';
 import NotFound from './pages/NotFound';
 import ChatSystem from './pages/ChatSystem';
 import Leaderboard from './pages/Leaderboard';
+import Library from './pages/Library';
+import MyBooks from './pages/MyBooks';
+import UploadBook from './pages/UploadBook';
 import { ThemeWrapper } from './ThemeWrapper';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -68,6 +71,9 @@ function App() {
               <Route path="/chat" element={<ChatSystem />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/notifications-test" element={<NotificationsTestPage />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/library/my-books" element={<MyBooks />} />
+              <Route path="/library/upload" element={<UploadBook />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <NotificationToast />

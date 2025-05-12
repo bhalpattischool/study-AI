@@ -17,11 +17,10 @@ import {
   FieldValue
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { auth, storage } from "./config";
-import { getFirestore } from "firebase/firestore";
+import { auth } from "./config";
+import { libraryStorage, libraryDb } from "./libraryConfig";
 import { Book, BookUploadForm } from "@/types/library";
 
-const db = getFirestore();
 const COLLECTION_NAME = "library_books";
 
 // पुस्तक अपलोड करने का फंक्शन
@@ -46,20 +45,20 @@ export const uploadBook = async (bookData: BookUploadForm): Promise<string> => {
 
     // अगर कवर इमेज है तो अपलोड करें
     if (bookData.coverImage) {
-      const coverImageRef = ref(storage, `library/covers/${Date.now()}_${bookData.coverImage.name}`);
+      const coverImageRef = ref(libraryStorage, `library/covers/${Date.now()}_${bookData.coverImage.name}`);
       const coverSnapshot = await uploadBytes(coverImageRef, bookData.coverImage);
       bookToUpload.coverImageUrl = await getDownloadURL(coverSnapshot.ref);
     }
 
     // अगर पुस्तक फाइल है तो अपलोड करें
     if (bookData.bookFile) {
-      const bookFileRef = ref(storage, `library/files/${Date.now()}_${bookData.bookFile.name}`);
+      const bookFileRef = ref(libraryStorage, `library/files/${Date.now()}_${bookData.bookFile.name}`);
       const bookSnapshot = await uploadBytes(bookFileRef, bookData.bookFile);
       bookToUpload.fileUrl = await getDownloadURL(bookSnapshot.ref);
     }
 
     // फायरस्टोर में पुस्तक सेव करें
-    const bookRef = await addDoc(collection(db, COLLECTION_NAME), bookToUpload);
+    const bookRef = await addDoc(collection(libraryDb, COLLECTION_NAME), bookToUpload);
     return bookRef.id;
   } catch (error) {
     console.error("पुस्तक अपलोड में त्रुटि:", error);
@@ -71,7 +70,7 @@ export const uploadBook = async (bookData: BookUploadForm): Promise<string> => {
 export const getPublicBooks = async (): Promise<Book[]> => {
   try {
     const q = query(
-      collection(db, COLLECTION_NAME), 
+      collection(libraryDb, COLLECTION_NAME), 
       where("isPublic", "==", true),
       orderBy("uploadedAt", "desc")
     );
@@ -91,7 +90,7 @@ export const getPublicBooks = async (): Promise<Book[]> => {
 export const getBooksByCategory = async (category: string): Promise<Book[]> => {
   try {
     const q = query(
-      collection(db, COLLECTION_NAME),
+      collection(libraryDb, COLLECTION_NAME),
       where("category", "==", category),
       where("isPublic", "==", true),
       orderBy("uploadedAt", "desc")
@@ -117,7 +116,7 @@ export const getUserBooks = async (userId?: string): Promise<Book[]> => {
     const uid = userId || currentUser?.uid;
     
     const q = query(
-      collection(db, COLLECTION_NAME),
+      collection(libraryDb, COLLECTION_NAME),
       where("uploadedBy", "==", uid),
       orderBy("uploadedAt", "desc")
     );
@@ -136,7 +135,7 @@ export const getUserBooks = async (userId?: string): Promise<Book[]> => {
 // विशिष्ट पुस्तक की जानकारी प्राप्त करें
 export const getBookById = async (bookId: string): Promise<Book> => {
   try {
-    const bookDoc = await getDoc(doc(db, COLLECTION_NAME, bookId));
+    const bookDoc = await getDoc(doc(libraryDb, COLLECTION_NAME, bookId));
     
     if (!bookDoc.exists()) {
       throw new Error("पुस्तक नहीं मिली");
@@ -156,7 +155,7 @@ export const getBookById = async (bookId: string): Promise<Book> => {
 export const getPopularBooks = async (limitCount = 10): Promise<Book[]> => {
   try {
     const q = query(
-      collection(db, COLLECTION_NAME),
+      collection(libraryDb, COLLECTION_NAME),
       where("isPublic", "==", true),
       orderBy("likes", "desc"),
       limit(limitCount)
@@ -176,7 +175,7 @@ export const getPopularBooks = async (limitCount = 10): Promise<Book[]> => {
 // पुस्तक को लाइक करें
 export const likeBook = async (bookId: string): Promise<void> => {
   try {
-    const bookRef = doc(db, COLLECTION_NAME, bookId);
+    const bookRef = doc(libraryDb, COLLECTION_NAME, bookId);
     await updateDoc(bookRef, {
       likes: increment(1)
     });
@@ -189,7 +188,7 @@ export const likeBook = async (bookId: string): Promise<void> => {
 // पुस्तक डाउनलोड काउंट बढ़ाएं
 export const incrementDownload = async (bookId: string): Promise<void> => {
   try {
-    const bookRef = doc(db, COLLECTION_NAME, bookId);
+    const bookRef = doc(libraryDb, COLLECTION_NAME, bookId);
     await updateDoc(bookRef, {
       downloads: increment(1)
     });
@@ -211,7 +210,7 @@ export const deleteBook = async (bookId: string): Promise<void> => {
       throw new Error("आप इस पुस्तक को हटाने के अधिकृत नहीं हैं");
     }
     
-    await deleteDoc(doc(db, COLLECTION_NAME, bookId));
+    await deleteDoc(doc(libraryDb, COLLECTION_NAME, bookId));
   } catch (error) {
     console.error("पुस्तक हटाने में त्रुटि:", error);
     throw error;
