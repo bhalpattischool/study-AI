@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Book } from '@/types/library';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { hi } from 'date-fns/locale';
 import firebase from 'firebase/app';
+import 'firebase/firestore';
 
 interface BookCardProps {
   book: Book;

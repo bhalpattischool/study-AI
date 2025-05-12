@@ -1,4 +1,8 @@
 
+// Import Firebase correctly
+import firebase from 'firebase/app';
+import 'firebase/firestore';
+
 export interface Book {
   id: string;
   title: string;
@@ -34,6 +38,3 @@ export interface BookUploadForm {
   tags: string[];
   isPublic: boolean;
 }
-
-// Add this import at the top
-import firebase from 'firebase/app';
