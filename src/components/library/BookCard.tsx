@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Book } from '@/types/library';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -8,6 +7,7 @@ import { incrementDownload, likeBook } from '@/lib/firebase/library';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { hi } from 'date-fns/locale';
+import firebase from 'firebase/app';
 
 interface BookCardProps {
   book: Book;
@@ -49,11 +49,20 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
     window.open(book.externalLink, '_blank');
   };
 
-  const uploadDate = book.uploadedAt instanceof Date 
-    ? book.uploadedAt 
-    : new Date(book.uploadedAt as string);
+  // Updated timestamp handling
+  const getUploadDate = () => {
+    if (book.uploadedAt instanceof Date) {
+      return book.uploadedAt;
+    } else if (typeof book.uploadedAt === 'string') {
+      return new Date(book.uploadedAt);
+    } else if (book.uploadedAt && typeof book.uploadedAt.toDate === 'function') {
+      // Handle Firebase Timestamp
+      return book.uploadedAt.toDate();
+    }
+    return new Date();
+  };
 
-  const timeAgo = formatDistanceToNow(uploadDate, { 
+  const timeAgo = formatDistanceToNow(getUploadDate(), { 
     addSuffix: true,
     locale: hi
   });

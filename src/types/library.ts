@@ -10,7 +10,7 @@ export interface Book {
   category: string;
   tags: string[];
   uploadedBy: string;
-  uploadedAt: Date | string;
+  uploadedAt: Date | string | firebase.firestore.Timestamp;
   likes: number;
   downloads: number;
   isPublic: boolean;
@@ -34,3 +34,6 @@ export interface BookUploadForm {
   tags: string[];
   isPublic: boolean;
 }
+
+// Add this import at the top
+import firebase from 'firebase/app';
