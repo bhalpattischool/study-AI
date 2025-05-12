@@ -1,7 +1,6 @@
 
-// Import Firebase correctly
-import firebase from 'firebase/app';
-import 'firebase/firestore';
+// Import Firebase correctly using modular imports
+import { Timestamp } from 'firebase/firestore';
 
 export interface Book {
   id: string;
@@ -14,7 +13,7 @@ export interface Book {
   category: string;
   tags: string[];
   uploadedBy: string;
-  uploadedAt: Date | string | firebase.firestore.Timestamp;
+  uploadedAt: Date | string | Timestamp;
   likes: number;
   downloads: number;
   isPublic: boolean;

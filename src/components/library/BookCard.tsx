@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Book } from '@/types/library';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -8,8 +7,7 @@ import { incrementDownload, likeBook } from '@/lib/firebase/library';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { hi } from 'date-fns/locale';
-import firebase from 'firebase/app';
-import 'firebase/firestore';
+import { Timestamp } from 'firebase/firestore';
 
 interface BookCardProps {
   book: Book;
@@ -57,9 +55,9 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
       return book.uploadedAt;
     } else if (typeof book.uploadedAt === 'string') {
       return new Date(book.uploadedAt);
-    } else if (book.uploadedAt && typeof book.uploadedAt.toDate === 'function') {
+    } else if (book.uploadedAt && typeof (book.uploadedAt as Timestamp).toDate === 'function') {
       // Handle Firebase Timestamp
-      return book.uploadedAt.toDate();
+      return (book.uploadedAt as Timestamp).toDate();
     }
     return new Date();
   };
