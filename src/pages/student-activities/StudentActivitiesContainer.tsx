@@ -10,7 +10,6 @@ import DailyLoginBonus from '@/components/student/DailyLoginBonus';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import DailyStreakDisplay from '@/components/student/DailyStreakDisplay';
 import { Card, CardContent } from '@/components/ui/card';
-import { AdBanner } from '@/components/ads';
 
 interface StudentActivitiesContainerProps {
   currentUser: any;
@@ -40,7 +39,6 @@ const StudentActivitiesContainer: React.FC<StudentActivitiesContainerProps> = ({
   const [loginBonusPoints, setLoginBonusPoints] = useState(0);
   const [streakDays, setStreakDays] = useState(0);
   const [showStreakCard, setShowStreakCard] = useState(true);
-  const [showAds, setShowAds] = useState(true);
   
   useEffect(() => {
     if (currentUser) {
@@ -81,13 +79,6 @@ const StudentActivitiesContainer: React.FC<StudentActivitiesContainerProps> = ({
             streakDays={streakDays} 
             className="border-purple-200"
           />
-        </div>
-      )}
-      
-      {/* Non-intrusive ad placement */}
-      {showAds && (
-        <div className="px-4 mb-4">
-          <AdBanner className="max-w-lg mx-auto" slot="2406295156" />
         </div>
       )}
       
