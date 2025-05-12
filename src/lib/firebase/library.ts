@@ -13,7 +13,8 @@ import {
   deleteDoc,
   increment,
   Timestamp,
-  serverTimestamp
+  serverTimestamp,
+  FieldValue
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, storage } from "./config";
@@ -37,7 +38,7 @@ export const uploadBook = async (bookData: BookUploadForm): Promise<string> => {
       tags: bookData.tags,
       externalLink: bookData.externalLink || "",
       uploadedBy: currentUser.uid,
-      uploadedAt: serverTimestamp(), // Using serverTimestamp instead of Timestamp.now()
+      uploadedAt: serverTimestamp(), // Now FieldValue is an accepted type
       likes: 0,
       downloads: 0,
       isPublic: bookData.isPublic

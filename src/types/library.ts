@@ -1,6 +1,6 @@
 
 // Import Firebase correctly using modular imports
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, FieldValue } from 'firebase/firestore';
 
 export interface Book {
   id: string;
@@ -13,7 +13,7 @@ export interface Book {
   category: string;
   tags: string[];
   uploadedBy: string;
-  uploadedAt: Date | string | Timestamp;
+  uploadedAt: Date | string | Timestamp | FieldValue;
   likes: number;
   downloads: number;
   isPublic: boolean;
