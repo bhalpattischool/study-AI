@@ -66,7 +66,7 @@ const Library: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="max-w-7xl mx-auto pb-20">
+      <div className="max-w-7xl mx-auto pb-24">
         <LibraryHeader 
           onUploadClick={() => setIsUploadModalOpen(true)} 
           isAuthenticated={!!currentUser}

@@ -30,7 +30,7 @@ const MyBooks: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="max-w-7xl mx-auto pb-20">
+      <div className="max-w-7xl mx-auto pb-24">
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-2">
