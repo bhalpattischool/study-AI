@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { chatDB, Message as MessageType } from '@/lib/db';
-import { generateResponse } from '@/lib/gemini';
+import { generateResponse } from '@/lib/deepseek'; // Updated import from gemini to deepseek
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
 import { getGroupDetails, listenForMessages } from '@/lib/firebase';
