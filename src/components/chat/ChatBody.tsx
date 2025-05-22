@@ -8,8 +8,8 @@ interface ChatBodyProps {
   messages: any[];
   isLoading: boolean;
   isResponding: boolean;
-  onMessageEdited: () => void;
-  onMessageDeleted: () => void;
+  onMessageEdited: (messageId: string, newContent: string) => void;
+  onMessageDeleted: (messageId: string) => void;
   onSendMessage: (message: string) => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
 }
