@@ -1,12 +1,12 @@
 
 import { useCallback } from 'react';
 
-export const useScrollHandler = (ref: React.RefObject<HTMLDivElement>) => {
+export const useScrollHandler = (messagesEndRef: React.RefObject<HTMLDivElement>) => {
   const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      ref.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  }, [ref]);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messagesEndRef]);
 
   return { scrollToBottom };
 };
