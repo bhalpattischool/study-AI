@@ -57,7 +57,8 @@ export async function generateResponse(prompt: string, history: Message[] = [], 
     const responseText = data.choices[0].message.content;
     
     // If chatId is provided, store the response in local storage via chatDB
-    if (chatId) {
+    // Note: We're not storing responses here because the combined approach handles storage
+    if (chatId && false) { // Disabled - handled by multiModelResponse.ts now
       try {
         await chatDB.addMessage(chatId, responseText, "bot");
         console.log("Response stored in local storage for chat:", chatId);

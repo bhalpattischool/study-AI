@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { chatDB } from '@/lib/db';
-import { generateResponse } from '@/lib/deepseek'; // Updated import from gemini to deepseek
+import { generateCombinedResponse } from '@/lib/multiModelResponse'; // Updated import to use the combined function
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
 import { Message as MessageType } from '@/lib/db';
@@ -86,10 +86,10 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       const currentChat = await chatDB.getChat(chatId);
       const chatHistory = currentChat?.messages || [];
       
-      // Get AI response (pass chatId to store response automatically)
-      await generateResponse(input.trim(), chatHistory, chatId);
+      // Get combined AI response from both models (pass chatId to store response automatically)
+      await generateCombinedResponse(input.trim(), chatHistory, chatId);
       
-      // Update local state with bot response (it's already stored in DB from generateResponse)
+      // Update local state with bot response (it's already stored in DB from generateCombinedResponse)
       // Refresh messages from storage to ensure we have the latest data
       await loadMessages();
       
