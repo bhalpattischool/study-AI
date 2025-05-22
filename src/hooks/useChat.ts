@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { chatDB, Message as MessageType } from '@/lib/db';
-import { generateResponse } from '@/lib/deepseek'; // Updated import from gemini to deepseek
+import { generateCombinedResponse } from '@/lib/multiModelResponse';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
 import { getGroupDetails, listenForMessages } from '@/lib/firebase';
@@ -140,10 +140,10 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       const currentChat = await chatDB.getChat(chatId);
       const chatHistory = currentChat?.messages || [];
       
-      // Get AI response (pass chatId to store response automatically)
-      const response = await generateResponse(input.trim(), chatHistory, chatId);
+      // Update to use the combined response function that uses both models
+      await generateCombinedResponse(input.trim(), chatHistory, chatId);
       
-      // Update local state with bot response (it's already stored in DB from generateResponse)
+      // Update local state with bot response (it's already stored in DB from generateCombinedResponse)
       // Refresh messages from storage to ensure we have the latest data
       await loadMessages();
       

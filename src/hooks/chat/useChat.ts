@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { chatDB } from '@/lib/db';
-import { generateCombinedResponse } from '@/lib/multiModelResponse'; // Updated import to use the combined function
+import { generateCombinedResponse } from '@/lib/multiModelResponse'; // Updated to use combined response
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
 import { Message as MessageType } from '@/lib/db';
@@ -86,7 +86,7 @@ export const useChat = (chatId: string, onChatUpdated?: () => void) => {
       const currentChat = await chatDB.getChat(chatId);
       const chatHistory = currentChat?.messages || [];
       
-      // Get combined AI response from both models (pass chatId to store response automatically)
+      // Use combined response function that leverages both models
       await generateCombinedResponse(input.trim(), chatHistory, chatId);
       
       // Update local state with bot response (it's already stored in DB from generateCombinedResponse)

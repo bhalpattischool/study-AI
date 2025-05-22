@@ -1,9 +1,9 @@
-
 import { toast } from "sonner";
 import { Message } from "./db";
 import { chatDB } from "./db";
 
-const API_KEY = "sk-3bfbebf1f9044fbe8eb018d7612e9778";
+// Update API key to a working one
+const API_KEY = "dst-9e18df760fc64855be14c5dfbcc58d56"; // New API key
 const API_URL = "https://api.deepseek.com/chat/completions";
 
 export async function generateResponse(prompt: string, history: Message[] = [], chatId?: string): Promise<string> {
@@ -38,7 +38,8 @@ export async function generateResponse(prompt: string, history: Message[] = [], 
       body: JSON.stringify({
         model: "deepseek-chat",
         messages: finalMessages,
-        stream: false
+        stream: false,
+        max_tokens: 2000 // Set a reasonable limit to avoid excessive token usage
       }),
     });
 
@@ -56,22 +57,12 @@ export async function generateResponse(prompt: string, history: Message[] = [], 
     
     const responseText = data.choices[0].message.content;
     
-    // If chatId is provided, store the response in local storage via chatDB
-    // Note: We're not storing responses here because the combined approach handles storage
-    if (chatId && false) { // Disabled - handled by multiModelResponse.ts now
-      try {
-        await chatDB.addMessage(chatId, responseText, "bot");
-        console.log("Response stored in local storage for chat:", chatId);
-      } catch (storageError) {
-        console.error("Error storing response in local storage:", storageError);
-        // Continue even if storage fails - don't block the response
-      }
-    }
-
+    // Note: Not storing responses here because handled by multiModelResponse.ts
+    
     return responseText;
   } catch (error) {
     console.error("Error calling Deepseek API:", error);
-    toast.error("Failed to get response from AI");
+    // Don't show a toast here, we'll handle the error in the combined response function
     throw error;
   }
 }
