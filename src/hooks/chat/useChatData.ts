@@ -1,10 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { chatDB } from '@/lib/db';
-import { Message as MessageType } from '@/lib/db';
+import { chatDB, Message as MessageType } from '@/lib/db';
 import { toast } from "sonner";
-import { getGroupDetails } from '@/lib/firebase';
 
+// Export the useChatData hook
 export const useChatData = (chatId: string) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { chatDB } from '@/lib/db';
-import { generateCombinedResponse } from '@/lib/multiModelResponse'; // Updated to use combined response
+import { generateCombinedResponse } from '@/lib/multiModelResponse';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
 import { Message as MessageType } from '@/lib/db';

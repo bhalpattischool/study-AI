@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getGroupDetails, listenForMessages } from '@/lib/firebase';
 
+// Add a specific hook for group chat that handles realtime updates
 export const useGroupChat = (groupId: string, onChatUpdated?: () => void) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
